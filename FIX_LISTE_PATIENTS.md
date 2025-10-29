@@ -1,15 +1,66 @@
-# ✅ Correction - Liste des patients maintenant synchronisée
+# ✅ Corrections Finales - Session 29 Oct 2025
 
-## 🐛 Problème identifié
+## 🎯 Problèmes Résolus
 
-**Symptôme:** Les patients affichés dans la nouvelle liste ne correspondaient pas aux patients réels.
+### 1. ✅ Login Credentials - Email Changé
 
-**Cause racine:**
-- Le nouveau composant `PatientListUltraClean` utilisait la table `patients`
-- Mais ton système utilise la table `contacts` comme source principale
-- Les deux tables ont des structures différentes:
-  - `patients` → `first_name` + `last_name` + données cliniques
-  - `contacts` → `full_name` + informations de base
+**Problème:** `Error 400: Invalid login credentials`
+
+**Cause:** Email changé de `test@chiroflow.com` à `maxime@giguere-influence.com` mais mot de passe non réinitialisé.
+
+**Solution:**
+```sql
+UPDATE auth.users
+SET encrypted_password = crypt('gpt12345', gen_salt('bf'))
+WHERE email = 'maxime@giguere-influence.com';
+```
+
+**Nouvelles Credentials:**
+- Email: `maxime@giguere-influence.com`
+- Password: `gpt12345`
+- Role: Admin
+- User ID: `f7aaf2dc-a4fa-4ca6-a54a-898b1b4bfdff`
+
+---
+
+### 2. ✅ Table patients Manquante
+
+**Erreur Console:** `Error PGRST205: Could not find table 'public.patients'`
+
+**Cause:** Le code frontend utilise `.from('patients')` mais seule la table `contacts` existe.
+
+**Solution:** Vue `patients` créée mappant vers `contacts`:
+
+```sql
+CREATE VIEW patients AS
+SELECT
+  c.id, c.full_name,
+  split_part(c.full_name, ' ', 1) as first_name,
+  split_part(c.full_name, ' ', 2) as last_name,
+  c.email, c.phone, c.date_of_birth,
+  c.address, c.notes,
+  COALESCE(c.status, 'active') as status,
+  c.owner_id, c.created_at, c.updated_at
+FROM contacts c;
+```
+
+---
+
+### 3. ✅ appointments_api Insert Impossible
+
+**Erreur Console:** `Error 0A000: cannot insert into column "scheduled_date" of view`
+
+**Cause:** Colonnes `scheduled_date` et `scheduled_time` sont calculées, donc vue non updatable.
+
+**Solution:** INSTEAD OF triggers créés:
+
+```sql
+CREATE TRIGGER appointments_api_insert_trigger
+  INSTEAD OF INSERT ON appointments_api
+  FOR EACH ROW EXECUTE FUNCTION appointments_api_insert();
+```
+
+La fonction reconstruit `scheduled_at` depuis `scheduled_date` + `scheduled_time`.
 
 ## ✅ Corrections appliquées
 
