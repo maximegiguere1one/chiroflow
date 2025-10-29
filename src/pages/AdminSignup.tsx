@@ -38,50 +38,30 @@ export default function AdminSignup() {
     }
 
     try {
-      // Créer l'utilisateur avec Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName
-          }
-        }
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/create-admin-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          full_name: fullName,
+          invite_code: inviteCode,
+        }),
       });
 
-      if (authError) throw authError;
+      const data = await response.json();
 
-      if (authData.user) {
-        // Créer le profil dans la table profiles
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: authData.user.id,
-            email,
-            full_name: fullName,
-            role: 'admin'
-          });
-
-        if (profileError && profileError.code !== '23505') {
-          console.error('Profile error:', profileError);
-        }
-
-        // Créer les settings de la clinique
-        const { error: settingsError } = await supabase
-          .from('clinic_settings')
-          .insert({
-            owner_id: authData.user.id,
-            clinic_name: 'Clinique Dre Janie Leblanc',
-            email: 'dre.janie@example.com',
-            phone: '418-XXX-XXXX'
-          });
-
-        if (settingsError && settingsError.code !== '23505') {
-          console.error('Settings error:', settingsError);
-        }
-
-        setSuccess(true);
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Erreur lors de la création du compte');
       }
+
+      setSuccess(true);
     } catch (err: any) {
       setError(err.message || 'Erreur lors de la création du compte');
     } finally {
