@@ -13,6 +13,7 @@ import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminSignup from './pages/AdminSignup';
 import TestSignup from './pages/TestSignup';
+import DiagnosticPage from './pages/DiagnosticPage';
 import InvitationResponse from './pages/InvitationResponse';
 import RebookResponse from './pages/RebookResponse';
 import PatientPortalLogin from './pages/PatientPortalLogin';
@@ -93,6 +94,10 @@ function App() {
 
   if (route?.component === 'TestSignup') {
     return <TestSignup />;
+  }
+
+  if (route?.component === 'DiagnosticPage') {
+    return <DiagnosticPage />;
   }
 
   if (route?.role === 'admin') {

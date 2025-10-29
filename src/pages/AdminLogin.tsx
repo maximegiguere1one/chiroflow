@@ -125,7 +125,13 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
             </button>
           </form>
 
-          <div className="mt-8 pt-6 border-t border-neutral-200/50 text-center">
+          <div className="mt-8 pt-6 border-t border-neutral-200/50 text-center space-y-3">
+            <a
+              href="/admin/signup"
+              className="text-sm text-gold-600 hover:text-gold-700 transition-colors font-light"
+            >
+              Créer un compte administrateur
+            </a>
             <p className="text-xs text-foreground/40 font-light">
               Accès réservé aux administrateurs autorisés
             </p>
