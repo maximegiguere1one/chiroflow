@@ -1,0 +1,92 @@
+/*
+  # Correction finale pg_net.http_post avec la bonne signature
+
+  1. Changements
+    - Utilisation de la vraie signature: net.http_post(url text, body jsonb, params jsonb, headers jsonb, timeout int)
+    - body en jsonb, pas en text
+
+  2. Signature correcte
+    - url: text
+    - body: jsonb (optionnel, défaut {})
+    - params: jsonb (optionnel, défaut {})
+    - headers: jsonb (optionnel, défaut {"Content-Type": "application/json"})
+    - timeout_milliseconds: integer (optionnel, défaut 5000)
+*/
+
+-- Supprimer l'ancienne fonction
+DROP FUNCTION IF EXISTS notify_admin_new_booking() CASCADE;
+
+-- Nouvelle fonction avec la VRAIE syntaxe pg_net
+CREATE OR REPLACE FUNCTION notify_admin_new_booking()
+RETURNS TRIGGER AS $$
+DECLARE
+  request_id bigint;
+  function_url text;
+  payload jsonb;
+BEGIN
+  -- Seulement pour les RDV réservés en ligne
+  IF NEW.booking_source = 'online' THEN
+    function_url := 'https://tuwswtgpkgtckhmnjnru.supabase.co/functions/v1/notify-admin-new-booking';
+    payload := jsonb_build_object('appointment_id', NEW.id);
+
+    -- Appel HTTP via pg_net avec la BONNE signature
+    -- Syntaxe: net.http_post(url, body, params, headers, timeout)
+    SELECT INTO request_id net.http_post(
+      url := function_url,
+      body := payload,
+      headers := '{"Content-Type": "application/json"}'::jsonb
+    );
+
+    -- Log succès avec request_id
+    INSERT INTO admin_notifications_log (
+      appointment_id,
+      notification_type,
+      success,
+      error_message,
+      created_at
+    ) VALUES (
+      NEW.id,
+      'new_booking',
+      true,
+      'Request ID: ' || request_id,
+      now()
+    );
+
+    RAISE NOTICE 'Admin notification envoyée - request_id: %', request_id;
+  END IF;
+
+  RETURN NEW;
+EXCEPTION WHEN OTHERS THEN
+  -- En cas d'erreur, on log mais on ne bloque pas l'insertion
+  INSERT INTO admin_notifications_log (
+    appointment_id,
+    notification_type,
+    success,
+    error_message,
+    created_at
+  ) VALUES (
+    NEW.id,
+    'new_booking',
+    false,
+    'ERREUR: ' || SQLERRM,
+    now()
+  );
+  
+  RAISE WARNING 'Erreur notification admin: %', SQLERRM;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Recréer le trigger
+DROP TRIGGER IF EXISTS trigger_notify_admin_new_booking ON appointments;
+CREATE TRIGGER trigger_notify_admin_new_booking
+  AFTER INSERT ON appointments
+  FOR EACH ROW
+  WHEN (NEW.booking_source = 'online')
+  EXECUTE FUNCTION notify_admin_new_booking();
+
+-- Message de confirmation
+DO $$
+BEGIN
+  RAISE NOTICE '✅ Trigger recréé avec succès - syntaxe pg_net corrigée!';
+END $$;

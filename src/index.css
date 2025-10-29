@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-size: 1.0625rem;
+    line-height: 1.7;
+  }
+
+  h1 {
+    @apply font-heading text-h1;
+  }
+
+  h2 {
+    @apply font-heading text-h2;
+  }
+
+  h3 {
+    @apply font-heading text-h3;
+  }
+
+  h4 {
+    @apply font-heading text-h4;
+  }
+
+  h5 {
+    @apply font-heading text-lg font-semibold;
+    line-height: 1.4;
+  }
+
+  h6 {
+    @apply font-heading text-base font-semibold;
+    line-height: 1.5;
+  }
+
+  p {
+    line-height: 1.7;
+    max-width: 75ch;
+  }
+
+  a {
+    @apply transition-colors duration-200;
+  }
+
+  button {
+    @apply transition-all duration-300;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-8 py-4 bg-primary text-white rounded-full font-medium shadow-soft hover:shadow-soft-lg hover:bg-primary-600 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .btn-secondary {
+    @apply px-8 py-4 bg-white text-primary border-2 border-primary rounded-full font-medium hover:bg-primary-50 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .card {
+    @apply bg-white rounded-2xl p-8 shadow-soft hover:shadow-soft-lg transition-all duration-300 border border-neutral-200;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .glass {
+    @apply bg-white/60 backdrop-blur-sm rounded-2xl shadow-soft border border-white/20;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .transition-smooth {
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .max-w-prose {
+    max-width: 65ch;
+  }
+
+  .max-w-content {
+    max-width: 75ch;
+  }
+}
