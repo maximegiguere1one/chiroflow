@@ -35,13 +35,17 @@ export function ActionableAnalytics() {
       const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
       const lastMonth = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
+      const todayStart = new Date(today + 'T00:00:00').toISOString();
+      const todayEnd = new Date(today + 'T23:59:59').toISOString();
+      const lastWeekStart = new Date(lastWeek + 'T00:00:00').toISOString();
+
       const [noShowsResult, revenueResult, availabilityResult, inactivePatientsResult] = await Promise.all([
         supabase
           .from('appointments')
-          .select('id, status, scheduled_date')
+          .select('id, status, scheduled_at')
           .eq('status', 'no_show')
-          .gte('scheduled_date', lastWeek)
-          .order('scheduled_date', { ascending: false }),
+          .gte('scheduled_at', lastWeekStart)
+          .order('scheduled_at', { ascending: false }),
 
         supabase
           .from('invoices')
@@ -51,10 +55,11 @@ export function ActionableAnalytics() {
 
         supabase
           .from('appointments')
-          .select('id, scheduled_date, scheduled_time')
-          .eq('scheduled_date', today)
+          .select('id, scheduled_at')
+          .gte('scheduled_at', todayStart)
+          .lte('scheduled_at', todayEnd)
           .in('status', ['confirmed', 'pending'])
-          .order('scheduled_time', { ascending: true }),
+          .order('scheduled_at', { ascending: true }),
 
         supabase
           .from('patients')

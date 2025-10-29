@@ -29,15 +29,25 @@ export function TodayDashboard() {
 
   async function loadTodayData() {
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date();
+      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
+      const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+
       const { data, error } = await supabase
         .from('appointments')
         .select('*')
-        .eq('scheduled_date', today)
-        .order('scheduled_time', { ascending: true });
+        .gte('scheduled_at', startOfDay.toISOString())
+        .lte('scheduled_at', endOfDay.toISOString())
+        .order('scheduled_at', { ascending: true });
 
       if (error) throw error;
-      setAppointments(data || []);
+
+      const appointmentsWithTime = (data || []).map(apt => ({
+        ...apt,
+        scheduled_time: apt.scheduled_at ? new Date(apt.scheduled_at).toTimeString().slice(0, 5) : null
+      }));
+
+      setAppointments(appointmentsWithTime);
     } catch (error) {
       console.error('Error loading today data:', error);
     } finally {

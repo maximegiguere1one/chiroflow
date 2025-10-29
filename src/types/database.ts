@@ -19,7 +19,8 @@ export interface Patient {
 
 export interface Appointment {
   id: string;
-  patient_id: string | null;
+  contact_id: string | null;
+  provider_id: string | null;
   name: string;
   email: string;
   phone: string;
@@ -27,12 +28,16 @@ export interface Appointment {
   patient_age: string | null;
   preferred_time: string | null;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'no_show';
-  scheduled_date: string | null;
-  scheduled_time: string | null;
+  scheduled_at: string | null;
   duration_minutes: number;
   notes: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface AppointmentWithDateTime extends Appointment {
+  scheduled_date: string | null;
+  scheduled_time: string | null;
 }
 
 export interface SoapNote {

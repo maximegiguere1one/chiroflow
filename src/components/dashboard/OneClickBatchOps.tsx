@@ -37,19 +37,26 @@ export function OneClickBatchOps() {
         'Check disponibilités'
       ],
       execute: async () => {
-        const today = new Date().toISOString().split('T')[0];
-        const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        const today = new Date();
+        const todayStart = new Date(today.setHours(0, 0, 0, 0)).toISOString();
+        const todayEnd = new Date(today.setHours(23, 59, 59, 999)).toISOString();
+
+        const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const yesterdayStart = new Date(yesterday.setHours(0, 0, 0, 0)).toISOString();
+        const yesterdayEnd = new Date(yesterday.setHours(23, 59, 59, 999)).toISOString();
 
         const { data: todayAppts } = await supabase
           .from('appointments')
           .select('*')
-          .eq('scheduled_date', today)
+          .gte('scheduled_at', todayStart)
+          .lte('scheduled_at', todayEnd)
           .in('status', ['confirmed', 'pending']);
 
         const { data: yesterdayNoShows } = await supabase
           .from('appointments')
           .select('*')
-          .eq('scheduled_date', yesterday)
+          .gte('scheduled_at', yesterdayStart)
+          .lte('scheduled_at', yesterdayEnd)
           .eq('status', 'no_show');
 
         return {
@@ -74,19 +81,23 @@ export function OneClickBatchOps() {
         'Générer stats du jour'
       ],
       execute: async () => {
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date();
+        const todayStart = new Date(today.setHours(0, 0, 0, 0)).toISOString();
+        const todayEnd = new Date(today.setHours(23, 59, 59, 999)).toISOString();
+        const todayStr = today.toISOString().split('T')[0];
 
         const { data: completedAppts } = await supabase
           .from('appointments')
           .select('*')
-          .eq('scheduled_date', today)
+          .gte('scheduled_at', todayStart)
+          .lte('scheduled_at', todayEnd)
           .eq('status', 'completed');
 
         const { data: unpaidInvoices } = await supabase
           .from('invoices')
           .select('*')
           .eq('status', 'unpaid')
-          .lte('due_date', today);
+          .lte('due_date', todayStr);
 
         return {
           success: (completedAppts?.length || 0) + (unpaidInvoices?.length || 0),
@@ -140,12 +151,15 @@ export function OneClickBatchOps() {
         'Mark as reminded'
       ],
       execute: async () => {
-        const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        const tomorrowStart = new Date(tomorrow.setHours(0, 0, 0, 0)).toISOString();
+        const tomorrowEnd = new Date(tomorrow.setHours(23, 59, 59, 999)).toISOString();
 
         const { data: tomorrowAppts } = await supabase
           .from('appointments')
           .select('*')
-          .eq('scheduled_date', tomorrow)
+          .gte('scheduled_at', tomorrowStart)
+          .lte('scheduled_at', tomorrowEnd)
           .in('status', ['confirmed', 'pending']);
 
         return {
