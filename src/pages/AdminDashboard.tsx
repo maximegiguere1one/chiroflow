@@ -11,8 +11,6 @@ import { AdminSidebar, type AdminView } from '../components/navigation/AdminSide
 import { Breadcrumbs } from '../components/navigation/Breadcrumbs';
 import { GlobalSearch } from '../components/common/GlobalSearch';
 import { TodayDashboard } from '../components/dashboard/TodayDashboard';
-import { MFASetupModal } from '../components/dashboard/MFASetupModal';
-import { getMFAStatus } from '../lib/mfa';
 
 const PatientManager = lazy(() => import('../components/dashboard/PatientListUltraClean'));
 const AppointmentsPage = lazy(() => import('../components/dashboard/AppointmentsPageEnhanced').then(m => ({ default: m.AppointmentsPageEnhanced })));
@@ -62,39 +60,11 @@ export default function AdminDashboard() {
   const [showQuickSoap, setShowQuickSoap] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showGlobalSearch, setShowGlobalSearch] = useState(false);
-  const [showMFASetup, setShowMFASetup] = useState(false);
-  const [mfaRequired, setMfaRequired] = useState(false);
 
   useEffect(() => {
     loadDashboardData();
     loadUserProfile();
-    checkMFARequirement();
   }, []);
-
-  async function checkMFARequirement() {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-
-      if (profile?.role === 'admin' || profile?.role === 'practitioner') {
-        const mfaStatus = await getMFAStatus();
-        const needsSetup = !mfaStatus || !mfaStatus.isEnabled || !mfaStatus.isVerified;
-
-        if (needsSetup) {
-          setMfaRequired(true);
-          setShowMFASetup(true);
-        }
-      }
-    } catch (error) {
-      console.error('Error checking MFA:', error);
-    }
-  }
 
   // Keyboard shortcuts
   useKeyboardShortcuts([
@@ -443,15 +413,6 @@ export default function AdminDashboard() {
         }}
       />
 
-      <MFASetupModal
-        isOpen={showMFASetup}
-        onClose={() => {
-          if (!mfaRequired) {
-            setShowMFASetup(false);
-          }
-        }}
-        isRequired={mfaRequired}
-      />
     </div>
   );
 }
