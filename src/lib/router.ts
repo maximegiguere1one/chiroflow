@@ -24,6 +24,7 @@ export const routes: Route[] = [
   // Admin routes
   { path: '/admin', name: 'Connexion Admin', component: 'AdminLogin', role: 'admin' },
   { path: '/admin/signup', name: 'Inscription Admin', component: 'AdminSignup', role: 'admin' },
+  { path: '/test-signup', name: 'Test Signup', component: 'TestSignup', role: 'public' },
   { path: '/admin/dashboard', name: 'Tableau de bord', component: 'AdminDashboard', requiresAuth: true, role: 'admin', icon: 'LayoutDashboard' },
 
   // Patient portal routes

@@ -12,6 +12,7 @@ import StickyCTA from './components/StickyCTA';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminSignup from './pages/AdminSignup';
+import TestSignup from './pages/TestSignup';
 import InvitationResponse from './pages/InvitationResponse';
 import RebookResponse from './pages/RebookResponse';
 import PatientPortalLogin from './pages/PatientPortalLogin';
@@ -88,6 +89,10 @@ function App() {
 
   if (route?.component === 'AppointmentManagement') {
     return <AppointmentManagement />;
+  }
+
+  if (route?.component === 'TestSignup') {
+    return <TestSignup />;
   }
 
   if (route?.role === 'admin') {
