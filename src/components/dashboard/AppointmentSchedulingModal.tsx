@@ -61,7 +61,7 @@ export function AppointmentSchedulingModal({ patient, onClose }: AppointmentSche
   async function loadAppointments() {
     try {
       const { data, error } = await supabase
-        .from('appointments')
+        .from('appointments_api')
         .select('*')
         .eq('contact_id', patient.id)
         .order('scheduled_date', { ascending: false });
@@ -131,7 +131,7 @@ export function AppointmentSchedulingModal({ patient, onClose }: AppointmentSche
 
       if (editingAppointment) {
         const { error } = await supabase
-          .from('appointments')
+          .from('appointments_api')
           .update(appointmentData)
           .eq('id', editingAppointment.id);
 
@@ -139,7 +139,7 @@ export function AppointmentSchedulingModal({ patient, onClose }: AppointmentSche
         toast.showToast?.('✅ Rendez-vous modifié avec succès', 'success');
       } else {
         const { error } = await supabase
-          .from('appointments')
+          .from('appointments_api')
           .insert([appointmentData]);
 
         if (error) throw error;
@@ -162,7 +162,7 @@ export function AppointmentSchedulingModal({ patient, onClose }: AppointmentSche
 
     try {
       const { error } = await supabase
-        .from('appointments')
+        .from('appointments_api')
         .delete()
         .eq('id', appointmentId);
 
@@ -178,7 +178,7 @@ export function AppointmentSchedulingModal({ patient, onClose }: AppointmentSche
   async function handleUpdateStatus(appointmentId: string, status: string) {
     try {
       const { error } = await supabase
-        .from('appointments')
+        .from('appointments_api')
         .update({ status })
         .eq('id', appointmentId);
 

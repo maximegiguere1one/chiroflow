@@ -27,7 +27,7 @@ export default function AppointmentManager() {
   async function loadAppointments() {
     try {
       const { data, error } = await supabase
-        .from('appointments')
+        .from('appointments_api')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -43,7 +43,7 @@ export default function AppointmentManager() {
   async function handleUpdateStatus(id: string, status: string) {
     try {
       const { error } = await supabase
-        .from('appointments')
+        .from('appointments_api')
         .update({ status })
         .eq('id', id);
 
@@ -65,7 +65,7 @@ export default function AppointmentManager() {
 
     try {
       const { error } = await supabase
-        .from('appointments')
+        .from('appointments_api')
         .delete()
         .eq('id', id);
 

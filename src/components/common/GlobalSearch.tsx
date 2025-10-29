@@ -81,7 +81,7 @@ export function GlobalSearch({ isOpen, onClose, onNavigate }: GlobalSearchProps)
           .limit(5),
 
         supabase
-          .from('appointments')
+          .from('appointments_api')
           .select('*')
           .or(`name.ilike.%${term}%,reason.ilike.%${term}%`)
           .gte('scheduled_date', new Date().toISOString().split('T')[0])

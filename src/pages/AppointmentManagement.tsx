@@ -59,7 +59,7 @@ export default function AppointmentManagement() {
       setError(null);
 
       const { data, error: fetchError } = await supabase
-        .from('appointments')
+        .from('appointments_api')
         .select(`
           id,
           scheduled_date,
@@ -175,7 +175,7 @@ export default function AppointmentManagement() {
       const selectedDateTime = new Date(selectedSlot);
 
       const { error: updateError } = await supabase
-        .from('appointments')
+        .from('appointments_api')
         .update({
           scheduled_date: selectedDateTime.toISOString(),
           scheduled_time: selectedDateTime.toTimeString().slice(0, 5),
@@ -207,7 +207,7 @@ export default function AppointmentManagement() {
       setError(null);
 
       const { error: cancelError } = await supabase
-        .from('appointments')
+        .from('appointments_api')
         .update({
           status: 'cancelled',
           cancellation_reason: cancellationReason,

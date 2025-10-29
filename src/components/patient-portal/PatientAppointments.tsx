@@ -22,7 +22,7 @@ export default function PatientAppointments({ patientId }: PatientAppointmentsPr
       setError(null);
 
       const { data, error: fetchError } = await supabase
-        .from('appointments')
+        .from('appointments_api')
         .select('*')
         .eq('patient_id', patientId)
         .order('scheduled_date', { ascending: false });

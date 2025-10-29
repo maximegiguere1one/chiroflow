@@ -130,7 +130,7 @@ export default function AdminDashboard() {
 
       const [patientsRes, appointmentsRes, analyticsRes] = await Promise.all([
         supabase.from('patients_full').select('*'),
-        supabase.from('appointments').select('*'),
+        supabase.from('appointments_api').select('*'),
         supabase.from('analytics_dashboard').select('*')
       ]);
 

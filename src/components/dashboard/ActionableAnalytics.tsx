@@ -41,7 +41,7 @@ export function ActionableAnalytics() {
 
       const [noShowsResult, revenueResult, availabilityResult, inactivePatientsResult] = await Promise.all([
         supabase
-          .from('appointments')
+          .from('appointments_api')
           .select('id, status, scheduled_at')
           .eq('status', 'no_show')
           .gte('scheduled_at', lastWeekStart)
@@ -54,7 +54,7 @@ export function ActionableAnalytics() {
           .order('issue_date', { ascending: false }),
 
         supabase
-          .from('appointments')
+          .from('appointments_api')
           .select('id, scheduled_at')
           .gte('scheduled_at', todayStart)
           .lte('scheduled_at', todayEnd)

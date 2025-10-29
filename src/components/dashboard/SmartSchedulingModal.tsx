@@ -56,7 +56,7 @@ export function SmartSchedulingModal({
       setPatient(patientData);
 
       const { data: aptsData, error: aptsError } = await supabase
-        .from('appointments')
+        .from('appointments_api')
         .select('*')
         .eq('patient_id', patientId)
         .order('scheduled_date', { ascending: false })
@@ -138,7 +138,7 @@ export function SmartSchedulingModal({
     if (!patientId || !patient) return;
 
     try {
-      const { error } = await supabase.from('appointments').insert({
+      const { error } = await supabase.from('appointments_api').insert({
         patient_id: patientId,
         name: patientName || `${patient.first_name} ${patient.last_name}`,
         email: patient.email || '',

@@ -36,7 +36,7 @@ export function AppointmentsPage() {
   async function loadAppointments() {
     try {
       const { data, error } = await supabase
-        .from('appointments')
+        .from('appointments_api')
         .select('*')
         .not('scheduled_date', 'is', null)
         .order('scheduled_date', { ascending: true });
@@ -263,7 +263,7 @@ function UpcomingAppointmentsList({
   async function handleStatusUpdate(id: string, status: string) {
     try {
       const { error } = await supabase
-        .from('appointments')
+        .from('appointments_api')
         .update({ status })
         .eq('id', id);
 
@@ -375,7 +375,7 @@ function NewAppointmentModal({
     setSaving(true);
 
     try {
-      const { error } = await supabase.from('appointments').insert({
+      const { error } = await supabase.from('appointments_api').insert({
         ...formData,
         status: 'confirmed',
       });

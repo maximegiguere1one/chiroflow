@@ -303,7 +303,7 @@ export function UltraFastSoapNote({
 
       if (nextAppointment.enabled && nextAppointment.date) {
         const { error: aptError } = await supabase
-          .from('appointments')
+          .from('appointments_api')
           .insert({
             patient_id: selectedPatientId,
             name: patientName || '',
@@ -321,7 +321,7 @@ export function UltraFastSoapNote({
 
       if (appointmentId) {
         await supabase
-          .from('appointments')
+          .from('appointments_api')
           .update({ status: 'completed' })
           .eq('id', appointmentId);
       }

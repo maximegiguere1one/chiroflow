@@ -46,14 +46,14 @@ export function OneClickBatchOps() {
         const yesterdayEnd = new Date(yesterday.setHours(23, 59, 59, 999)).toISOString();
 
         const { data: todayAppts } = await supabase
-          .from('appointments')
+          .from('appointments_api')
           .select('*')
           .gte('scheduled_at', todayStart)
           .lte('scheduled_at', todayEnd)
           .in('status', ['confirmed', 'pending']);
 
         const { data: yesterdayNoShows } = await supabase
-          .from('appointments')
+          .from('appointments_api')
           .select('*')
           .gte('scheduled_at', yesterdayStart)
           .lte('scheduled_at', yesterdayEnd)
@@ -87,7 +87,7 @@ export function OneClickBatchOps() {
         const todayStr = today.toISOString().split('T')[0];
 
         const { data: completedAppts } = await supabase
-          .from('appointments')
+          .from('appointments_api')
           .select('*')
           .gte('scheduled_at', todayStart)
           .lte('scheduled_at', todayEnd)
@@ -124,7 +124,7 @@ export function OneClickBatchOps() {
         const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
         const { data: weekNoShows } = await supabase
-          .from('appointments')
+          .from('appointments_api')
           .select('*')
           .gte('scheduled_date', lastWeek)
           .eq('status', 'no_show');
@@ -156,7 +156,7 @@ export function OneClickBatchOps() {
         const tomorrowEnd = new Date(tomorrow.setHours(23, 59, 59, 999)).toISOString();
 
         const { data: tomorrowAppts } = await supabase
-          .from('appointments')
+          .from('appointments_api')
           .select('*')
           .gte('scheduled_at', tomorrowStart)
           .lte('scheduled_at', tomorrowEnd)
@@ -190,7 +190,7 @@ export function OneClickBatchOps() {
           .eq('status', 'unpaid');
 
         const { data: completedWithoutInvoice } = await supabase
-          .from('appointments')
+          .from('appointments_api')
           .select('*')
           .eq('status', 'completed')
           .is('invoice_id', null);

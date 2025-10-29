@@ -84,7 +84,7 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
 
   const loadPatientData = async () => {
     const { data: appts } = await supabase
-      .from('appointments')
+      .from('appointments_api')
       .select('*')
       .eq('contact_id', patient.id)
       .gte('appointment_time', new Date().toISOString())
@@ -101,7 +101,7 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
     try {
       // Récupérer les détails du rendez-vous avant de l'annuler
       const { data: appointment, error: fetchError } = await supabase
-        .from('appointments')
+        .from('appointments_api')
         .select('*')
         .eq('id', appointmentId)
         .single();
@@ -110,7 +110,7 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
 
       // Annuler le rendez-vous
       const { error: updateError } = await supabase
-        .from('appointments')
+        .from('appointments_api')
         .update({ status: 'cancelled' })
         .eq('id', appointmentId);
 

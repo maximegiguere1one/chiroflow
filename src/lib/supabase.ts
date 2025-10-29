@@ -38,7 +38,7 @@ export interface ContactData {
 
 export const submitAppointment = async (data: AppointmentData) => {
   const { error } = await supabase
-    .from('appointments')
+    .from('appointments_api')
     .insert([data]);
 
   if (error) throw error;

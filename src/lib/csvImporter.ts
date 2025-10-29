@@ -311,7 +311,7 @@ export async function importAppointmentsFromCSV(
         }
 
         const { error } = await supabase
-          .from('appointments')
+          .from('appointments_api')
           .insert({
             ...appointmentData,
             status: appointmentData.status || 'pending',

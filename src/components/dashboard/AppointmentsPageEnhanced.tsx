@@ -57,7 +57,7 @@ export function AppointmentsPageEnhanced() {
   async function loadAppointments() {
     try {
       const { data, error } = await supabase
-        .from('appointments')
+        .from('appointments_api')
         .select('*')
         .not('scheduled_date', 'is', null)
         .order('scheduled_date', { ascending: true })
@@ -104,7 +104,7 @@ export function AppointmentsPageEnhanced() {
   async function updateAppointmentStatus(id: string, status: string) {
     try {
       const { error } = await supabase
-        .from('appointments')
+        .from('appointments_api')
         .update({ status })
         .eq('id', id);
 
@@ -627,7 +627,7 @@ function QuickAppointmentModal({
     setSaving(true);
 
     try {
-      const { error } = await supabase.from('appointments').insert({
+      const { error } = await supabase.from('appointments_api').insert({
         ...formData,
         status: 'confirmed',
       });

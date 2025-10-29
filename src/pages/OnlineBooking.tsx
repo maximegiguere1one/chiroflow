@@ -138,7 +138,7 @@ export function OnlineBooking() {
 
     const dateStr = date.toISOString().split('T')[0];
     const { data: existingAppointments } = await supabase
-      .from('appointments')
+      .from('appointments_api')
       .select('scheduled_time')
       .eq('scheduled_date', dateStr)
       .in('status', ['confirmed', 'pending']);
@@ -231,7 +231,7 @@ export function OnlineBooking() {
       };
 
       const { data, error } = await supabase
-        .from('appointments')
+        .from('appointments_api')
         .insert([appointmentData])
         .select()
         .single();

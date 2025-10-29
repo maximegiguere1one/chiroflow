@@ -63,7 +63,7 @@ export function EnhancedCalendar({ onAppointmentClick, onNewAppointment }: Enhan
       const endDate = getViewEndDate();
 
       const { data, error } = await supabase
-        .from('appointments')
+        .from('appointments_api')
         .select('*')
         .gte('scheduled_date', formatDateForDB(startDate))
         .lte('scheduled_date', formatDateForDB(endDate))
@@ -173,7 +173,7 @@ export function EnhancedCalendar({ onAppointmentClick, onNewAppointment }: Enhan
       }
 
       const { error } = await supabase
-        .from('appointments')
+        .from('appointments_api')
         .update({
           scheduled_date: newDate,
           scheduled_time: time,
@@ -1206,7 +1206,7 @@ function NewAppointmentModal({
     setSaving(true);
 
     try {
-      const { error } = await supabase.from('appointments').insert({
+      const { error } = await supabase.from('appointments_api').insert({
         ...formData,
         status: 'confirmed',
       });

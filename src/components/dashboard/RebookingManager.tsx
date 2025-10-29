@@ -73,7 +73,7 @@ export default function RebookingManager() {
     try {
       const [appointmentsResult, requestsResult] = await Promise.all([
         supabase
-          .from('appointments')
+          .from('appointments_api')
           .select('*')
           .in('status', ['pending', 'confirmed'])
           .order('created_at', { ascending: false })

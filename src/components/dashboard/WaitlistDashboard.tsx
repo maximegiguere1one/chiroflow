@@ -108,7 +108,7 @@ export default function WaitlistDashboard() {
       tomorrow.setHours(10, 0, 0, 0);
 
       const { data: testAppointment, error: createError } = await supabase
-        .from('appointments')
+        .from('appointments_api')
         .insert({
           name: 'Test Patient',
           email: 'test@example.com',
@@ -127,7 +127,7 @@ export default function WaitlistDashboard() {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const { error: cancelError } = await supabase
-        .from('appointments')
+        .from('appointments_api')
         .update({ status: 'cancelled' })
         .eq('id', testAppointment.id);
 

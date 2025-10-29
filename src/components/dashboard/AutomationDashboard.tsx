@@ -72,7 +72,7 @@ export default function AutomationDashboard() {
         invitationsRes,
       ] = await Promise.all([
         supabase
-          .from('appointments')
+          .from('appointments_api')
           .select('id, booking_source, status')
           .eq('owner_id', user.id)
           .gte('created_at', startDate.toISOString()),

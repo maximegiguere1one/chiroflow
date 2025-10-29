@@ -59,7 +59,7 @@ export function AnalyticsDashboard() {
 
       const [patientsRes, appointmentsRes, billingRes, progressRes] = await Promise.all([
         supabase.from('patients_full').select('*'),
-        supabase.from('appointments').select('*').gte('created_at', startDate).lte('created_at', endDate),
+        supabase.from('appointments_api').select('*').gte('created_at', startDate).lte('created_at', endDate),
         supabase.from('billing').select('*').gte('service_date', startDate.split('T')[0]),
         supabase.from('patient_progress_tracking').select('*')
       ]);
@@ -71,7 +71,7 @@ export function AnalyticsDashboard() {
 
       const previousStartDate = getPreviousPeriodStart(dateRange);
       const previousAppointments = await supabase
-        .from('appointments')
+        .from('appointments_api')
         .select('*')
         .gte('created_at', previousStartDate)
         .lt('created_at', startDate);

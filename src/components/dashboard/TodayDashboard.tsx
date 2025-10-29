@@ -34,7 +34,7 @@ export function TodayDashboard() {
       const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
 
       const { data, error } = await supabase
-        .from('appointments')
+        .from('appointments_api')
         .select('*')
         .gte('scheduled_at', startOfDay.toISOString())
         .lte('scheduled_at', endOfDay.toISOString())
@@ -135,7 +135,7 @@ export function TodayDashboard() {
   async function completeAppointment(id: string) {
     try {
       const { error } = await supabase
-        .from('appointments')
+        .from('appointments_api')
         .update({ status: 'completed' })
         .eq('id', id);
 
