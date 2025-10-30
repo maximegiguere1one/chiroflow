@@ -201,7 +201,25 @@ export default function PatientListUltraClean() {
               </button>
               <button
                 onClick={() => {
-                  setSelectedPatient(null);
+                  setSelectedPatient({
+                    id: '',
+                    first_name: '',
+                    last_name: '',
+                    email: '',
+                    phone: '',
+                    date_of_birth: '',
+                    address: '',
+                    emergency_contact_name: '',
+                    emergency_contact_phone: '',
+                    medical_history: '',
+                    current_medications: '',
+                    allergies: '',
+                    insurance_provider: '',
+                    insurance_policy_number: '',
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                    status: 'active'
+                  } as any);
                   setActiveModal('details');
                 }}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-sm"
@@ -319,7 +337,28 @@ export default function PatientListUltraClean() {
             </p>
             {!searchTerm && (
               <button
-                onClick={() => setActiveModal('details')}
+                onClick={() => {
+                  setSelectedPatient({
+                    id: '',
+                    first_name: '',
+                    last_name: '',
+                    email: '',
+                    phone: '',
+                    date_of_birth: '',
+                    address: '',
+                    emergency_contact_name: '',
+                    emergency_contact_phone: '',
+                    medical_history: '',
+                    current_medications: '',
+                    allergies: '',
+                    insurance_provider: '',
+                    insurance_policy_number: '',
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                    status: 'active'
+                  } as any);
+                  setActiveModal('details');
+                }}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all"
               >
                 <Plus className="w-4 h-4" />
@@ -466,7 +505,7 @@ export default function PatientListUltraClean() {
         )}
       </div>
 
-      {activeModal === 'details' && selectedPatient && (
+      {activeModal === 'details' && selectedPatient !== null && (
         <ContactDetailsModal
           contact={selectedPatient}
           onClose={() => {

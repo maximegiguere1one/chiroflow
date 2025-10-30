@@ -45,7 +45,7 @@ interface DashboardStats {
 
 export default function AdminDashboard() {
   const [currentView, setCurrentView] = useState<AdminView>('dashboard');
-  const [_stats, _setStats] = useState<DashboardStats>({
+  const [stats, setStats] = useState<DashboardStats>({
     totalPatients: 0,
     activePatients: 0,
     appointmentsToday: 0,
