@@ -1,3 +1,6 @@
+import { CONFIG } from '../config';
+import { env } from './env';
+
 interface ErrorLog {
   id: string;
   timestamp: Date;
@@ -12,7 +15,7 @@ interface ErrorLog {
 class ErrorHandler {
   private static instance: ErrorHandler;
   private errorLogs: ErrorLog[] = [];
-  private maxLogs = 100;
+  private maxLogs = CONFIG.app.errorLogging.maxLogs;
 
   private constructor() {
     this.setupGlobalHandlers();
@@ -75,11 +78,11 @@ class ErrorHandler {
 
   private async sendToMonitoring(error: ErrorLog) {
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/log-error`, {
+      const response = await fetch(`${env.supabaseUrl}/functions/v1/log-error`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Authorization': `Bearer ${env.supabaseAnonKey}`,
         },
         body: JSON.stringify(error),
       });
@@ -92,7 +95,7 @@ class ErrorHandler {
     }
   }
 
-  getRecentErrors(count: number = 10): ErrorLog[] {
+  getRecentErrors(count: number = CONFIG.app.ui.maxRecentErrors): ErrorLog[] {
     return this.errorLogs.slice(-count);
   }
 

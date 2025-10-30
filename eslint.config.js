@@ -5,7 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['dist'] },
+  { ignores: ['dist', 'node_modules', '*.md', '*.sql'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],
@@ -23,6 +23,19 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
+
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'max-lines': ['warn', { max: 400, skipBlankLines: true, skipComments: true }],
+      'max-lines-per-function': ['warn', { max: 100, skipBlankLines: true, skipComments: true }],
+      'complexity': ['warn', 15],
+
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': ['error', {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_'
+      }],
+
+      'react-hooks/exhaustive-deps': 'warn',
     },
   }
 );

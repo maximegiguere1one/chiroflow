@@ -1,3 +1,5 @@
+import { CONFIG } from '../config';
+
 interface PerformanceMetric {
   name: string;
   duration: number;
@@ -44,7 +46,7 @@ class PerformanceMonitor {
       console.log(`⏱️ ${name}: ${duration.toFixed(2)}ms`, metadata || '');
     }
 
-    if (duration > 3000) {
+    if (duration > CONFIG.app.performance.slowOperationThreshold) {
       console.warn(`⚠️ Slow operation detected: ${name} took ${duration.toFixed(2)}ms`);
     }
 
@@ -133,7 +135,7 @@ export function memoize<T extends (...args: any[]) => any>(
     keyFn?: (...args: Parameters<T>) => string;
   } = {}
 ): T {
-  const { maxSize = 100, ttlMs, keyFn = (...args) => JSON.stringify(args) } = options;
+  const { maxSize = CONFIG.app.performance.cacheMaxSize, ttlMs, keyFn = (...args) => JSON.stringify(args) } = options;
 
   const cache = new Map<string, { value: ReturnType<T>; timestamp: number }>();
 
