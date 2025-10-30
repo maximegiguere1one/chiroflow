@@ -33,15 +33,17 @@ export default function PatientPortal() {
   const [retryCount, setRetryCount] = useState(0);
 
   const syncAndLoadUserInfo = useCallback(async () => {
+    const startTime = performance.now();
     try {
       setLoadingState('loading');
       setErrorMessage('');
 
-      // Obtenir l'utilisateur authentifié
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
+      const [authResult, sessionResult] = await Promise.all([
+        supabase.auth.getUser(),
+        supabase.auth.getSession()
+      ]);
+
+      const { data: { user }, error: userError } = authResult;
 
       if (userError || !user) {
         setLoadingState('error');
@@ -54,49 +56,58 @@ export default function PatientPortal() {
 
       setUserInfo(user);
 
-      // Appeler la fonction de synchronisation
-      const { data: session } = await supabase.auth.getSession();
-      if (session?.session?.access_token) {
-        try {
-          const syncResponse = await fetch(
-            `${env.supabaseUrl}/functions/v1/sync-patient-portal-user`,
-            {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${session.session.access_token}`,
-                'Content-Type': 'application/json',
-              },
-            }
-          );
+      const syncPromise = sessionResult.data?.session?.access_token
+        ? fetch(`${env.supabaseUrl}/functions/v1/sync-patient-portal-user`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${sessionResult.data.session.access_token}`,
+              'Content-Type': 'application/json',
+            },
+          }).catch(() => null)
+        : Promise.resolve(null);
 
-          const syncResult = await syncResponse.json();
-
-          if (!syncResult.success) {
-            if (syncResult.needsRegistration) {
-              setLoadingState('not-found');
-              setErrorMessage(
-                `Aucun dossier patient trouvé pour ${user.email}. Veuillez contacter votre clinique.`
-              );
-              return;
-            }
-            console.warn('Erreur de synchronisation:', syncResult.error);
-          }
-        } catch (syncError) {
-          console.warn('Erreur lors de la synchronisation, tentative de chargement direct:', syncError);
-        }
-      }
-
-      // Charger les données du patient
-      const { data: patient, error: patientError } = await supabase
+      const patientPromise = supabase
         .from('patients_full')
         .select('*')
         .eq('email', user.email)
         .maybeSingle();
 
+      const [syncResponse, patientResult] = await Promise.all([syncPromise, patientPromise]);
+
+      if (syncResponse) {
+        try {
+          const syncResult = await syncResponse.json();
+          if (!syncResult.success && syncResult.needsRegistration) {
+            setLoadingState('not-found');
+            setErrorMessage(
+              `Aucun dossier patient trouvé pour ${user.email}. Veuillez contacter votre clinique.`
+            );
+            return;
+          }
+        } catch (e) {
+          if (import.meta.env.DEV) {
+            console.warn(JSON.stringify({
+              timestamp: new Date().toISOString(),
+              level: 'WARN',
+              message: 'Sync error but continuing',
+              metadata: { component: 'PatientPortal' }
+            }));
+          }
+        }
+      }
+
+      const { data: patient, error: patientError } = patientResult;
+
       if (patientError) {
-        console.error('Erreur lors du chargement du patient:', patientError);
         setLoadingState('error');
         setErrorMessage('Erreur lors du chargement de vos informations. Veuillez réessayer.');
+        console.error(JSON.stringify({
+          timestamp: new Date().toISOString(),
+          level: 'ERROR',
+          message: 'Error loading patient data',
+          error: patientError.message,
+          metadata: { component: 'PatientPortal', email: user.email }
+        }));
         return;
       }
 
@@ -110,8 +121,27 @@ export default function PatientPortal() {
 
       setPatientData(patient);
       setLoadingState('success');
+
+      const duration = performance.now() - startTime;
+      if (import.meta.env.DEV) {
+        console.log(JSON.stringify({
+          timestamp: new Date().toISOString(),
+          level: 'INFO',
+          message: 'Patient portal authentication complete',
+          duration,
+          metadata: { component: 'PatientPortal', userId: user.id }
+        }));
+      }
     } catch (error) {
-      console.error('Erreur dans loadUserInfo:', error);
+      const duration = performance.now() - startTime;
+      console.error(JSON.stringify({
+        timestamp: new Date().toISOString(),
+        level: 'ERROR',
+        message: 'Unexpected error in patient portal',
+        error: error instanceof Error ? error.message : String(error),
+        duration,
+        metadata: { component: 'PatientPortal' }
+      }));
       setLoadingState('error');
       setErrorMessage('Une erreur inattendue est survenue. Veuillez réessayer.');
     }

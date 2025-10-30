@@ -39,23 +39,64 @@ export default function PatientListUltraClean() {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [activeModal, setActiveModal] = useState<'none' | 'details' | 'appointment' | 'billing' | 'import'>('none');
   const [contextMenu, setContextMenu] = useState<{ patientId: string; x: number; y: number } | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const { showToast } = useToastContext();
+
+  const PAGE_SIZE = 50;
 
   useEffect(() => {
     loadPatients();
-  }, []);
+  }, [currentPage, viewMode]);
 
   async function loadPatients() {
+    const startTime = performance.now();
     try {
-      const { data, error } = await supabase
+      setLoading(true);
+      const from = (currentPage - 1) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
+      let query = supabase
         .from('contacts')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      if (viewMode === 'active') {
+        query = query.eq('status', 'active');
+      } else if (viewMode === 'inactive') {
+        query = query.eq('status', 'inactive');
+      }
+
+      const { data, error, count } = await query;
 
       if (error) throw error;
       setPatients(data || []);
+      setTotalCount(count || 0);
+
+      const duration = performance.now() - startTime;
+      if (import.meta.env.DEV) {
+        console.log(JSON.stringify({
+          timestamp: new Date().toISOString(),
+          level: 'INFO',
+          message: 'Patients loaded with pagination',
+          duration,
+          metadata: {
+            component: 'PatientListUltraClean',
+            page: currentPage,
+            pageSize: PAGE_SIZE,
+            totalCount: count
+          }
+        }));
+      }
     } catch (error) {
-      console.error('Error loading patients:', error);
+      console.error(JSON.stringify({
+        timestamp: new Date().toISOString(),
+        level: 'ERROR',
+        message: 'Error loading patients',
+        error: error instanceof Error ? error.message : String(error),
+        metadata: { component: 'PatientListUltraClean' }
+      }));
       showToast('Erreur de chargement des patients', 'error');
     } finally {
       setLoading(false);
@@ -466,6 +507,77 @@ export default function PatientListUltraClean() {
             loadPatients();
           }}
         />
+      )}
+
+      {totalCount > PAGE_SIZE && (
+        <div className="mt-6 flex items-center justify-between border-t border-gray-200 bg-white px-6 py-4 rounded-lg">
+          <div className="flex flex-1 justify-between sm:hidden">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Précédent
+            </button>
+            <button
+              onClick={() => setCurrentPage(p => Math.min(Math.ceil(totalCount / PAGE_SIZE), p + 1))}
+              disabled={currentPage >= Math.ceil(totalCount / PAGE_SIZE)}
+              className="relative ml-3 inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Suivant
+            </button>
+          </div>
+          <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-gray-700">
+                Affichage de <span className="font-medium">{(currentPage - 1) * PAGE_SIZE + 1}</span> à{' '}
+                <span className="font-medium">{Math.min(currentPage * PAGE_SIZE, totalCount)}</span> sur{' '}
+                <span className="font-medium">{totalCount}</span> résultats
+              </p>
+            </div>
+            <div>
+              <nav className="inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span className="sr-only">Précédent</span>
+                  <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
+                  </svg>
+                </button>
+                {Array.from({ length: Math.min(5, Math.ceil(totalCount / PAGE_SIZE)) }, (_, i) => {
+                  const pageNum = currentPage <= 3 ? i + 1 : currentPage + i - 2;
+                  if (pageNum > Math.ceil(totalCount / PAGE_SIZE)) return null;
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
+                        currentPage === pageNum
+                          ? 'z-10 bg-gold-600 text-white focus:z-20'
+                          : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(Math.ceil(totalCount / PAGE_SIZE), p + 1))}
+                  disabled={currentPage >= Math.ceil(totalCount / PAGE_SIZE)}
+                  className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span className="sr-only">Suivant</span>
+                  <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              </nav>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

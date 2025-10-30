@@ -125,56 +125,70 @@ export default function AdminDashboard() {
   }
 
   async function loadDashboardData() {
+    const startTime = performance.now();
     try {
       const today = new Date().toISOString().split('T')[0];
 
       const [patientsRes, appointmentsRes, analyticsRes] = await Promise.all([
-        supabase.from('patients_full').select('*'),
-        supabase.from('appointments_api').select('*'),
+        supabase.from('patients_full').select('id, status', { count: 'exact' }),
+        supabase.from('appointments_api').select('id, created_at, status').gte('created_at', today).lte('created_at', `${today}T23:59:59`),
         supabase.from('analytics_dashboard').select('*')
       ]);
 
+      const duration = performance.now() - startTime;
+
+      const newStats: Partial<DashboardStats> = {
+        avgVisitDuration: 30,
+        patientSatisfaction: 4.9
+      };
+
       if (!patientsRes.error && patientsRes.data) {
         const active = patientsRes.data.filter(p => p.status === 'active').length;
-        setStats(prev => ({
-          ...prev,
-          totalPatients: patientsRes.data.length,
-          activePatients: active
-        }));
+        newStats.totalPatients = patientsRes.count || patientsRes.data.length;
+        newStats.activePatients = active;
       }
 
       if (!appointmentsRes.error && appointmentsRes.data) {
-        const todayAppts = appointmentsRes.data.filter(a =>
-          a.created_at?.startsWith(today)
-        ).length;
-        const pending = appointmentsRes.data.filter(a =>
-          a.status === 'pending'
-        ).length;
-
-        setStats(prev => ({
-          ...prev,
-          appointmentsToday: todayAppts,
-          pendingAppointments: pending
-        }));
+        newStats.appointmentsToday = appointmentsRes.data.length;
+        newStats.pendingAppointments = appointmentsRes.data.filter(a => a.status === 'pending').length;
       }
 
       if (!analyticsRes.error && analyticsRes.data) {
-        analyticsRes.data.forEach(metric => {
-          if (metric.metric_name === 'total_revenue_month') {
-            setStats(prev => ({ ...prev, monthlyRevenue: parseFloat(metric.metric_value) }));
-          }
-          if (metric.metric_name === 'avg_visit_duration') {
-            setStats(prev => ({ ...prev, avgVisitDuration: parseFloat(metric.metric_value) }));
-          }
-          if (metric.metric_name === 'patient_satisfaction') {
-            setStats(prev => ({ ...prev, patientSatisfaction: parseFloat(metric.metric_value) }));
-          }
-        });
+        const metricsMap = new Map(analyticsRes.data.map(m => [m.metric_name, parseFloat(m.metric_value)]));
+        if (metricsMap.has('total_revenue_month')) {
+          newStats.monthlyRevenue = metricsMap.get('total_revenue_month');
+        }
+        if (metricsMap.has('avg_visit_duration')) {
+          newStats.avgVisitDuration = metricsMap.get('avg_visit_duration');
+        }
+        if (metricsMap.has('patient_satisfaction')) {
+          newStats.patientSatisfaction = metricsMap.get('patient_satisfaction');
+        }
       }
 
+      setStats(prev => ({ ...prev, ...newStats }));
       setLoading(false);
+
+      if (import.meta.env.DEV) {
+        console.log(JSON.stringify({
+          timestamp: new Date().toISOString(),
+          level: 'INFO',
+          message: 'Dashboard data loaded',
+          duration,
+          requestId: `req_${Date.now()}`,
+          metadata: { component: 'AdminDashboard', action: 'loadDashboardData' }
+        }));
+      }
     } catch (error) {
-      console.error('Error loading dashboard:', error);
+      const duration = performance.now() - startTime;
+      console.error(JSON.stringify({
+        timestamp: new Date().toISOString(),
+        level: 'ERROR',
+        message: 'Error loading dashboard',
+        error: error instanceof Error ? error.message : String(error),
+        duration,
+        metadata: { component: 'AdminDashboard', action: 'loadDashboardData' }
+      }));
       setLoading(false);
     }
   }

@@ -13,7 +13,14 @@ export interface LogEntry {
   context?: Record<string, any>;
   userId?: string;
   sessionId?: string;
+  requestId?: string;
   stack?: string;
+  duration?: number;
+  metadata?: {
+    component?: string;
+    action?: string;
+    [key: string]: any;
+  };
 }
 
 export interface IRemoteLogger {
@@ -73,13 +80,23 @@ export class Logger {
       context,
       userId: this.getCurrentUserId(),
       sessionId: this.getSessionId(),
+      requestId: this.getRequestId(),
     };
 
     this.logs.push(entry);
 
     if (import.meta.env.DEV) {
       const method = level >= LogLevel.ERROR ? 'error' : level >= LogLevel.WARN ? 'warn' : 'log';
-      console[method](`[${LogLevel[level]}]`, message, context);
+      const logData = {
+        timestamp: entry.timestamp.toISOString(),
+        level: LogLevel[level],
+        message,
+        requestId: entry.requestId,
+        userId: entry.userId,
+        sessionId: entry.sessionId,
+        ...context,
+      };
+      console[method](JSON.stringify(logData));
     }
 
     if (level >= LogLevel.ERROR || this.logs.length >= 50) {
@@ -102,7 +119,25 @@ export class Logger {
   }
 
   private getCurrentUserId(): string | undefined {
+    try {
+      const authData = localStorage.getItem('chiroflow-auth');
+      if (authData) {
+        const parsed = JSON.parse(authData);
+        return parsed?.user?.id;
+      }
+    } catch {
+      return undefined;
+    }
     return undefined;
+  }
+
+  private getRequestId(): string {
+    let requestId = (window as any).__currentRequestId;
+    if (!requestId) {
+      requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      (window as any).__currentRequestId = requestId;
+    }
+    return requestId;
   }
 
   private getSessionId(): string {

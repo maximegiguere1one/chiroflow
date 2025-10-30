@@ -38,70 +38,58 @@ export default function PatientPaymentDashboard({ patientId }: PatientPaymentDas
   const toast = useToastContext();
 
   useEffect(() => {
-    loadTransactions();
-    loadOutstandingBalance();
-    loadPatientInfo();
+    loadAllData();
   }, [patientId]);
 
-  async function loadPatientInfo() {
+  async function loadAllData() {
+    const startTime = performance.now();
     try {
-      const { data, error } = await supabase
-        .from('patients_full')
-        .select('*')
-        .eq('id', patientId)
-        .maybeSingle();
+      const [patientRes, transactionsRes, balanceRes] = await Promise.all([
+        supabase.from('patients_full').select('*').eq('id', patientId).maybeSingle(),
+        supabase.from('payment_transactions_extended').select('*').eq('patient_id', patientId).order('created_at', { ascending: false }).limit(10),
+        supabase.from('billing').select('total_amount').eq('patient_id', patientId).in('payment_status', ['unpaid', 'overdue'])
+      ]);
 
-      if (error) throw error;
-      setPatientInfo(data);
-    } catch (error) {
-      console.error('Error loading patient info:', error);
-    }
-  }
+      if (!patientRes.error && patientRes.data) {
+        setPatientInfo(patientRes.data);
+      }
 
-  async function loadTransactions() {
-    try {
-      const { data, error } = await supabase
-        .from('payment_transactions_extended')
-        .select('*')
-        .eq('patient_id', patientId)
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (error) {
-        console.warn('Payment transactions table may not exist:', error);
-        setTransactions([]);
+      if (!transactionsRes.error) {
+        setTransactions(transactionsRes.data || []);
       } else {
-        setTransactions(data || []);
+        setTransactions([]);
+      }
+
+      if (!balanceRes.error) {
+        const total = (balanceRes.data || []).reduce((sum, invoice) => sum + invoice.total_amount, 0);
+        setOutstandingBalance(total);
+      } else {
+        setOutstandingBalance(0);
+      }
+
+      const duration = performance.now() - startTime;
+      if (import.meta.env.DEV) {
+        console.log(JSON.stringify({
+          timestamp: new Date().toISOString(),
+          level: 'INFO',
+          message: 'Patient payment data loaded',
+          duration,
+          metadata: { component: 'PatientPaymentDashboard', patientId }
+        }));
       }
     } catch (error) {
-      console.error('Error loading transactions:', error);
-      setTransactions([]);
+      console.error(JSON.stringify({
+        timestamp: new Date().toISOString(),
+        level: 'ERROR',
+        message: 'Error loading patient payment data',
+        error: error instanceof Error ? error.message : String(error),
+        metadata: { component: 'PatientPaymentDashboard', patientId }
+      }));
     } finally {
       setLoadingTransactions(false);
     }
   }
 
-  async function loadOutstandingBalance() {
-    try {
-      const { data, error } = await supabase
-        .from('billing')
-        .select('total_amount')
-        .eq('patient_id', patientId)
-        .in('payment_status', ['unpaid', 'overdue']);
-
-      if (error) {
-        console.warn('Billing table query failed:', error);
-        setOutstandingBalance(0);
-        return;
-      }
-
-      const total = (data || []).reduce((sum, invoice) => sum + invoice.total_amount, 0);
-      setOutstandingBalance(total);
-    } catch (error) {
-      console.error('Error loading balance:', error);
-      setOutstandingBalance(0);
-    }
-  }
 
   async function handleDeletePaymentMethod(methodId: string) {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cette méthode de paiement ?')) {
