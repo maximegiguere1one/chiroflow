@@ -5,7 +5,17 @@ export type AnalyticsEvent =
   | 'appointment_submit'
   | 'contact_submit'
   | 'modal_open'
-  | 'modal_close';
+  | 'modal_close'
+  | 'chatbot_quick_reply'
+  | 'chatbot_opened'
+  | 'chatbot_closed'
+  | 'quiz_step'
+  | 'quiz_complete'
+  | 'quiz_reset'
+  | 'quiz_reconnexion_click'
+  | 'quiz_contact_click'
+  | 'sticky_cta_dismissed'
+  | 'urgency_banner_click';
 
 export interface AnalyticsData {
   event: AnalyticsEvent;

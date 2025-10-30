@@ -2,8 +2,8 @@ import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import {
   TrendingUp, TrendingDown, DollarSign, Users, Calendar,
-  Activity, Target, BarChart3, LineChart, PieChart as PieChartIcon,
-  Download, RefreshCw, ChevronDown
+  Target, BarChart3, LineChart, PieChart as PieChartIcon,
+  Download, RefreshCw
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useToastContext } from '../../contexts/ToastContext';

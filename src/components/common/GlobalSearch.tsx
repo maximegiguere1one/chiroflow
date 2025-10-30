@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect, useMemo } from 'react';
-import { Search, X, User, Calendar, FileText, DollarSign, Clock } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, X, User, Calendar, Clock } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import type { Patient, Appointment } from '../../types/database';
 
@@ -297,13 +297,13 @@ export function GlobalSearch({ isOpen, onClose, onNavigate }: GlobalSearchProps)
                           <div className="flex items-center gap-4">
                             <div className="text-center">
                               <div className="text-sm font-bold text-foreground">
-                                {apt.scheduled_time}
+                                {apt.scheduled_at ? new Date(apt.scheduled_at).toLocaleTimeString('fr-CA', { hour: '2-digit', minute: '2-digit' }) : 'N/A'}
                               </div>
                               <div className="text-xs text-foreground/50">
-                                {new Date(apt.scheduled_date || '').toLocaleDateString('fr-CA', {
+                                {apt.scheduled_at ? new Date(apt.scheduled_at).toLocaleDateString('fr-CA', {
                                   month: 'short',
                                   day: 'numeric'
-                                })}
+                                }) : 'N/A'}
                               </div>
                             </div>
                             <div>

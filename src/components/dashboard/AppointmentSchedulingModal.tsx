@@ -70,7 +70,7 @@ export function AppointmentSchedulingModal({ patient, onClose }: AppointmentSche
       setAppointments(data || []);
     } catch (error) {
       console.error('Error loading appointments:', error);
-      toast.showToast?.('Erreur lors du chargement des rendez-vous', 'error');
+      toast.error('Erreur lors du chargement des rendez-vous');
     } finally {
       setLoading(false);
     }
@@ -91,9 +91,10 @@ export function AppointmentSchedulingModal({ patient, onClose }: AppointmentSche
   function handleEditAppointment(appointment: Appointment) {
     setEditingAppointment(appointment);
 
+    const scheduledAt = appointment.scheduled_at ? new Date(appointment.scheduled_at) : new Date();
     setFormData({
-      scheduled_date: appointment.scheduled_date || '',
-      scheduled_time: appointment.scheduled_time || '',
+      scheduled_date: scheduledAt.toISOString().split('T')[0] || '',
+      scheduled_time: scheduledAt.toTimeString().slice(0, 5) || '',
       duration_minutes: appointment.duration_minutes || 30,
       reason: appointment.reason || '',
       notes: appointment.notes || ''
@@ -108,7 +109,7 @@ export function AppointmentSchedulingModal({ patient, onClose }: AppointmentSche
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        toast.showToast?.('❌ Utilisateur non authentifié', 'error');
+        toast.error('❌ Utilisateur non authentifié');
         setSaving(false);
         return;
       }
@@ -136,14 +137,14 @@ export function AppointmentSchedulingModal({ patient, onClose }: AppointmentSche
           .eq('id', editingAppointment.id);
 
         if (error) throw error;
-        toast.showToast?.('✅ Rendez-vous modifié avec succès', 'success');
+        toast.success('✅ Rendez-vous modifié avec succès');
       } else {
         const { error } = await supabase
           .from('appointments_api')
           .insert([appointmentData]);
 
         if (error) throw error;
-        toast.showToast?.('✅ Rendez-vous créé avec succès', 'success');
+        toast.success('✅ Rendez-vous créé avec succès');
       }
 
       setShowForm(false);
@@ -151,7 +152,7 @@ export function AppointmentSchedulingModal({ patient, onClose }: AppointmentSche
       loadAppointments();
     } catch (error: any) {
       console.error('Error saving appointment:', error);
-      toast.showToast?.('❌ Erreur: ' + (error.message || 'Erreur inconnue'), 'error');
+      toast.error('❌ Erreur: ' + (error.message || 'Erreur inconnue'));
     } finally {
       setSaving(false);
     }
@@ -167,11 +168,11 @@ export function AppointmentSchedulingModal({ patient, onClose }: AppointmentSche
         .eq('id', appointmentId);
 
       if (error) throw error;
-      toast.showToast?.('✅ Rendez-vous supprimé', 'success');
+      toast.success('✅ Rendez-vous supprimé');
       loadAppointments();
     } catch (error) {
       console.error('Error deleting appointment:', error);
-      toast.showToast?.('❌ Erreur lors de la suppression', 'error');
+      toast.error('❌ Erreur lors de la suppression');
     }
   }
 
@@ -183,11 +184,11 @@ export function AppointmentSchedulingModal({ patient, onClose }: AppointmentSche
         .eq('id', appointmentId);
 
       if (error) throw error;
-      toast.showToast?.('✅ Statut mis à jour', 'success');
+      toast.success('✅ Statut mis à jour');
       loadAppointments();
     } catch (error) {
       console.error('Error updating status:', error);
-      toast.showToast?.('❌ Erreur lors de la mise à jour', 'error');
+      toast.error('❌ Erreur lors de la mise à jour');
     }
   }
 

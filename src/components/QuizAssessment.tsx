@@ -83,7 +83,7 @@ export default function QuizAssessment() {
         ...(isChildNeuro ? ['Accès au Programme Reconnexion'] : []),
         'Suivi régulier avec ajustements',
       ],
-      reconnexionRelevant: isChildNeuro,
+      reconnexionRelevant: isChildNeuro || false,
     };
 
     setResult(result);

@@ -45,7 +45,7 @@ interface DashboardStats {
 
 export default function AdminDashboard() {
   const [currentView, setCurrentView] = useState<AdminView>('dashboard');
-  const [stats, setStats] = useState<DashboardStats>({
+  const [_stats, _setStats] = useState<DashboardStats>({
     totalPatients: 0,
     activePatients: 0,
     appointmentsToday: 0,
@@ -442,7 +442,7 @@ function LoadingSpinner() {
   );
 }
 
-function DashboardView({ stats }: { stats: DashboardStats }) {
+function _DashboardView({ stats }: { stats: DashboardStats }) {
   const statCards = [
     {
       title: 'Patients totaux',

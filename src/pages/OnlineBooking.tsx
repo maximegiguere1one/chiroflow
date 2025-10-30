@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, User, Mail, Phone, CreditCard, Check, ArrowRight, ArrowLeft, X } from 'lucide-react';
+import { Calendar, Clock, User, Mail, Phone, Check, ArrowRight, ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useToastContext } from '../contexts/ToastContext';
 

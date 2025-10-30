@@ -69,8 +69,7 @@ export function exportAppointmentsToCSV(appointments: Appointment[]): void {
       { key: 'phone', label: 'Téléphone' },
       { key: 'reason', label: 'Motif' },
       { key: 'status', label: 'Statut' },
-      { key: 'scheduled_date', label: 'Date' },
-      { key: 'scheduled_time', label: 'Heure' },
+      { key: 'scheduled_at', label: 'Date/Heure programmée' },
       { key: 'created_at', label: 'Demandé le' },
     ]
   );
@@ -184,7 +183,7 @@ export function printPatientReport(patient: Patient, appointments: Appointment[]
           <tbody>
             ${appointments.map(appt => `
               <tr>
-                <td>${appt.scheduled_date || 'Non planifié'}</td>
+                <td>${appt.scheduled_at ? new Date(appt.scheduled_at).toLocaleDateString('fr-CA') : 'Non planifié'}</td>
                 <td>${appt.reason}</td>
                 <td>${appt.status}</td>
               </tr>

@@ -25,7 +25,7 @@ function AppWithImprovedNavigation() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPath, setCurrentPath] = useState(router.getCurrentPath());
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userRole, setUserRole] = useState<'admin' | 'patient' | null>(null);
+  const [_userRole, setUserRole] = useState<'admin' | 'patient' | null>(null);
   const isAgendaFull = true;
 
   useEffect(() => {
@@ -84,7 +84,7 @@ function AppWithImprovedNavigation() {
   };
 
   // Get matched route
-  const { route, params } = router.getMatchedRoute();
+  const { route } = router.getMatchedRoute();
 
   // Render based on current route
   const renderContent = () => {
