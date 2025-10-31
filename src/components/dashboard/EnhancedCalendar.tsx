@@ -1217,7 +1217,7 @@ function NewAppointmentModal({
         scheduled_at: scheduled_at,
         duration_minutes: formData.duration_minutes,
         notes: formData.notes,
-        patient_id: formData.patient_id || null,
+        contact_id: formData.patient_id || null,
         status: 'confirmed',
       });
 

@@ -25,30 +25,58 @@ interface ContactDetailsModalProps {
 
 export function ContactDetailsModal({ contact, onClose, onUpdate }: ContactDetailsModalProps) {
   const toast = useToastContext();
-  const [isEditing, setIsEditing] = useState(false);
+  const isNewContact = !contact.id || contact.id === '';
+  const [isEditing, setIsEditing] = useState(isNewContact);
   const [formData, setFormData] = useState(contact);
   const [saving, setSaving] = useState(false);
 
   async function handleSave() {
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('contacts')
-        .update({
-          full_name: formData.full_name,
-          email: formData.email,
-          phone: formData.phone,
-          date_of_birth: formData.date_of_birth,
-          status: formData.status,
-          address: formData.address,
-          notes: formData.notes,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', contact.id);
+      if (isNewContact) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          toast.error('Utilisateur non authentifié');
+          setSaving(false);
+          return;
+        }
 
-      if (error) throw error;
+        const { error } = await supabase
+          .from('contacts')
+          .insert({
+            full_name: formData.full_name,
+            email: formData.email,
+            phone: formData.phone,
+            date_of_birth: formData.date_of_birth,
+            status: formData.status || 'active',
+            address: formData.address,
+            notes: formData.notes,
+            owner_id: user.id,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
 
-      toast.success('Contact mis à jour avec succès');
+        if (error) throw error;
+        toast.success('Patient créé avec succès');
+      } else {
+        const { error } = await supabase
+          .from('contacts')
+          .update({
+            full_name: formData.full_name,
+            email: formData.email,
+            phone: formData.phone,
+            date_of_birth: formData.date_of_birth,
+            status: formData.status,
+            address: formData.address,
+            notes: formData.notes,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', contact.id);
+
+        if (error) throw error;
+        toast.success('Contact mis à jour avec succès');
+      }
+
       setIsEditing(false);
       if (onUpdate) onUpdate();
     } catch (error) {
