@@ -149,8 +149,9 @@ export function DualWaitlistManager() {
           full_name: formData.get('full_name') as string,
           email: formData.get('email') as string,
           phone: formData.get('phone') as string,
-          notes: formData.get('notes') as string || undefined,
+          reason: formData.get('notes') as string || '',
           priority: 0,
+          status: 'waiting',
         });
 
       if (error) throw error;
