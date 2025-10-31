@@ -64,7 +64,7 @@ interface MegaPatientFileProps {
 type TabType = 'dashboard' | 'clinical' | 'history' | 'billing' | 'documents' | 'communication' | 'goals' | 'imaging';
 
 export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileProps) {
-  const { showToast } = useToastContext();
+  const toast = useToastContext();
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [isEditing, setIsEditing] = useState(false);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
@@ -97,7 +97,7 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
   const handleCancelAppointment = async (appointmentId: string) => {
     if (!confirm('Êtes-vous sûr de vouloir annuler ce rendez-vous?')) return;
 
-    showToast('Annulation du rendez-vous...', 'info');
+    toast.info('Annulation du rendez-vous...');
     try {
       // Récupérer les détails du rendez-vous avant de l'annuler
       const { data: appointment, error: fetchError } = await supabase
@@ -116,10 +116,10 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
 
       if (updateError) throw updateError;
 
-      showToast('✅ Rendez-vous annulé!', 'success');
+      toast.success('✅ Rendez-vous annulé!');
 
       // Notifier automatiquement tous les clients sur la liste de rappel
-      showToast('📧 Envoi des notifications aux clients en attente...', 'info');
+      toast.info('📧 Envoi des notifications aux clients en attente...');
 
       const { data: { session } } = await supabase.auth.getSession();
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -146,16 +146,16 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
 
       if (notifyResponse.ok) {
         const result = await notifyResponse.json();
-        showToast(`✅ ${result.notified || 0} client(s) notifié(s) sur la liste de rappel!`, 'success');
+        toast.success(`✅ ${result.notified || 0} client(s) notifié(s) sur la liste de rappel!`);
       } else {
         console.error('Erreur notification clients:', await notifyResponse.text());
-        showToast('⚠️ Rendez-vous annulé mais erreur lors de la notification des clients', 'error');
+        toast.error('⚠️ Rendez-vous annulé mais erreur lors de la notification des clients');
       }
 
       loadPatientData();
     } catch (error) {
       console.error('Erreur annulation:', error);
-      showToast('❌ Erreur lors de l\'annulation', 'error');
+      toast.error('❌ Erreur lors de l\'annulation');
     }
   };
 
@@ -206,28 +206,28 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
   };
 
   const handlePrint = () => {
-    showToast('Impression du dossier...', 'info');
+    toast.info('Impression du dossier...');
     window.print();
   };
 
   const handleExportPDF = () => {
-    showToast('Export PDF en cours...', 'info');
+    toast.info('Export PDF en cours...');
     setTimeout(() => {
-      showToast('PDF exporté avec succès!', 'success');
+      toast.success('PDF exporté avec succès!');
     }, 1000);
   };
 
   const handleShare = () => {
     const link = `${window.location.origin}/patient/${patient.id}`;
     navigator.clipboard.writeText(link);
-    showToast('Lien copié dans le presse-papiers!', 'success');
+    toast.success('Lien copié dans le presse-papiers!');
   };
 
   const handleDocumentUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
       const fileName = files[0].name;
-      showToast(`Document "${fileName}" téléversé avec succès!`, 'success');
+      toast.success(`Document "${fileName}" téléversé avec succès!`);
       if (documentInputRef.current) {
         documentInputRef.current.value = '';
       }
@@ -238,7 +238,7 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
     const files = e.target.files;
     if (files && files.length > 0) {
       const fileName = files[0].name;
-      showToast(`Image médicale "${fileName}" téléversée avec succès!`, 'success');
+      toast.success(`Image médicale "${fileName}" téléversée avec succès!`);
       if (imagingInputRef.current) {
         imagingInputRef.current.value = '';
       }
@@ -247,11 +247,11 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
 
   const handleAddGoal = () => {
     console.log('🎯 Bouton Ajouter un objectif cliqué!');
-    showToast('✅ Bouton cliqué! Ajout d\'objectifs en développement', 'success');
+    toast.success('✅ Bouton cliqué! Ajout d\'objectifs en développement');
   };
 
   const handleSave = async () => {
-    showToast('Sauvegarde des modifications...', 'info');
+    toast.info('Sauvegarde des modifications...');
     try {
       const { error } = await supabase
         .from('contacts')
@@ -271,32 +271,32 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
       if (error) throw error;
 
       setIsEditing(false);
-      showToast('✅ Modifications sauvegardées!', 'success');
+      toast.success('✅ Modifications sauvegardées!');
       if (onUpdate) onUpdate();
     } catch (error) {
       console.error('Erreur sauvegarde patient:', error);
-      showToast('❌ Erreur lors de la sauvegarde', 'error');
+      toast.error('❌ Erreur lors de la sauvegarde');
     }
   };
 
   const handleNewAppointment = () => {
     setShowAppointmentModal(true);
-    showToast('Ouverture du calendrier...', 'info');
+    toast.info('Ouverture du calendrier...');
   };
 
   const handleNewSOAP = () => {
     setShowSOAPModal(true);
-    showToast('Ouverture de la note SOAP...', 'info');
+    toast.info('Ouverture de la note SOAP...');
   };
 
   const handleBilling = () => {
     setShowBillingModal(true);
-    showToast('Ouverture de la facturation...', 'info');
+    toast.info('Ouverture de la facturation...');
   };
 
   const handleSendMessage = () => {
     setShowMessageModal(true);
-    showToast('Ouverture de la messagerie...', 'info');
+    toast.info('Ouverture de la messagerie...');
   };
 
   const stageInfo = getTreatmentStageInfo(patient.treatment_stage || '');
@@ -847,7 +847,7 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
                             </div>
                           </div>
                           <button
-                            onClick={() => showToast(`Téléchargement de "${doc}"...`, 'success')}
+                            onClick={() => toast.success(`Téléchargement de "${doc}"...`)}
                             className="p-2 hover:bg-gray-200 rounded-lg transition-all"
                           >
                             <Download className="w-4 h-4 text-gray-600" />
@@ -883,7 +883,7 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
                       ].map((msg, i) => (
                         <div
                           key={i}
-                          onClick={() => showToast(`Détails du message: ${msg.subject}`, 'info')}
+                          onClick={() => toast.info(`Détails du message: ${msg.subject}`)}
                           className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:border-blue-400 hover:shadow-md transition-all"
                         >
                           <div className={`w-10 h-10 ${msg.type === 'email' ? 'bg-blue-100' : 'bg-green-100'} rounded-lg flex items-center justify-center`}>
@@ -929,7 +929,7 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
                       ].map((item, i) => (
                         <div
                           key={i}
-                          onClick={() => showToast(`Édition de l'objectif: ${item.goal}`, 'info')}
+                          onClick={() => toast.info(`Édition de l'objectif: ${item.goal}`)}
                           className="p-4 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:border-blue-400 hover:shadow-md transition-all"
                         >
                           <div className="flex items-center justify-between mb-2">
@@ -987,7 +987,7 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
                       {['Radiographie - Colonne lombaire', 'Radiographie - Colonne cervicale', 'IRM - L4-L5'].map((img, i) => (
                         <div
                           key={i}
-                          onClick={() => showToast(`Visualisation de "${img}"`, 'info')}
+                          onClick={() => toast.info(`Visualisation de "${img}"`)
                           className="bg-gray-50 rounded-lg border border-gray-200 p-4 cursor-pointer hover:border-blue-400 hover:shadow-md transition-all"
                         >
                           <div className="w-full h-40 bg-gray-300 rounded-lg mb-3 flex items-center justify-center">

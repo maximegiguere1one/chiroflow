@@ -41,7 +41,7 @@ export default function PatientListUltraClean() {
   const [contextMenu, setContextMenu] = useState<{ patientId: string; x: number; y: number } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const { showToast } = useToastContext();
+  const toast = useToastContext();
 
   const PAGE_SIZE = 50;
 
@@ -97,7 +97,7 @@ export default function PatientListUltraClean() {
         error: error instanceof Error ? error.message : String(error),
         metadata: { component: 'PatientListUltraClean' }
       }));
-      showToast('Erreur de chargement des patients', 'error');
+      toast.error('Erreur de chargement des patients');
     } finally {
       setLoading(false);
     }
@@ -193,7 +193,7 @@ export default function PatientListUltraClean() {
                 Importer
               </button>
               <button
-                onClick={() => showToast('Export en cours...', 'info')}
+                onClick={() => toast.info('Export en cours...')}
                 className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
               >
                 <Download className="w-4 h-4" />
@@ -475,7 +475,7 @@ export default function PatientListUltraClean() {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                showToast('Envoi de message...', 'info');
+                                toast.info('Envoi de message...');
                               }}
                               className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all"
                               title="Envoyer un message"

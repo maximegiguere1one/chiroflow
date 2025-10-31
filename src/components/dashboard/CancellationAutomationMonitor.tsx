@@ -47,7 +47,7 @@ export function CancellationAutomationMonitor() {
   const [stats, setStats] = useState<AutomationStats | null>(null);
   const [monitor, setMonitor] = useState<MonitorEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const { showToast } = useToastContext();
+  const toast = useToastContext();
 
   useEffect(() => {
     loadData();
@@ -105,7 +105,7 @@ export function CancellationAutomationMonitor() {
       }
     } catch (error) {
       console.error('Error loading automation data:', error);
-      showToast('Erreur de chargement des données', 'error');
+      toast.error('Erreur de chargement des données');
       // Set default values
       setStats({
         total_cancellations: 0,

@@ -17,7 +17,7 @@ export function MFASetupModal({ isOpen, onClose, isRequired = false }: MFASetupM
   const [copiedSecret, setCopiedSecret] = useState(false);
   const [copiedBackup, setCopiedBackup] = useState(false);
   const [verifyError, setVerifyError] = useState('');
-  const { showToast } = useToastContext();
+  const toast = useToastContext();
 
   useEffect(() => {
     if (isOpen) {
@@ -41,7 +41,7 @@ export function MFASetupModal({ isOpen, onClose, isRequired = false }: MFASetupM
       setSetupData(data);
       setStep('setup');
     } catch (error) {
-      showToast('error', 'Failed to initiate MFA setup');
+      toast.error('Failed to initiate MFA setup');
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -69,7 +69,7 @@ export function MFASetupModal({ isOpen, onClose, isRequired = false }: MFASetupM
 
       if (success) {
         setStep('backup');
-        showToast('success', 'MFA enabled successfully!');
+        toast.success('MFA enabled successfully!');
       } else {
         setVerifyError('Invalid code. Please try again.');
         console.error('❌ Verification returned false');
@@ -87,7 +87,7 @@ export function MFASetupModal({ isOpen, onClose, isRequired = false }: MFASetupM
       navigator.clipboard.writeText(setupData.secret);
       setCopiedSecret(true);
       setTimeout(() => setCopiedSecret(false), 2000);
-      showToast('success', 'Secret copied to clipboard');
+      toast.success('Secret copied to clipboard');
     }
   };
 
@@ -96,7 +96,7 @@ export function MFASetupModal({ isOpen, onClose, isRequired = false }: MFASetupM
       navigator.clipboard.writeText(setupData.backupCodes.join('\n'));
       setCopiedBackup(true);
       setTimeout(() => setCopiedBackup(false), 2000);
-      showToast('success', 'Backup codes copied to clipboard');
+      toast.success('Backup codes copied to clipboard');
     }
   };
 
@@ -110,7 +110,7 @@ export function MFASetupModal({ isOpen, onClose, isRequired = false }: MFASetupM
       a.download = 'chiroflow-backup-codes.txt';
       a.click();
       URL.revokeObjectURL(url);
-      showToast('success', 'Backup codes downloaded');
+      toast.success('Backup codes downloaded');
     }
   };
 
@@ -126,9 +126,9 @@ export function MFASetupModal({ isOpen, onClose, isRequired = false }: MFASetupM
     try {
       const newCodes = await regenerateBackupCodes();
       setSetupData(prev => prev ? { ...prev, backupCodes: newCodes } : null);
-      showToast('success', 'Backup codes regenerated');
+      toast.success('Backup codes regenerated');
     } catch (error) {
-      showToast('error', 'Failed to regenerate backup codes');
+      toast.error('Failed to regenerate backup codes');
     } finally {
       setIsLoading(false);
     }

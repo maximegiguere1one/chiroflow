@@ -24,7 +24,7 @@ interface ContactDetailsModalProps {
 }
 
 export function ContactDetailsModal({ contact, onClose, onUpdate }: ContactDetailsModalProps) {
-  const { showToast } = useToastContext();
+  const toast = useToastContext();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(contact);
   const [saving, setSaving] = useState(false);
@@ -48,12 +48,12 @@ export function ContactDetailsModal({ contact, onClose, onUpdate }: ContactDetai
 
       if (error) throw error;
 
-      showToast('Contact mis à jour avec succès', 'success');
+      toast.success('Contact mis à jour avec succès');
       setIsEditing(false);
       if (onUpdate) onUpdate();
     } catch (error) {
       console.error('Error updating contact:', error);
-      showToast('Erreur lors de la mise à jour', 'error');
+      toast.error('Erreur lors de la mise à jour');
     } finally {
       setSaving(false);
     }

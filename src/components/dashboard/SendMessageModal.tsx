@@ -16,7 +16,7 @@ interface SendMessageModalProps {
 }
 
 export function SendMessageModal({ patient, onClose }: SendMessageModalProps) {
-  const { showToast } = useToastContext();
+  const toast = useToastContext();
   const [messageType, setMessageType] = useState<'email' | 'sms'>('email');
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
@@ -31,12 +31,12 @@ export function SendMessageModal({ patient, onClose }: SendMessageModalProps) {
 
   const handleSend = async () => {
     if (!message.trim()) {
-      showToast('Veuillez entrer un message', 'error');
+      toast.error('Veuillez entrer un message');
       return;
     }
 
     if (messageType === 'email' && !subject.trim()) {
-      showToast('Veuillez entrer un sujet', 'error');
+      toast.error('Veuillez entrer un sujet');
       return;
     }
 
@@ -52,10 +52,10 @@ export function SendMessageModal({ patient, onClose }: SendMessageModalProps) {
         sent_at: new Date().toISOString()
       });
 
-      showToast(`${messageType === 'email' ? 'Email' : 'SMS'} envoyé avec succès!`, 'success');
+      toast.success(`${messageType === 'email' ? 'Email' : 'SMS'} envoyé avec succès!`);
       onClose();
     } catch (error) {
-      showToast('Erreur lors de l\'envoi', 'error');
+      toast.error('Erreur lors de l\'envoi');
     } finally {
       setIsSending(false);
     }

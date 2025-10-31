@@ -27,7 +27,7 @@ interface AutomationStats {
 }
 
 export function AutomationHealthDashboard() {
-  const { showToast } = useToastContext();
+  const toast = useToastContext();
   const [loading, setLoading] = useState(true);
   const [cronHealth, setCronHealth] = useState<CronJobHealth[]>([]);
   const [stats, setStats] = useState<AutomationStats | null>(null);
@@ -96,7 +96,7 @@ export function AutomationHealthDashboard() {
 
     } catch (error) {
       console.error('Error loading automation health:', error);
-      showToast('Erreur de chargement', 'error');
+      toast.error('Erreur de chargement');
     } finally {
       setLoading(false);
       setRefreshing(false);

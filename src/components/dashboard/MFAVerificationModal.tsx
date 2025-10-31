@@ -14,7 +14,7 @@ export function MFAVerificationModal({ isOpen, onVerified, onCancel }: MFAVerifi
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [attemptsRemaining, setAttemptsRemaining] = useState<number | null>(null);
-  const { showToast } = useToastContext();
+  const toast = useToastContext();
 
   const handleVerify = async () => {
     if (!code || code.length !== 6) {
@@ -29,7 +29,7 @@ export function MFAVerificationModal({ isOpen, onVerified, onCancel }: MFAVerifi
       const success = await verifyMFAToken(code);
 
       if (success) {
-        showToast('success', 'Verification successful!');
+        toast.success('Verification successful!');
         onVerified();
       } else {
         setError('Invalid code. Please try again.');

@@ -102,6 +102,7 @@ const EXERCISES_LIBRARY = [
 ];
 
 export default function ChiroPatientManagerPro() {
+  const toast = useToastContext();
   const [patients, setPatients] = useState<Patient[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
@@ -853,7 +854,7 @@ export default function ChiroPatientManagerPro() {
             setSelectedPatient(null);
           }}
           onConsentGranted={() => {
-            showToast('Consentements enregistrés avec succès', 'success');
+            toast.success('Consentements enregistrés avec succès');
             loadPatients();
           }}
         />
