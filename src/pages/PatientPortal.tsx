@@ -10,6 +10,7 @@ import {
   X,
   AlertCircle,
   RefreshCw,
+  CalendarPlus,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { env } from '../lib/env';
@@ -17,13 +18,14 @@ import PatientPaymentDashboard from '../components/patient-portal/PatientPayment
 import PatientAppointments from '../components/patient-portal/PatientAppointments';
 import PatientDocuments from '../components/patient-portal/PatientDocuments';
 import PatientProfile from '../components/patient-portal/PatientProfile';
+import PatientBooking from '../components/patient-portal/PatientBooking';
 
-type View = 'payments' | 'appointments' | 'documents' | 'profile';
+type View = 'booking' | 'appointments' | 'payments' | 'documents' | 'profile';
 
 type LoadingState = 'loading' | 'success' | 'error' | 'not-found';
 
 export default function PatientPortal() {
-  const [currentView, setCurrentView] = useState<View>('payments');
+  const [currentView, setCurrentView] = useState<View>('booking');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userInfo, setUserInfo] = useState<any>(null);
@@ -161,8 +163,9 @@ export default function PatientPortal() {
   }
 
   const navigation = [
+    { id: 'booking', label: 'Réserver', icon: CalendarPlus },
+    { id: 'appointments', label: 'Mes rendez-vous', icon: Calendar },
     { id: 'payments', label: 'Paiements', icon: CreditCard },
-    { id: 'appointments', label: 'Rendez-vous', icon: Calendar },
     { id: 'documents', label: 'Documents', icon: FileText },
     { id: 'profile', label: 'Mon profil', icon: User },
   ];
@@ -428,11 +431,18 @@ export default function PatientPortal() {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
             >
-          {currentView === 'payments' && patientData && (
-            <PatientPaymentDashboard patientId={patientData.id} />
+          {currentView === 'booking' && patientData && (
+            <PatientBooking
+              patientId={patientData.id}
+              patientEmail={patientData.email}
+              patientName={`${patientData.first_name} ${patientData.last_name}`}
+            />
           )}
           {currentView === 'appointments' && patientData && (
             <PatientAppointments patientId={patientData.id} />
+          )}
+          {currentView === 'payments' && patientData && (
+            <PatientPaymentDashboard patientId={patientData.id} />
           )}
           {currentView === 'documents' && patientData && (
             <PatientDocuments patientId={patientData.id} />
