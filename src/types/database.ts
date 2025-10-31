@@ -33,6 +33,10 @@ export interface Appointment {
   notes: string | null;
   created_at: string;
   updated_at: string;
+  scheduled_date?: string | null;
+  scheduled_time?: string | null;
+  owner_id?: string;
+  patient_id?: string;
 }
 
 export interface AppointmentWithDateTime extends Appointment {

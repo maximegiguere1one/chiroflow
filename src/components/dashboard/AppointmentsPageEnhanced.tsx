@@ -117,14 +117,9 @@ export function AppointmentsPageEnhanced() {
     }
   }
 
-  function handleDateSelect(date: Date) {
-    setSelectedDate(date);
-  }
+  // Removed unused function
 
-  function handleAddAppointment(date?: Date) {
-    if (date) setSelectedDate(date);
-    setShowNewAppointmentModal(true);
-  }
+  // Removed unused function
 
   function handleExport() {
     try {
