@@ -438,8 +438,8 @@ export default function PatientPortal() {
               patientName={`${patientData.first_name} ${patientData.last_name}`}
             />
           )}
-          {currentView === 'appointments' && patientData && (
-            <PatientAppointments patientId={patientData.id} />
+          {currentView === 'appointments' && patientData && userInfo && (
+            <PatientAppointments patientId={patientData.id} patientUserId={userInfo.id} />
           )}
           {currentView === 'payments' && patientData && (
             <PatientPaymentDashboard patientId={patientData.id} />

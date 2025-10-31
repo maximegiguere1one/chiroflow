@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Calendar, Clock, AlertCircle, X, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Calendar, Clock, AlertCircle, X, AlertTriangle, CheckCircle, RefreshCw } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import RescheduleModal from './RescheduleModal';
 
 interface PatientAppointmentsProps {
   patientId: string;
+  patientUserId?: string;
 }
 
 interface CancellationModal {
@@ -13,7 +15,7 @@ interface CancellationModal {
   hoursUntil: number;
 }
 
-export default function PatientAppointments({ patientId }: PatientAppointmentsProps) {
+export default function PatientAppointments({ patientId, patientUserId }: PatientAppointmentsProps) {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,6 +25,14 @@ export default function PatientAppointments({ patientId }: PatientAppointmentsPr
     appointment: null,
     canCancelFree: true,
     hoursUntil: 0,
+  });
+
+  const [rescheduleModal, setRescheduleModal] = useState<{
+    show: boolean;
+    appointment: any | null;
+  }>({
+    show: false,
+    appointment: null,
   });
 
   const loadAppointments = useCallback(async () => {
@@ -224,12 +234,22 @@ export default function PatientAppointments({ patientId }: PatientAppointmentsPr
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => handleOpenCancelModal(appointment)}
-                      className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 border border-red-200 hover:border-red-300 rounded-lg transition-all"
-                    >
-                      Annuler
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setRescheduleModal({ show: true, appointment })}
+                        className="px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 border border-blue-200 hover:border-blue-300 rounded-lg transition-all flex items-center gap-2"
+                        title="Reprogrammer"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                        Reprogrammer
+                      </button>
+                      <button
+                        onClick={() => handleOpenCancelModal(appointment)}
+                        className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 border border-red-200 hover:border-red-300 rounded-lg transition-all"
+                      >
+                        Annuler
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -347,6 +367,19 @@ export default function PatientAppointments({ patientId }: PatientAppointmentsPr
             </div>
           </div>
         </div>
+      )}
+
+      {rescheduleModal.show && rescheduleModal.appointment && patientUserId && (
+        <RescheduleModal
+          isOpen={rescheduleModal.show}
+          onClose={() => setRescheduleModal({ show: false, appointment: null })}
+          appointment={rescheduleModal.appointment}
+          patientUserId={patientUserId}
+          onSuccess={() => {
+            loadAppointments();
+            setRescheduleModal({ show: false, appointment: null });
+          }}
+        />
       )}
     </div>
   );
