@@ -42,8 +42,7 @@ export function AdminPaymentManagement() {
       const [methodsRes, transactionsRes, subscriptionsRes] = await Promise.all([
         supabase
           .from('payment_methods')
-          .select('*, patients_full(first_name, last_name, email)')
-          .eq('is_active', true)
+          .select('*')
           .order('created_at', { ascending: false }),
         supabase
           .from('payment_transactions_extended')

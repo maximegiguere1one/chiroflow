@@ -83,9 +83,8 @@ export function PatientBillingModal({ patient, onClose }: PatientBillingModalPro
         supabase
           .from('payment_methods')
           .select('*')
-          .eq('patient_id', patient.id)
-          .eq('is_active', true)
-          .order('is_primary', { ascending: false })
+          .eq('contact_id', patient.id)
+          .order('is_default', { ascending: false })
       ]);
 
       if (invoicesRes.error) throw invoicesRes.error;

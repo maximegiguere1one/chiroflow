@@ -24,9 +24,8 @@ export function usePaymentMethods(patientId: string | null) {
       const { data, error: fetchError } = await supabase
         .from('payment_methods')
         .select('*')
-        .eq('patient_id', patientId)
-        .eq('is_active', true)
-        .order('is_primary', { ascending: false })
+        .eq('contact_id', patientId)
+        .order('is_default', { ascending: false })
         .order('created_at', { ascending: false });
 
       if (fetchError) {
@@ -51,7 +50,7 @@ export function usePaymentMethods(patientId: string | null) {
         .from('payment_methods')
         .insert({
           ...methodData,
-          patient_id: patientId,
+          contact_id: patientId,
         })
         .select()
         .single();
@@ -73,7 +72,7 @@ export function usePaymentMethods(patientId: string | null) {
         .from('payment_methods')
         .update(updates)
         .eq('id', methodId)
-        .eq('patient_id', patientId);
+        .eq('contact_id', patientId);
 
       if (updateError) throw updateError;
 
@@ -92,7 +91,7 @@ export function usePaymentMethods(patientId: string | null) {
         .from('payment_methods')
         .update({ is_active: false })
         .eq('id', methodId)
-        .eq('patient_id', patientId);
+        .eq('contact_id', patientId);
 
       if (deleteError) throw deleteError;
 
@@ -109,9 +108,9 @@ export function usePaymentMethods(patientId: string | null) {
     try {
       const { error: updateError } = await supabase
         .from('payment_methods')
-        .update({ is_primary: true })
+        .update({ is_default: true })
         .eq('id', methodId)
-        .eq('patient_id', patientId);
+        .eq('contact_id', patientId);
 
       if (updateError) throw updateError;
 
@@ -124,7 +123,7 @@ export function usePaymentMethods(patientId: string | null) {
     }
   }
 
-  const primaryPaymentMethod = paymentMethods.find((pm) => pm.is_primary) || paymentMethods[0] || null;
+  const primaryPaymentMethod = paymentMethods.find((pm) => pm.is_default) || paymentMethods[0] || null;
 
   return {
     paymentMethods,
