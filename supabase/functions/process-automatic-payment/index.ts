@@ -98,7 +98,7 @@ Deno.serve(async (req: Request) => {
 
     if (mockPaymentSuccess) {
       const { data: transaction, error: transactionError } = await supabase
-        .from('payment_transactions_extended')
+        .from('payment_transactions')
         .insert({
           patient_id: eligibility.patient_id,
           payment_method_id: eligibility.payment_method_id,
