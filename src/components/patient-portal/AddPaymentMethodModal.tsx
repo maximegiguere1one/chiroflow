@@ -168,24 +168,30 @@ export default function AddPaymentMethodModal({
         throw new Error(result.error || 'Échec de la tokenisation');
       }
 
+      const { data: { user } } = await supabase.auth.getUser();
+
       const { error: insertError } = await supabase.from('payment_methods').insert({
-        patient_id: patientId,
-        card_token: result.token,
-        card_brand: result.cardBrand,
-        last_four_digits: result.lastFourDigits,
-        expiry_month: parseInt(month),
-        expiry_year: parseInt('20' + year),
+        contact_id: patientId,
+        owner_id: user?.id,
+        method_type: 'card',
+        card_brand: result.cardBrand || cardBrand,
+        card_last4: result.lastFourDigits || formData.cardNumber.slice(-4),
+        card_exp_month: parseInt(month),
+        card_exp_year: parseInt('20' + year),
         cardholder_name: formData.cardholderName,
         billing_address_line1: formData.line1,
         billing_address_line2: formData.line2 || null,
-        billing_city: formData.city,
-        billing_province: formData.province,
-        billing_postal_code: formData.postalCode,
-        billing_country: 'CA',
-        card_nickname: formData.cardNickname || null,
-        is_primary: formData.setPrimary,
-        is_verified: true,
-        is_active: true,
+        billing_address_city: formData.city,
+        billing_address_state: formData.province,
+        billing_address_postal_code: formData.postalCode,
+        billing_address_country: 'CA',
+        is_default: formData.setPrimary,
+        stripe_payment_method_id: result.token || null,
+        metadata: {
+          nickname: formData.cardNickname || null,
+          verified: true,
+          active: true,
+        },
       });
 
       if (insertError) throw insertError;
