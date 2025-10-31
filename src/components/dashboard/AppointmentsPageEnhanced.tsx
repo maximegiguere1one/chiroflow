@@ -105,7 +105,7 @@ export function AppointmentsPageEnhanced() {
   async function updateAppointmentStatus(id: string, status: string) {
     try {
       const { error } = await supabase
-        .from('appointments_api')
+        .from('appointments')
         .update({ status })
         .eq('id', id);
 
