@@ -9,6 +9,7 @@ import type { Appointment, Patient } from '../../types/database';
 import { useToastContext } from '../../contexts/ToastContext';
 import { CSVImportModal } from './CSVImportModal';
 import { exportAppointmentsToCSV } from '../../lib/exportUtils';
+import { createScheduledAt } from '../../lib/dateUtils';
 
 interface NewAppointmentForm {
   patient_id?: string;
@@ -627,8 +628,17 @@ function QuickAppointmentModal({
     setSaving(true);
 
     try {
-      const { error } = await supabase.from('appointments_api').insert({
-        ...formData,
+      const scheduled_at = createScheduledAt(formData.scheduled_date, formData.scheduled_time);
+
+      const { error } = await supabase.from('appointments').insert({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        reason: formData.reason,
+        scheduled_at: scheduled_at,
+        duration_minutes: formData.duration_minutes,
+        notes: formData.notes,
+        patient_id: formData.patient_id || null,
         status: 'confirmed',
       });
 

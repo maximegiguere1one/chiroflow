@@ -4,6 +4,7 @@ import { X, Calendar as CalendarIcon, Clock, Save, Plus, Edit, Trash2, CheckCirc
 import { supabase } from '../../lib/supabase';
 import type { Appointment } from '../../types/database';
 import { useToastContext } from '../../contexts/ToastContext';
+import { createScheduledAt } from '../../lib/dateUtils';
 
 interface AppointmentSchedulingModalProps {
   patient: {
@@ -116,14 +117,15 @@ export function AppointmentSchedulingModal({ patient, onClose }: AppointmentSche
 
       const patientName = patient.full_name || `${patient.first_name || ''} ${patient.last_name || ''}`.trim();
 
+      const scheduled_at = createScheduledAt(formData.scheduled_date, formData.scheduled_time);
+
       const appointmentData = {
         owner_id: user.id,
         contact_id: patient.id,
         name: patientName,
         email: patient.email || '',
         phone: patient.phone || '',
-        scheduled_date: formData.scheduled_date || null,
-        scheduled_time: formData.scheduled_time || null,
+        scheduled_at: scheduled_at,
         duration_minutes: formData.duration_minutes,
         reason: formData.reason,
         notes: formData.notes || null,
@@ -132,7 +134,7 @@ export function AppointmentSchedulingModal({ patient, onClose }: AppointmentSche
 
       if (editingAppointment) {
         const { error } = await supabase
-          .from('appointments_api')
+          .from('appointments')
           .update(appointmentData)
           .eq('id', editingAppointment.id);
 
@@ -140,7 +142,7 @@ export function AppointmentSchedulingModal({ patient, onClose }: AppointmentSche
         toast.success('✅ Rendez-vous modifié avec succès');
       } else {
         const { error } = await supabase
-          .from('appointments_api')
+          .from('appointments')
           .insert([appointmentData]);
 
         if (error) throw error;

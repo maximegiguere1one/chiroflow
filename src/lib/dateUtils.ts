@@ -53,3 +53,35 @@ export function getWeekRange(startDate: Date): { start: string; end: string } {
     end: end.toISOString()
   };
 }
+
+export function getDateFromScheduledAt(scheduled_at: string | null): string {
+  if (!scheduled_at) return '';
+  return scheduled_at.split('T')[0];
+}
+
+export function getTimeFromScheduledAt(scheduled_at: string | null): string {
+  if (!scheduled_at) return '';
+  const date = new Date(scheduled_at);
+  return date.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
+}
+
+export function createScheduledAt(date: string, time: string): string {
+  const timeWithSeconds = time.length === 5 ? `${time}:00` : time;
+  return `${date}T${timeWithSeconds}`;
+}
+
+export function formatScheduledAtForDisplay(scheduled_at: string | null): string {
+  if (!scheduled_at) return '';
+  const date = new Date(scheduled_at);
+  return date.toLocaleString('fr-CA', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}

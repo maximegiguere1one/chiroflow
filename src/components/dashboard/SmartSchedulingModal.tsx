@@ -4,6 +4,7 @@ import { X, Calendar, Clock, Zap, TrendingUp, Users } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useToastContext } from '../../contexts/ToastContext';
 import type { Patient, Appointment } from '../../types/database';
+import { createScheduledAt } from '../../lib/dateUtils';
 
 interface SmartSchedulingModalProps {
   isOpen: boolean;
@@ -138,13 +139,14 @@ export function SmartSchedulingModal({
     if (!patientId || !patient) return;
 
     try {
-      const { error } = await supabase.from('appointments_api').insert({
-        patient_id: patientId,
+      const scheduled_at = createScheduledAt(suggestion.date, suggestion.time);
+
+      const { error } = await supabase.from('appointments').insert({
+        contact_id: patientId,
         name: patientName || `${patient.first_name} ${patient.last_name}`,
         email: patient.email || '',
         phone: patient.phone || '',
-        scheduled_date: suggestion.date,
-        scheduled_time: suggestion.time,
+        scheduled_at: scheduled_at,
         duration_minutes: duration,
         status: 'confirmed',
         reason: reason,

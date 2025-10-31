@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, Plus, AlertCircle, CheckCircle, X, Search, F
 import { supabase } from '../../lib/supabase';
 import { useToastContext } from '../../contexts/ToastContext';
 import type { Appointment } from '../../types/database';
+import { createScheduledAt } from '../../lib/dateUtils';
 
 interface EnhancedCalendarProps {
   onAppointmentClick?: (appointment: Appointment) => void;
@@ -1206,8 +1207,17 @@ function NewAppointmentModal({
     setSaving(true);
 
     try {
-      const { error } = await supabase.from('appointments_api').insert({
-        ...formData,
+      const scheduled_at = createScheduledAt(formData.scheduled_date, formData.scheduled_time);
+
+      const { error } = await supabase.from('appointments').insert({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        reason: formData.reason,
+        scheduled_at: scheduled_at,
+        duration_minutes: formData.duration_minutes,
+        notes: formData.notes,
+        patient_id: formData.patient_id || null,
         status: 'confirmed',
       });
 
