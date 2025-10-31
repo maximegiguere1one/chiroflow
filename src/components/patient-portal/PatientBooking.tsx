@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, Check, AlertCircle, ArrowRight, ArrowLeft, Sparkles } from 'lucide-react';
+import { Calendar, Clock, Check, AlertCircle, ArrowRight, ArrowLeft, Sparkles, CreditCard } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { env } from '../../lib/env';
+import { usePaymentMethods } from '../../hooks/usePaymentMethods';
 
 interface PatientBookingProps {
   patientId: string;
@@ -37,9 +38,14 @@ export default function PatientBooking({ patientId, patientEmail, patientName }:
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [bookingSettings, setBookingSettings] = useState<any>(null);
   const [notes, setNotes] = useState('');
+  const [enableAutoPayment, setEnableAutoPayment] = useState(false);
+  const [hasAutoPayAuth, setHasAutoPayAuth] = useState(false);
+
+  const { paymentMethods } = usePaymentMethods(patientId);
 
   useEffect(() => {
     loadBookingData();
+    checkAutoPaymentStatus();
   }, []);
 
   useEffect(() => {
@@ -47,6 +53,23 @@ export default function PatientBooking({ patientId, patientEmail, patientName }:
       loadAvailableSlots(selectedDate);
     }
   }, [selectedDate, selectedService]);
+
+  async function checkAutoPaymentStatus() {
+    try {
+      const { data } = await supabase
+        .from('payment_authorizations')
+        .select('is_enabled')
+        .eq('patient_id', patientId)
+        .maybeSingle();
+
+      if (data?.is_enabled) {
+        setHasAutoPayAuth(true);
+        setEnableAutoPayment(true);
+      }
+    } catch (error) {
+      console.error('Error checking auto-payment status:', error);
+    }
+  }
 
   async function loadBookingData() {
     try {
@@ -176,6 +199,8 @@ export default function PatientBooking({ patientId, patientEmail, patientName }:
         status: 'pending',
         booking_source: 'patient_portal',
         payment_status: 'pending',
+        auto_payment_enabled: enableAutoPayment,
+        auto_payment_status: enableAutoPayment ? 'pending' : 'not_applicable',
       };
 
       const { error } = await supabase
@@ -421,6 +446,38 @@ export default function PatientBooking({ patientId, patientEmail, patientName }:
                       rows={3}
                     />
                   </div>
+
+                  {hasAutoPayAuth && paymentMethods.length > 0 && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={enableAutoPayment}
+                          onChange={(e) => setEnableAutoPayment(e.target.checked)}
+                          className="w-5 h-5 text-gold-600 border-neutral-300 rounded focus:ring-gold-500 mt-0.5"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <CreditCard className="w-4 h-4 text-blue-600" />
+                            <span className="font-medium text-foreground">Paiement automatique</span>
+                          </div>
+                          <p className="text-sm text-foreground/70">
+                            Payer automatiquement ce rendez-vous avec votre méthode de paiement enregistrée
+                            ({selectedService.price}$)
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+                  )}
+
+                  {!hasAutoPayAuth && paymentMethods.length > 0 && (
+                    <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4">
+                      <p className="text-sm text-foreground/60">
+                        Activez les paiements automatiques dans l'onglet "Paiements auto" pour payer
+                        automatiquement vos rendez-vous.
+                      </p>
+                    </div>
+                  )}
 
                   <div className="flex gap-3">
                     <button

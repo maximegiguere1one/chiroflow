@@ -11,6 +11,7 @@ import {
   AlertCircle,
   RefreshCw,
   CalendarPlus,
+  Settings,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { env } from '../lib/env';
@@ -19,8 +20,9 @@ import PatientAppointments from '../components/patient-portal/PatientAppointment
 import PatientDocuments from '../components/patient-portal/PatientDocuments';
 import PatientProfile from '../components/patient-portal/PatientProfile';
 import PatientBooking from '../components/patient-portal/PatientBooking';
+import AutoPaymentSettings from '../components/patient-portal/AutoPaymentSettings';
 
-type View = 'booking' | 'appointments' | 'payments' | 'documents' | 'profile';
+type View = 'booking' | 'appointments' | 'payments' | 'documents' | 'profile' | 'autopay';
 
 type LoadingState = 'loading' | 'success' | 'error' | 'not-found';
 
@@ -166,6 +168,7 @@ export default function PatientPortal() {
     { id: 'booking', label: 'Réserver', icon: CalendarPlus },
     { id: 'appointments', label: 'Mes rendez-vous', icon: Calendar },
     { id: 'payments', label: 'Paiements', icon: CreditCard },
+    { id: 'autopay', label: 'Paiements auto', icon: Settings },
     { id: 'documents', label: 'Documents', icon: FileText },
     { id: 'profile', label: 'Mon profil', icon: User },
   ];
@@ -443,6 +446,9 @@ export default function PatientPortal() {
           )}
           {currentView === 'payments' && patientData && (
             <PatientPaymentDashboard patientId={patientData.id} />
+          )}
+          {currentView === 'autopay' && patientData && (
+            <AutoPaymentSettings patientId={patientData.id} />
           )}
           {currentView === 'documents' && patientData && (
             <PatientDocuments patientId={patientData.id} />

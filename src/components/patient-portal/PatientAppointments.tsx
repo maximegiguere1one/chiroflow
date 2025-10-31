@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Calendar, Clock, AlertCircle, X, AlertTriangle, CheckCircle, RefreshCw } from 'lucide-react';
+import { Calendar, Clock, AlertCircle, X, AlertTriangle, CheckCircle, RefreshCw, History } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import RescheduleModal from './RescheduleModal';
+import AppointmentHistory from './AppointmentHistory';
 
 interface PatientAppointmentsProps {
   patientId: string;
@@ -20,6 +21,7 @@ export default function PatientAppointments({ patientId, patientUserId }: Patien
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
+  const [activeTab, setActiveTab] = useState<'upcoming' | 'history'>('upcoming');
   const [cancelModal, setCancelModal] = useState<CancellationModal>({
     show: false,
     appointment: null,
@@ -146,8 +148,36 @@ export default function PatientAppointments({ patientId, patientUserId }: Patien
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-heading text-foreground mb-4">Mes rendez-vous à venir</h2>
+      <div className="flex items-center gap-2 mb-6">
+        <button
+          onClick={() => setActiveTab('upcoming')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+            activeTab === 'upcoming'
+              ? 'bg-gold-500 text-white shadow-gold'
+              : 'bg-neutral-100 text-foreground/70 hover:bg-neutral-200'
+          }`}
+        >
+          <Calendar className="w-4 h-4" />
+          À venir
+        </button>
+        <button
+          onClick={() => setActiveTab('history')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+            activeTab === 'history'
+              ? 'bg-gold-500 text-white shadow-gold'
+              : 'bg-neutral-100 text-foreground/70 hover:bg-neutral-200'
+          }`}
+        >
+          <History className="w-4 h-4" />
+          Historique
+        </button>
+      </div>
+
+      {activeTab === 'history' ? (
+        <AppointmentHistory patientId={patientId} />
+      ) : (
+        <div>
+          <h2 className="text-xl font-heading text-foreground mb-4">Mes rendez-vous à venir</h2>
 
         {error && (
           <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
@@ -271,7 +301,8 @@ export default function PatientAppointments({ patientId, patientUserId }: Patien
             </div>
           </div>
         )}
-      </div>
+        </div>
+      )}
 
       {cancelModal.show && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
