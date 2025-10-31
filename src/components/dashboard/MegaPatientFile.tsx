@@ -987,7 +987,7 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
                       {['Radiographie - Colonne lombaire', 'Radiographie - Colonne cervicale', 'IRM - L4-L5'].map((img, i) => (
                         <div
                           key={i}
-                          onClick={() => toast.info(`Visualisation de "${img}"`)
+                          onClick={() => toast.info(`Visualisation de "${img}"`)}
                           className="bg-gray-50 rounded-lg border border-gray-200 p-4 cursor-pointer hover:border-blue-400 hover:shadow-md transition-all"
                         >
                           <div className="w-full h-40 bg-gray-300 rounded-lg mb-3 flex items-center justify-center">
