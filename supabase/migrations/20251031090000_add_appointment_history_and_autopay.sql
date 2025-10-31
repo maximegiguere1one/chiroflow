@@ -103,7 +103,7 @@ CREATE TABLE IF NOT EXISTS payment_authorizations (
 -- Create automatic_payment_attempts table
 CREATE TABLE IF NOT EXISTS automatic_payment_attempts (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  appointment_id uuid NOT NULL,
+  appointment_id uuid NOT NULL REFERENCES appointments(id) ON DELETE CASCADE,
   patient_id uuid NOT NULL REFERENCES patients_full(id) ON DELETE CASCADE,
   authorization_id uuid NOT NULL REFERENCES payment_authorizations(id) ON DELETE CASCADE,
   payment_method_id uuid REFERENCES payment_methods(id) ON DELETE SET NULL,
