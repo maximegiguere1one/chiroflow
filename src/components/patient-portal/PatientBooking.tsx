@@ -83,7 +83,7 @@ export default function PatientBooking({ patientId, patientEmail, patientName }:
         supabase
           .from('booking_settings')
           .select('*')
-          .eq('online_booking_enabled', true)
+          .eq('enabled', true)
           .maybeSingle(),
       ]);
 
@@ -235,7 +235,7 @@ export default function PatientBooking({ patientId, patientEmail, patientName }:
     );
   }
 
-  if (!bookingSettings?.online_booking_enabled) {
+  if (!bookingSettings?.enabled) {
     return (
       <div className="text-center py-12 bg-orange-50 border border-orange-200 rounded-lg">
         <AlertCircle className="w-12 h-12 text-orange-600 mx-auto mb-3" />

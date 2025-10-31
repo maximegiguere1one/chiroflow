@@ -39,7 +39,7 @@ interface BookingSettings {
   booking_confirmation_message: string;
   booking_instructions: string;
   cancellation_policy: string;
-  online_booking_enabled: boolean;
+  enabled: boolean;
 }
 
 const DAYS = [
@@ -90,7 +90,7 @@ export function OnlineBookingConfig() {
     booking_confirmation_message: 'Votre rendez-vous a été confirmé!',
     booking_instructions: 'Veuillez arriver 10 minutes avant votre rendez-vous.',
     cancellation_policy: 'Les annulations doivent être effectuées au moins 24 heures à l\'avance.',
-    online_booking_enabled: true,
+    enabled: true,
   });
 
   useEffect(() => {
@@ -180,9 +180,9 @@ export function OnlineBookingConfig() {
           <p className="text-slate-600">Configurez votre système de réservation automatique</p>
         </div>
         <button
-          onClick={() => setSettings({ ...settings, online_booking_enabled: !settings.online_booking_enabled })}
+          onClick={() => setSettings({ ...settings, enabled: !settings.enabled })}
           className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium ${
-            settings.online_booking_enabled
+            settings.enabled
               ? 'bg-green-100 text-green-700'
               : 'bg-slate-100 text-slate-700'
           }`}

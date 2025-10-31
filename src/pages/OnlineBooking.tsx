@@ -20,7 +20,7 @@ interface TimeSlot {
 }
 
 interface BookingSettings {
-  online_booking_enabled: boolean;
+  enabled: boolean;
   advance_booking_days: number;
   minimum_notice_hours: number;
   require_payment: boolean;
@@ -91,7 +91,7 @@ export function OnlineBooking() {
         supabase
           .from('booking_settings')
           .select('*')
-          .eq('online_booking_enabled', true)
+          .eq('enabled', true)
           .maybeSingle(),
       ]);
 
@@ -286,7 +286,7 @@ export function OnlineBooking() {
     );
   }
 
-  if (!settings?.online_booking_enabled) {
+  if (!settings?.enabled) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md text-center">
