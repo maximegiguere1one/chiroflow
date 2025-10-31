@@ -625,6 +625,8 @@ function QuickAppointmentModal({
     try {
       const scheduled_at = createScheduledAt(formData.scheduled_date, formData.scheduled_time);
 
+      const { data: { user } } = await supabase.auth.getUser();
+
       const { error } = await supabase.from('appointments').insert({
         name: formData.name,
         email: formData.email,
@@ -635,6 +637,7 @@ function QuickAppointmentModal({
         notes: formData.notes,
         contact_id: formData.patient_id || null,
         status: 'confirmed',
+        owner_id: user?.id,
       });
 
       if (error) throw error;
