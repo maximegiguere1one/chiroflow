@@ -1,154 +1,128 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../../lib/supabase';
+import { patientService } from '../../infrastructure/api/PatientService';
+import { PatientResponseDTO, CreatePatientDTO, UpdatePatientDTO } from '../../application/dto/PatientDTO';
+import { PatientFilters } from '../../domain/repositories/IPatientRepository';
 
-interface Patient {
-  id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone: string;
-  date_of_birth: string;
-  status: string;
-  last_visit?: string;
-  total_visits: number;
-  created_at: string;
+export interface UsePatientManagementResult {
+  patients: PatientResponseDTO[];
+  loading: boolean;
+  error: Error | null;
+  total: number;
+  currentPage: number;
+  pageSize: number;
+  loadPatients: (filters?: PatientFilters) => Promise<void>;
+  createPatient: (dto: CreatePatientDTO) => Promise<PatientResponseDTO>;
+  updatePatient: (id: string, dto: UpdatePatientDTO) => Promise<PatientResponseDTO>;
+  deletePatient: (id: string) => Promise<void>;
+  getPatient: (id: string) => Promise<PatientResponseDTO | null>;
+  setPage: (page: number) => void;
+  refresh: () => Promise<void>;
 }
 
-interface PatientFormData {
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone: string;
-  date_of_birth: string;
-  gender: string;
-  address: string;
-  medical_history: string;
-  medications: string | string[];
-  allergies: string | string[];
-  status: string;
-}
+export function usePatientManagement(initialFilters?: PatientFilters): UsePatientManagementResult {
+  const [patients, setPatients] = useState<PatientResponseDTO[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const [total, setTotal] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [filters, setFilters] = useState<PatientFilters>(initialFilters || {});
 
-export function usePatientManagement() {
-  const [patients, setPatients] = useState<Patient[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const pageSize = filters.limit || 50;
 
-  const loadPatients = useCallback(async () => {
+  const loadPatients = useCallback(async (newFilters?: PatientFilters) => {
+    setLoading(true);
+    setError(null);
+
     try {
-      setLoading(true);
-      setError(null);
-      const { data, error: fetchError } = await supabase
-        .from('patients_full')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const appliedFilters = newFilters || filters;
+      const offset = (currentPage - 1) * pageSize;
+      
+      const result = await patientService.listPatients({
+        ...appliedFilters,
+        limit: pageSize,
+        offset,
+      });
 
-      if (fetchError) throw fetchError;
-      setPatients(data || []);
+      setPatients(result.patients);
+      setTotal(result.total);
+      
+      if (newFilters) {
+        setFilters(newFilters);
+      }
     } catch (err) {
+      setError(err as Error);
       console.error('Error loading patients:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load patients');
     } finally {
       setLoading(false);
     }
+  }, [currentPage, pageSize, filters]);
+
+  const createPatient = useCallback(async (dto: CreatePatientDTO): Promise<PatientResponseDTO> => {
+    try {
+      const newPatient = await patientService.createPatient(dto);
+      await loadPatients();
+      return newPatient;
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    }
+  }, [loadPatients]);
+
+  const updatePatient = useCallback(async (id: string, dto: UpdatePatientDTO): Promise<PatientResponseDTO> => {
+    try {
+      const updatedPatient = await patientService.updatePatient(id, dto);
+      await loadPatients();
+      return updatedPatient;
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    }
+  }, [loadPatients]);
+
+  const deletePatient = useCallback(async (id: string): Promise<void> => {
+    try {
+      await patientService.deletePatient(id);
+      await loadPatients();
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    }
+  }, [loadPatients]);
+
+  const getPatient = useCallback(async (id: string): Promise<PatientResponseDTO | null> => {
+    try {
+      return await patientService.getPatient(id);
+    } catch (err) {
+      setError(err as Error);
+      return null;
+    }
   }, []);
+
+  const setPage = useCallback((page: number) => {
+    setCurrentPage(page);
+  }, []);
+
+  const refresh = useCallback(async () => {
+    await loadPatients();
+  }, [loadPatients]);
 
   useEffect(() => {
     loadPatients();
-  }, [loadPatients]);
-
-  const addPatient = useCallback(async (formData: PatientFormData) => {
-    try {
-      const processedData = {
-        ...formData,
-        medications: typeof formData.medications === 'string'
-          ? formData.medications.split(',').map(m => m.trim()).filter(Boolean)
-          : formData.medications,
-        allergies: typeof formData.allergies === 'string'
-          ? formData.allergies.split(',').map(a => a.trim()).filter(Boolean)
-          : formData.allergies,
-        email: formData.email || null,
-        phone: formData.phone || null,
-        date_of_birth: formData.date_of_birth || null,
-        address: formData.address || null,
-        medical_history: formData.medical_history || null,
-      };
-
-      const { error: insertError } = await supabase
-        .from('patients_full')
-        .insert([processedData]);
-
-      if (insertError) throw insertError;
-      await loadPatients();
-      return { success: true };
-    } catch (err) {
-      console.error('Error adding patient:', err);
-      return {
-        success: false,
-        error: err instanceof Error ? err.message : 'Failed to add patient',
-      };
-    }
-  }, [loadPatients]);
-
-  const updatePatient = useCallback(async (id: string, formData: PatientFormData) => {
-    try {
-      const processedData = {
-        ...formData,
-        medications: typeof formData.medications === 'string'
-          ? formData.medications.split(',').map(m => m.trim()).filter(Boolean)
-          : formData.medications,
-        allergies: typeof formData.allergies === 'string'
-          ? formData.allergies.split(',').map(a => a.trim()).filter(Boolean)
-          : formData.allergies,
-        email: formData.email || null,
-        phone: formData.phone || null,
-        date_of_birth: formData.date_of_birth || null,
-        address: formData.address || null,
-        medical_history: formData.medical_history || null,
-      };
-
-      const { error: updateError } = await supabase
-        .from('patients_full')
-        .update(processedData)
-        .eq('id', id);
-
-      if (updateError) throw updateError;
-      await loadPatients();
-      return { success: true };
-    } catch (err) {
-      console.error('Error updating patient:', err);
-      return {
-        success: false,
-        error: err instanceof Error ? err.message : 'Failed to update patient',
-      };
-    }
-  }, [loadPatients]);
-
-  const deletePatient = useCallback(async (id: string) => {
-    try {
-      const { error: deleteError } = await supabase
-        .from('patients_full')
-        .delete()
-        .eq('id', id);
-
-      if (deleteError) throw deleteError;
-      await loadPatients();
-      return { success: true };
-    } catch (err) {
-      console.error('Error deleting patient:', err);
-      return {
-        success: false,
-        error: err instanceof Error ? err.message : 'Failed to delete patient',
-      };
-    }
-  }, [loadPatients]);
+  }, [currentPage]);
 
   return {
     patients,
     loading,
     error,
+    total,
+    currentPage,
+    pageSize,
     loadPatients,
-    addPatient,
+    createPatient,
     updatePatient,
     deletePatient,
+    getPatient,
+    setPage,
+    refresh,
   };
 }
