@@ -1,10 +1,17 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { useBillingStore } from '../billingStore';
-import { createMockSupabaseClient, createMockInvoice, createMockPayment } from '../../../test/testUtils';
+import { createMockInvoice, createMockPayment } from '../../../test/testUtils';
 
-vi.mock('../../../lib/supabase', () => ({
-  supabase: createMockSupabaseClient(),
-}));
+const mockSupabase = {
+  from: vi.fn(),
+  channel: vi.fn(),
+  storage: { from: vi.fn() },
+  auth: { getUser: vi.fn(), getSession: vi.fn() },
+  rpc: vi.fn(),
+};
+
+vi.mock('../../../lib/supabase', () => ({ supabase: mockSupabase }));
+
+const { useBillingStore } = await import('../billingStore');
 
 describe('BillingStore', () => {
   beforeEach(() => {
@@ -24,8 +31,7 @@ describe('BillingStore', () => {
   it('should create invoice successfully', async () => {
     const mockInvoice = createMockInvoice({ amount: 150 });
 
-    const { supabase } = await import('../../../lib/supabase');
-    vi.mocked(supabase.from).mockReturnValue({
+    vi.mocked(mockSupabase.from).mockReturnValue({
       insert: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({ data: mockInvoice, error: null }),
@@ -70,8 +76,7 @@ describe('BillingStore', () => {
 
     useBillingStore.setState({ paymentMethods: methods });
 
-    const { supabase } = await import('../../../lib/supabase');
-    vi.mocked(supabase.from).mockReturnValue({
+    vi.mocked(mockSupabase.from).mockReturnValue({
       update: vi.fn().mockReturnThis(),
       eq: vi.fn().mockResolvedValue({ error: null }),
     } as any);
@@ -87,8 +92,7 @@ describe('BillingStore', () => {
     const invoice = createMockInvoice({ id: '1' });
     useBillingStore.setState({ invoices: [invoice] });
 
-    const { supabase } = await import('../../../lib/supabase');
-    vi.mocked(supabase.from).mockReturnValue({
+    vi.mocked(mockSupabase.from).mockReturnValue({
       delete: vi.fn().mockReturnThis(),
       eq: vi.fn().mockResolvedValue({ error: null }),
     } as any);
@@ -99,12 +103,11 @@ describe('BillingStore', () => {
   });
 
   it('should refresh all billing data', async () => {
-    const { supabase } = await import('../../../lib/supabase');
     const mockFrom = vi.fn().mockReturnValue({
       select: vi.fn().mockReturnThis(),
       order: vi.fn().mockResolvedValue({ data: [], error: null }),
     });
-    vi.mocked(supabase.from).mockImplementation(mockFrom as any);
+    vi.mocked(mockSupabase.from).mockImplementation(mockFrom as any);
 
     await useBillingStore.getState().refresh();
 

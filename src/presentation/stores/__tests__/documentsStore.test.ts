@@ -1,10 +1,26 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { useDocumentsStore } from '../documentsStore';
-import { createMockSupabaseClient, createMockDocument } from '../../../test/testUtils';
+import { createMockDocument } from '../../../test/testUtils';
 
-vi.mock('../../../lib/supabase', () => ({
-  supabase: createMockSupabaseClient(),
-}));
+const mockSupabase = {
+  from: vi.fn(),
+  channel: vi.fn().mockReturnValue({
+    on: vi.fn().mockReturnThis(),
+    subscribe: vi.fn((cb) => { if (cb) cb('SUBSCRIBED'); return { unsubscribe: vi.fn() }; }),
+    unsubscribe: vi.fn(),
+  }),
+  storage: {
+    from: vi.fn().mockReturnValue({
+      upload: vi.fn().mockResolvedValue({ error: null }),
+      getPublicUrl: vi.fn().mockReturnValue({ data: { publicUrl: 'https://example.com/test.pdf' } }),
+    }),
+  },
+  auth: { getUser: vi.fn(), getSession: vi.fn() },
+  rpc: vi.fn(),
+};
+
+vi.mock('../../../lib/supabase', () => ({ supabase: mockSupabase }));
+
+const { useDocumentsStore } = await import('../documentsStore');
 
 describe('DocumentsStore', () => {
   beforeEach(() => {
@@ -26,8 +42,7 @@ describe('DocumentsStore', () => {
       createMockDocument({ id: '2', name: 'doc2.pdf' }),
     ];
 
-    const { supabase } = await import('../../../lib/supabase');
-    vi.mocked(supabase.from).mockReturnValue({
+    vi.mocked(mockSupabase.from).mockReturnValue({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       order: vi.fn().mockResolvedValue({ data: mockDocs, error: null }),
@@ -44,15 +59,7 @@ describe('DocumentsStore', () => {
     const mockFile = new File(['content'], 'test.pdf', { type: 'application/pdf' });
     const mockDoc = createMockDocument({ name: 'test.pdf' });
 
-    const { supabase } = await import('../../../lib/supabase');
-    vi.mocked(supabase.storage.from).mockReturnValue({
-      upload: vi.fn().mockResolvedValue({ error: null }),
-      getPublicUrl: vi.fn().mockReturnValue({
-        data: { publicUrl: 'https://example.com/test.pdf' },
-      }),
-    } as any);
-
-    vi.mocked(supabase.from).mockReturnValue({
+    vi.mocked(mockSupabase.from).mockReturnValue({
       insert: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({ data: mockDoc, error: null }),

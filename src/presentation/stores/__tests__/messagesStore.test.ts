@@ -1,10 +1,21 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { useMessagesStore } from '../messagesStore';
-import { createMockSupabaseClient, createMockMessage } from '../../../test/testUtils';
+import { createMockMessage } from '../../../test/testUtils';
 
-vi.mock('../../../lib/supabase', () => ({
-  supabase: createMockSupabaseClient(),
-}));
+const mockSupabase = {
+  from: vi.fn(),
+  channel: vi.fn().mockReturnValue({
+    on: vi.fn().mockReturnThis(),
+    subscribe: vi.fn((cb) => { if (cb) cb('SUBSCRIBED'); return { unsubscribe: vi.fn() }; }),
+    unsubscribe: vi.fn(),
+  }),
+  storage: { from: vi.fn() },
+  auth: { getUser: vi.fn(), getSession: vi.fn() },
+  rpc: vi.fn(),
+};
+
+vi.mock('../../../lib/supabase', () => ({ supabase: mockSupabase }));
+
+const { useMessagesStore } = await import('../messagesStore');
 
 describe('MessagesStore', () => {
   beforeEach(() => {
@@ -23,8 +34,7 @@ describe('MessagesStore', () => {
   it('should send message successfully', async () => {
     const mockMessage = createMockMessage({ subject: 'Test' });
 
-    const { supabase } = await import('../../../lib/supabase');
-    vi.mocked(supabase.from).mockReturnValue({
+    vi.mocked(mockSupabase.from).mockReturnValue({
       insert: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({ data: mockMessage, error: null }),
@@ -47,8 +57,7 @@ describe('MessagesStore', () => {
       scheduled_for: '2025-11-15T10:00:00Z',
     });
 
-    const { supabase } = await import('../../../lib/supabase');
-    vi.mocked(supabase.from).mockReturnValue({
+    vi.mocked(mockSupabase.from).mockReturnValue({
       insert: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({ data: scheduledMessage, error: null }),
@@ -95,8 +104,7 @@ describe('MessagesStore', () => {
     const message = createMockMessage({ id: 'msg-1', status: 'delivered' });
     useMessagesStore.setState({ messages: [message] });
 
-    const { supabase } = await import('../../../lib/supabase');
-    vi.mocked(supabase.from).mockReturnValue({
+    vi.mocked(mockSupabase.from).mockReturnValue({
       update: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),

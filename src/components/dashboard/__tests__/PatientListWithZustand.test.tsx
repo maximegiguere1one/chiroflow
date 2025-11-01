@@ -1,13 +1,17 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import PatientListWithZustand from '../PatientListWithZustand';
-import { createMockSupabaseClient, createMockPatient } from '../../../test/testUtils';
+import { createMockPatient } from '../../../test/testUtils';
 
-vi.mock('../../../lib/supabase', () => ({
-  supabase: createMockSupabaseClient(),
-}));
+const mockSupabase = {
+  from: vi.fn(),
+  channel: vi.fn(),
+  storage: { from: vi.fn() },
+  auth: { getUser: vi.fn(), getSession: vi.fn() },
+  rpc: vi.fn(),
+};
 
+vi.mock('../../../lib/supabase', () => ({ supabase: mockSupabase }));
 vi.mock('../../../contexts/ToastContext', () => ({
   useToastContext: () => ({
     success: vi.fn(),
@@ -32,6 +36,8 @@ vi.mock('../CSVImportModal', () => ({
   CSVImportModal: () => <div>CSV Import Modal</div>,
 }));
 
+const PatientListWithZustand = (await import('../PatientListWithZustand')).default;
+
 describe('PatientListWithZustand Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -43,8 +49,7 @@ describe('PatientListWithZustand Component', () => {
       createMockPatient({ id: '2', full_name: 'Jane Smith' }),
     ];
 
-    const { supabase } = await import('../../../lib/supabase');
-    vi.mocked(supabase.from).mockReturnValue({
+    vi.mocked(mockSupabase.from).mockReturnValue({
       select: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       range: vi.fn().mockResolvedValue({

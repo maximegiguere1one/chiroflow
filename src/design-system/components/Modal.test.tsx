@@ -143,9 +143,10 @@ describe('ConfirmModal', () => {
       />
     );
 
-    const buttons = screen.getAllByRole('button');
-    buttons.forEach(button => {
-      expect(button).toBeDisabled();
-    });
+    const confirmButton = screen.getByText('Confirmer');
+    const cancelButton = screen.getByText('Annuler');
+
+    expect(confirmButton).toBeDisabled();
+    expect(cancelButton).toBeDisabled();
   });
 });

@@ -60,7 +60,7 @@ describe('Tabs', () => {
 
   it('marks active tab with aria-selected', () => {
     render(<TestTabs />);
-    const tab1 = screen.getByText('Tab 1');
-    expect(tab1).toHaveAttribute('aria-selected', 'true');
+    const tab1Button = screen.getByRole('tab', { name: 'Tab 1' });
+    expect(tab1Button).toHaveAttribute('aria-selected', 'true');
   });
 });

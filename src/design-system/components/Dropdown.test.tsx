@@ -145,6 +145,8 @@ describe('Dropdown', () => {
     expect(screen.getByRole('listbox')).toBeInTheDocument();
 
     await user.keyboard('{Escape}');
-    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    });
   });
 });

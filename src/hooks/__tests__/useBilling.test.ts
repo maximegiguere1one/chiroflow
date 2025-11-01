@@ -1,11 +1,18 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
-import { useBilling, useBillingStats } from '../useBilling';
-import { createMockSupabaseClient, createMockInvoice, createMockPayment } from '../../test/testUtils';
+import { createMockInvoice, createMockPayment } from '../../test/testUtils';
 
-vi.mock('../../lib/supabase', () => ({
-  supabase: createMockSupabaseClient(),
-}));
+const mockSupabase = {
+  from: vi.fn(),
+  channel: vi.fn(),
+  storage: { from: vi.fn() },
+  auth: { getUser: vi.fn(), getSession: vi.fn() },
+  rpc: vi.fn(),
+};
+
+vi.mock('../../lib/supabase', () => ({ supabase: mockSupabase }));
+
+const { useBilling, useBillingStats } = await import('../useBilling');
 
 describe('useBilling Hook', () => {
   beforeEach(() => {
@@ -16,7 +23,6 @@ describe('useBilling Hook', () => {
     const mockInvoices = [createMockInvoice()];
     const mockPayments = [createMockPayment()];
 
-    const { supabase } = await import('../../lib/supabase');
     const mockFrom = vi.fn().mockImplementation((table: string) => {
       if (table === 'invoices') {
         return {
@@ -39,7 +45,7 @@ describe('useBilling Hook', () => {
       };
     });
 
-    vi.mocked(supabase.from).mockImplementation(mockFrom as any);
+    vi.mocked(mockSupabase.from).mockImplementation(mockFrom as any);
 
     const { result } = renderHook(() => useBilling('patient-1', true));
 

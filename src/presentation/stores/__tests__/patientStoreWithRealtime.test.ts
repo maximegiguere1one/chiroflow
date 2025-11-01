@@ -1,10 +1,23 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { usePatientStoreWithRealtime } from '../patientStoreWithRealtime';
-import { createMockSupabaseClient, createMockPatient, flushPromises } from '../../../test/testUtils';
+import { createMockPatient, flushPromises } from '../../../test/testUtils';
+
+const mockSupabase = {
+  from: vi.fn(),
+  channel: vi.fn().mockReturnValue({
+    on: vi.fn().mockReturnThis(),
+    subscribe: vi.fn((cb) => { if (cb) cb('SUBSCRIBED'); return { unsubscribe: vi.fn() }; }),
+    unsubscribe: vi.fn(),
+  }),
+  storage: { from: vi.fn() },
+  auth: { getUser: vi.fn(), getSession: vi.fn() },
+  rpc: vi.fn(),
+};
 
 vi.mock('../../../lib/supabase', () => ({
-  supabase: createMockSupabaseClient(),
+  supabase: mockSupabase,
 }));
+
+const { usePatientStoreWithRealtime } = await import('../patientStoreWithRealtime');
 
 describe('PatientStoreWithRealtime', () => {
   beforeEach(() => {
@@ -96,8 +109,7 @@ describe('PatientStoreWithRealtime', () => {
         createMockPatient({ id: '2', full_name: 'Jane' }),
       ];
 
-      const { supabase } = await import('../../../lib/supabase');
-      vi.mocked(supabase.from).mockReturnValue({
+      vi.mocked(mockSupabase.from).mockReturnValue({
         select: vi.fn().mockReturnThis(),
         order: vi.fn().mockReturnThis(),
         range: vi.fn().mockResolvedValue({
@@ -155,8 +167,7 @@ describe('PatientStoreWithRealtime', () => {
 
       usePatientStoreWithRealtime.setState({ patients: [patient1] });
 
-      const { supabase } = await import('../../../lib/supabase');
-      vi.mocked(supabase.from).mockReturnValue({
+      vi.mocked(mockSupabase.from).mockReturnValue({
         insert: vi.fn().mockReturnThis(),
         select: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({
