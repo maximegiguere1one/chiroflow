@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { ImprovedHeader } from './components/navigation/ImprovedHeader';
 import { Breadcrumbs } from './components/navigation/Breadcrumbs';
 import Hero from './components/Hero';
@@ -9,24 +9,36 @@ import Contact from './components/Contact';
 import Footer from './components/Footer';
 import AppointmentModal from './components/AppointmentModal';
 import StickyCTA from './components/StickyCTA';
-import AdminLogin from './pages/AdminLogin';
-import AdminDashboard from './pages/AdminDashboard';
-import AdminSignup from './pages/AdminSignup';
-import TestSignup from './pages/TestSignup';
-import DiagnosticPage from './pages/DiagnosticPage';
-import InvitationResponse from './pages/InvitationResponse';
-import RebookResponse from './pages/RebookResponse';
-import PatientPortalLogin from './pages/PatientPortalLogin';
-import PatientPortal from './pages/PatientPortal';
-import { OnlineBooking } from './pages/OnlineBooking';
-import AppointmentManagement from './pages/AppointmentManagement';
-import { WaitlistSignup } from './components/WaitlistSignup';
 import { supabase } from './lib/supabase';
 import { router, getBreadcrumbs } from './lib/router';
 import { OrganizationProvider } from './contexts/OrganizationContext';
-import OnboardingFlow from './pages/OnboardingFlow';
-import OrganizationSettings from './pages/OrganizationSettings';
-import SaaSAdminDashboard from './pages/SaaSAdminDashboard';
+
+const AdminLogin = lazy(() => import('./pages/AdminLogin'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const AdminSignup = lazy(() => import('./pages/AdminSignup'));
+const TestSignup = lazy(() => import('./pages/TestSignup'));
+const DiagnosticPage = lazy(() => import('./pages/DiagnosticPage'));
+const InvitationResponse = lazy(() => import('./pages/InvitationResponse'));
+const RebookResponse = lazy(() => import('./pages/RebookResponse'));
+const PatientPortalLogin = lazy(() => import('./pages/PatientPortalLogin'));
+const PatientPortal = lazy(() => import('./pages/PatientPortal'));
+const OnlineBooking = lazy(() => import('./pages/OnlineBooking').then(m => ({ default: m.OnlineBooking })));
+const AppointmentManagement = lazy(() => import('./pages/AppointmentManagement'));
+const WaitlistSignup = lazy(() => import('./components/WaitlistSignup').then(m => ({ default: m.WaitlistSignup })));
+const OnboardingFlow = lazy(() => import('./pages/OnboardingFlow'));
+const OrganizationSettings = lazy(() => import('./pages/OrganizationSettings'));
+const SaaSAdminDashboard = lazy(() => import('./pages/SaaSAdminDashboard'));
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-neutral-50">
+      <div className="text-center">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+        <p className="mt-4 text-neutral-600">Chargement...</p>
+      </div>
+    </div>
+  );
+}
 
 function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,184 +51,115 @@ function App() {
   };
 
   useEffect(() => {
-    // Rediriger la page d'accueil vers /admin par défaut
     if (router.getCurrentPath() === '/') {
       router.navigate('/admin', true);
     }
 
     const unsubscribeRouter = router.subscribe((path) => {
       setCurrentPath(path);
-      // Rediriger / vers /admin si on arrive sur la racine
       if (path === '/') {
         router.navigate('/admin', true);
       }
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsAuthenticated(!!session);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsAuthenticated(!!session);
-      if (!session) {
-        const path = router.getCurrentPath();
-        if (path.startsWith('/admin') && path !== '/admin' && path !== '/admin/signup') {
-          router.navigate('/admin', true);
-        } else if (path.startsWith('/patient-portal') && path !== '/patient-portal/login') {
-          router.navigate('/patient-portal/login', true);
-        }
-      }
-    });
-
     return () => {
       unsubscribeRouter();
-      subscription.unsubscribe();
     };
   }, []);
 
-  function handleAdminLogin() {
-    router.navigate('/admin/dashboard');
-  }
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      setIsAuthenticated(!!data?.session);
+    };
+    checkAuth();
 
-  function handlePatientLogin() {
-    router.navigate('/patient-portal');
-  }
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session);
+    });
 
-  const { route } = router.getMatchedRoute();
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
 
-  if (route?.component === 'InvitationResponse') {
-    return <InvitationResponse />;
-  }
+  const renderPage = () => {
+    const suspenseWrapper = (Component: React.ComponentType) => (
+      <Suspense fallback={<LoadingFallback />}>
+        <Component />
+      </Suspense>
+    );
 
-  if (route?.component === 'RebookResponse') {
-    return <RebookResponse />;
-  }
-
-  if (route?.component === 'AppointmentManagement') {
-    return <AppointmentManagement />;
-  }
-
-  if (route?.component === 'TestSignup') {
-    return <TestSignup />;
-  }
-
-  if (route?.component === 'DiagnosticPage') {
-    return <DiagnosticPage />;
-  }
-
-  if (route?.role === 'admin') {
-    if (route.component === 'AdminSignup') {
-      return <AdminSignup />;
-    }
-    if (route.component === 'AdminLogin') {
-      return <AdminLogin onLogin={handleAdminLogin} />;
-    }
-    if (route.component === 'AdminDashboard' && isAuthenticated) {
+    if (currentPath === '/') {
       return (
-        <OrganizationProvider>
-          <AdminDashboard />
-        </OrganizationProvider>
+        <>
+          <Hero onOpenModal={handleOpenModal} isAgendaFull={isAgendaFull} />
+          <Services />
+          <About />
+          <Testimonials />
+          <Contact />
+        </>
       );
     }
-    if (route.requiresAuth && !isAuthenticated) {
-      router.navigate('/admin', true);
-      return <AdminLogin onLogin={handleAdminLogin} />;
-    }
-  }
 
-  if (route?.role === 'patient') {
-    if (route.component === 'PatientPortalLogin') {
-      return <PatientPortalLogin onLogin={handlePatientLogin} />;
-    }
-    if (route.component === 'PatientPortal' && isAuthenticated) {
-      return <PatientPortal />;
-    }
-    if (route.requiresAuth && !isAuthenticated) {
-      router.navigate('/patient-portal/login', true);
-      return <PatientPortalLogin onLogin={handlePatientLogin} />;
-    }
-  }
+    if (currentPath === '/admin') return suspenseWrapper(AdminLogin);
+    if (currentPath === '/admin/dashboard') return suspenseWrapper(AdminDashboard);
+    if (currentPath === '/admin/signup') return suspenseWrapper(AdminSignup);
+    if (currentPath === '/admin/diagnostic') return suspenseWrapper(DiagnosticPage);
+    if (currentPath === '/admin/test-signup') return suspenseWrapper(TestSignup);
+    if (currentPath === '/invitation') return suspenseWrapper(InvitationResponse);
+    if (currentPath === '/rebook') return suspenseWrapper(RebookResponse);
+    if (currentPath === '/patient/login') return suspenseWrapper(PatientPortalLogin);
+    if (currentPath === '/patient/portal') return suspenseWrapper(PatientPortal);
+    if (currentPath === '/booking') return suspenseWrapper(OnlineBooking);
+    if (currentPath === '/waitlist') return suspenseWrapper(WaitlistSignup);
+    if (currentPath === '/appointments') return suspenseWrapper(AppointmentManagement);
+    if (currentPath === '/onboarding') return suspenseWrapper(OnboardingFlow);
+    if (currentPath === '/organization/settings') return suspenseWrapper(OrganizationSettings);
+    if (currentPath === '/saas/admin') return suspenseWrapper(SaaSAdminDashboard);
 
-  if (route?.component === 'OnlineBooking') {
     return (
-      <OrganizationProvider>
-        <OnlineBooking />
-      </OrganizationProvider>
-    );
-  }
-
-  if (route?.component === 'WaitlistSignup') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gold-50 via-white to-neutral-50 py-12 px-4">
-        <WaitlistSignup />
-      </div>
-    );
-  }
-
-  if (route?.component === 'OnboardingFlow') {
-    return (
-      <OrganizationProvider>
-        <OnboardingFlow />
-      </OrganizationProvider>
-    );
-  }
-
-  if (route?.component === 'OrganizationSettings') {
-    return (
-      <OrganizationProvider>
-        <OrganizationSettings />
-      </OrganizationProvider>
-    );
-  }
-
-  if (route?.component === 'SaaSAdminDashboard') {
-    return (
-      <OrganizationProvider>
-        <SaaSAdminDashboard />
-      </OrganizationProvider>
-    );
-  }
-
-  const breadcrumbs = getBreadcrumbs(currentPath);
-
-  return (
-    <div className="min-h-screen bg-white">
-      <ImprovedHeader
-        onOpenAppointment={handleOpenModal}
-        isAgendaFull={isAgendaFull}
-        showAdminLink={true}
-      />
-
-      {breadcrumbs.length > 1 && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-4">
-          <Breadcrumbs items={breadcrumbs} />
-        </div>
-      )}
-
-      <main>
-        <Hero
-          onOpenAppointment={handleOpenModal}
-          isAgendaFull={isAgendaFull}
-        />
+      <>
+        <Hero onOpenModal={handleOpenModal} isAgendaFull={isAgendaFull} />
         <Services />
         <About />
         <Testimonials />
         <Contact />
-      </main>
+      </>
+    );
+  };
 
-      <Footer />
+  const showHeaderAndFooter = ![
+    '/admin',
+    '/admin/dashboard',
+    '/admin/signup',
+    '/admin/diagnostic',
+    '/admin/test-signup',
+    '/patient/login',
+    '/patient/portal',
+    '/onboarding',
+    '/organization/settings',
+    '/saas/admin',
+  ].includes(currentPath);
 
-      <StickyCTA
-        onOpenAppointment={handleOpenModal}
-        isAgendaFull={isAgendaFull}
-      />
+  const showBreadcrumbs = [
+    '/admin/dashboard',
+    '/patient/portal',
+    '/organization/settings',
+    '/saas/admin',
+  ].includes(currentPath);
 
-      <AppointmentModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        isAgendaFull={isAgendaFull}
-      />
-    </div>
+  return (
+    <OrganizationProvider>
+      <div className="min-h-screen bg-white">
+        {showHeaderAndFooter && <ImprovedHeader onOpenModal={handleOpenModal} isAgendaFull={isAgendaFull} />}
+        {showBreadcrumbs && <Breadcrumbs items={getBreadcrumbs(currentPath)} />}
+        <main>{renderPage()}</main>
+        {showHeaderAndFooter && <Footer />}
+        {showHeaderAndFooter && <StickyCTA onOpenModal={handleOpenModal} isAgendaFull={isAgendaFull} />}
+        <AppointmentModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      </div>
+    </OrganizationProvider>
   );
 }
 
