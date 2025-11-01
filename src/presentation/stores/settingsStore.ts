@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { immer } from 'zustand/middleware/immer';
+import { produce } from 'immer';
 import { supabase } from '../../lib/supabase';
 
 interface ClinicSettings {
@@ -86,14 +86,16 @@ const initialState: SettingsState = {
 export const useSettingsStore = create<SettingsStore>()(
   devtools(
     persist(
-      immer((set, get) => ({
+      (set, get) => ({
         ...initialState,
 
         loadAllSettings: async () => {
-          set((state) => {
-            state.loading = true;
-            state.error = null;
-          });
+          set(
+            produce((state: SettingsState) => {
+              state.loading = true;
+              state.error = null;
+            })
+            );
 
           try {
             const [clinicRes, bookingRes, notifRes, brandingRes] = await Promise.all([
@@ -103,28 +105,34 @@ export const useSettingsStore = create<SettingsStore>()(
               supabase.from('branding_settings').select('*').maybeSingle(),
             ]);
 
-            set((state) => {
-              state.clinicSettings = clinicRes.data;
-              state.bookingSettings = bookingRes.data;
-              state.notificationSettings = notifRes.data;
-              state.brandingSettings = brandingRes.data;
-              state.loading = false;
-              state.initialized = true;
-            });
+            set(
+              produce((state: SettingsState) => {
+                state.clinicSettings = clinicRes.data;
+                state.bookingSettings = bookingRes.data;
+                state.notificationSettings = notifRes.data;
+                state.brandingSettings = brandingRes.data;
+                state.loading = false;
+                state.initialized = true;
+              })
+              );
           } catch (error) {
-            set((state) => {
-              state.error = error as Error;
-              state.loading = false;
-            });
+            set(
+              produce((state: SettingsState) => {
+                state.error = error as Error;
+                state.loading = false;
+              })
+              );
             throw error;
           }
         },
 
         updateClinicSettings: async (settings: Partial<ClinicSettings>) => {
-          set((state) => {
-            state.loading = true;
-            state.error = null;
-          });
+          set(
+            produce((state: SettingsState) => {
+              state.loading = true;
+              state.error = null;
+            })
+            );
 
           try {
             const currentSettings = get().clinicSettings;
@@ -139,10 +147,12 @@ export const useSettingsStore = create<SettingsStore>()(
 
               if (error) throw error;
 
-              set((state) => {
+              set(
+                produce((state: SettingsState) => {
                 state.clinicSettings = data;
                 state.loading = false;
-              });
+              })
+              );
             } else {
               const { data, error } = await supabase
                 .from('clinic_settings')
@@ -152,25 +162,31 @@ export const useSettingsStore = create<SettingsStore>()(
 
               if (error) throw error;
 
-              set((state) => {
+              set(
+                produce((state: SettingsState) => {
                 state.clinicSettings = data;
                 state.loading = false;
-              });
+              })
+              );
             }
           } catch (error) {
-            set((state) => {
+            set(
+              produce((state: SettingsState) => {
               state.error = error as Error;
               state.loading = false;
-            });
+            })
+            );
             throw error;
           }
         },
 
         updateBookingSettings: async (settings: Partial<BookingSettings>) => {
-          set((state) => {
-            state.loading = true;
-            state.error = null;
-          });
+          set(
+            produce((state: SettingsState) => {
+              state.loading = true;
+              state.error = null;
+            })
+            );
 
           try {
             const currentSettings = get().bookingSettings;
@@ -185,10 +201,12 @@ export const useSettingsStore = create<SettingsStore>()(
 
               if (error) throw error;
 
-              set((state) => {
+              set(
+                produce((state: SettingsState) => {
                 state.bookingSettings = data;
                 state.loading = false;
-              });
+              })
+              );
             } else {
               const { data, error } = await supabase
                 .from('booking_settings')
@@ -198,25 +216,31 @@ export const useSettingsStore = create<SettingsStore>()(
 
               if (error) throw error;
 
-              set((state) => {
+              set(
+                produce((state: SettingsState) => {
                 state.bookingSettings = data;
                 state.loading = false;
-              });
+              })
+              );
             }
           } catch (error) {
-            set((state) => {
+            set(
+              produce((state: SettingsState) => {
               state.error = error as Error;
               state.loading = false;
-            });
+            })
+            );
             throw error;
           }
         },
 
         updateNotificationSettings: async (settings: Partial<NotificationSettings>) => {
-          set((state) => {
-            state.loading = true;
-            state.error = null;
-          });
+          set(
+            produce((state: SettingsState) => {
+              state.loading = true;
+              state.error = null;
+            })
+            );
 
           try {
             const currentSettings = get().notificationSettings;
@@ -231,10 +255,12 @@ export const useSettingsStore = create<SettingsStore>()(
 
               if (error) throw error;
 
-              set((state) => {
+              set(
+                produce((state: SettingsState) => {
                 state.notificationSettings = data;
                 state.loading = false;
-              });
+              })
+              );
             } else {
               const { data, error } = await supabase
                 .from('notification_settings')
@@ -244,25 +270,31 @@ export const useSettingsStore = create<SettingsStore>()(
 
               if (error) throw error;
 
-              set((state) => {
+              set(
+                produce((state: SettingsState) => {
                 state.notificationSettings = data;
                 state.loading = false;
-              });
+              })
+              );
             }
           } catch (error) {
-            set((state) => {
+            set(
+              produce((state: SettingsState) => {
               state.error = error as Error;
               state.loading = false;
-            });
+            })
+            );
             throw error;
           }
         },
 
         updateBrandingSettings: async (settings: Partial<BrandingSettings>) => {
-          set((state) => {
-            state.loading = true;
-            state.error = null;
-          });
+          set(
+            produce((state: SettingsState) => {
+              state.loading = true;
+              state.error = null;
+            })
+            );
 
           try {
             const currentSettings = get().brandingSettings;
@@ -277,10 +309,12 @@ export const useSettingsStore = create<SettingsStore>()(
 
               if (error) throw error;
 
-              set((state) => {
+              set(
+                produce((state: SettingsState) => {
                 state.brandingSettings = data;
                 state.loading = false;
-              });
+              })
+              );
             } else {
               const { data, error } = await supabase
                 .from('branding_settings')
@@ -290,16 +324,20 @@ export const useSettingsStore = create<SettingsStore>()(
 
               if (error) throw error;
 
-              set((state) => {
+              set(
+                produce((state: SettingsState) => {
                 state.brandingSettings = data;
                 state.loading = false;
-              });
+              })
+              );
             }
           } catch (error) {
-            set((state) => {
+            set(
+              produce((state: SettingsState) => {
               state.error = error as Error;
               state.loading = false;
-            });
+            })
+            );
             throw error;
           }
         },
@@ -307,7 +345,7 @@ export const useSettingsStore = create<SettingsStore>()(
         reset: () => {
           set(initialState);
         },
-      })),
+      }),
       {
         name: 'settings-store',
         partialize: (state) => ({
