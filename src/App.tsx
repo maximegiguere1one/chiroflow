@@ -83,10 +83,18 @@ function App() {
     };
   }, []);
 
+  const handleAdminLogin = () => {
+    router.navigate('/admin/dashboard', false);
+  };
+
+  const handlePatientLogin = () => {
+    router.navigate('/patient/portal', false);
+  };
+
   const renderPage = () => {
-    const suspenseWrapper = (Component: React.ComponentType) => (
+    const suspenseWrapper = (Component: React.ComponentType, props?: any) => (
       <Suspense fallback={<LoadingFallback />}>
-        <Component />
+        <Component {...props} />
       </Suspense>
     );
 
@@ -102,14 +110,14 @@ function App() {
       );
     }
 
-    if (currentPath === '/admin') return suspenseWrapper(AdminLogin);
+    if (currentPath === '/admin') return suspenseWrapper(AdminLogin, { onLogin: handleAdminLogin });
     if (currentPath === '/admin/dashboard') return suspenseWrapper(AdminDashboard);
     if (currentPath === '/admin/signup') return suspenseWrapper(AdminSignup);
     if (currentPath === '/admin/diagnostic') return suspenseWrapper(DiagnosticPage);
     if (currentPath === '/admin/test-signup') return suspenseWrapper(TestSignup);
     if (currentPath === '/invitation') return suspenseWrapper(InvitationResponse);
     if (currentPath === '/rebook') return suspenseWrapper(RebookResponse);
-    if (currentPath === '/patient/login') return suspenseWrapper(PatientPortalLogin);
+    if (currentPath === '/patient/login') return suspenseWrapper(PatientPortalLogin, { onLogin: handlePatientLogin });
     if (currentPath === '/patient/portal') return suspenseWrapper(PatientPortal);
     if (currentPath === '/booking') return suspenseWrapper(OnlineBooking);
     if (currentPath === '/waitlist') return suspenseWrapper(WaitlistSignup);

@@ -64,7 +64,7 @@ export class OrganizationService {
         organizations (*)
       `)
       .eq('status', 'active')
-      .single();
+      .maybeSingle();
 
     if (error || !data) return null;
     return (data as any).organizations as Organization;
