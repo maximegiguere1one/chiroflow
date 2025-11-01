@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import {
-  Users, Calendar, DollarSign, TrendingUp, Clock, Activity, Menu
+  Users, Calendar, DollarSign, TrendingUp, Clock, Activity, Menu, Building2, AlertCircle
 } from 'lucide-react';
 import { useEffect, useState, lazy, Suspense } from 'react';
 import { supabase } from '../lib/supabase';
@@ -11,6 +11,8 @@ import { AdminSidebar, type AdminView } from '../components/navigation/AdminSide
 import { Breadcrumbs } from '../components/navigation/Breadcrumbs';
 import { GlobalSearch } from '../components/common/GlobalSearch';
 import { TodayDashboard } from '../components/dashboard/TodayDashboard';
+import { useOrganization } from '../contexts/OrganizationContext';
+import { router } from '../lib/router';
 
 const PatientManager = lazy(() => import('../components/dashboard/PatientListUltraClean'));
 const AppointmentsPage = lazy(() => import('../components/dashboard/AppointmentsPageEnhanced').then(m => ({ default: m.AppointmentsPageEnhanced })));
@@ -44,6 +46,7 @@ interface DashboardStats {
 }
 
 export default function AdminDashboard() {
+  const { organization, loading: orgLoading, hasFeature } = useOrganization();
   const [currentView, setCurrentView] = useState<AdminView>('dashboard');
   const [stats, setStats] = useState<DashboardStats>({
     totalPatients: 0,
@@ -325,6 +328,37 @@ export default function AdminDashboard() {
           width: window.innerWidth >= 1024 ? (sidebarOpen ? 'calc(100% - 280px)' : 'calc(100% - 80px)') : '100%'
         }}
       >
+        {/* Organization Banner */}
+        {organization && organization.subscription_status === 'trialing' && (() => {
+          const trialEnd = new Date(organization.trial_ends_at);
+          const daysLeft = Math.ceil((trialEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+          return (
+            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-b border-yellow-200">
+              <div className="px-4 lg:px-8 py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <AlertCircle className="w-5 h-5 text-yellow-600" />
+                    <div>
+                      <p className="font-medium text-yellow-900">
+                        Essai gratuit - {daysLeft} jours restants
+                      </p>
+                      <p className="text-sm text-yellow-700">
+                        Choisissez un plan pour continuer après l'essai
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => router.navigate('/admin/organization/settings')}
+                    className="px-6 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+                  >
+                    Choisir un Plan
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Header with Breadcrumbs */}
         <div className="bg-white/80 backdrop-blur-xl border-b border-neutral-200/50 sticky top-0 z-30">
           <div className="px-4 lg:px-8 py-6">

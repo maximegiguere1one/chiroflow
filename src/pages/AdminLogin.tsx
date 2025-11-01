@@ -2,6 +2,8 @@ import { motion } from 'framer-motion';
 import { Lock, Mail } from 'lucide-react';
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { OrganizationService } from '../lib/saas/organizationService';
+import { router } from '../lib/router';
 
 interface AdminLoginProps {
   onLogin: () => void;
@@ -27,7 +29,13 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
       if (error) throw error;
 
       if (data.user) {
-        onLogin();
+        const org = await OrganizationService.getCurrentOrganization();
+
+        if (!org) {
+          router.navigate('/onboarding', false);
+        } else {
+          onLogin();
+        }
       }
     } catch (err: any) {
       setError(err.message || 'Erreur de connexion');

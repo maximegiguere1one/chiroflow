@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Building2,
   Users,
@@ -11,6 +10,7 @@ import {
 } from 'lucide-react';
 import { OrganizationService } from '../lib/saas/organizationService';
 import { supabase } from '../lib/supabase';
+import { router } from '../lib/router';
 
 type Step = 'organization' | 'team' | 'preferences' | 'plan' | 'complete';
 
@@ -27,7 +27,6 @@ interface OnboardingData {
 }
 
 const OnboardingFlow: React.FC = () => {
-  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState<Step>('organization');
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<OnboardingData>({
@@ -81,7 +80,7 @@ const OnboardingFlow: React.FC = () => {
         );
       }
 
-      navigate('/admin/dashboard');
+      router.navigate('/admin/dashboard');
     } catch (error) {
       console.error('Onboarding failed:', error);
       alert('Failed to complete onboarding. Please try again.');

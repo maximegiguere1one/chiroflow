@@ -1,5 +1,4 @@
 import { supabase } from '../supabase';
-import { createHash, randomBytes } from 'crypto';
 
 export interface APIKey {
   id: string;
@@ -19,10 +18,22 @@ export interface APIKey {
 }
 
 export class APIKeyService {
-  private static generateKey(): { key: string; prefix: string; hash: string; lastFour: string } {
-    const randomPart = randomBytes(32).toString('base64url');
+  private static async generateKey(): Promise<{ key: string; prefix: string; hash: string; lastFour: string }> {
+    const array = new Uint8Array(32);
+    crypto.getRandomValues(array);
+    const randomPart = btoa(String.fromCharCode(...array))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=/g, '');
+
     const key = `cf_${randomPart}`;
-    const hash = createHash('sha256').update(key).digest('hex');
+
+    const encoder = new TextEncoder();
+    const data = encoder.encode(key);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
     const prefix = key.substring(0, 10);
     const lastFour = key.slice(-4);
 
@@ -35,7 +46,7 @@ export class APIKeyService {
     scopes: string[] = [],
     expiresInDays?: number
   ): Promise<{ apiKey: APIKey; plainKey: string }> {
-    const { key, prefix, hash, lastFour } = this.generateKey();
+    const { key, prefix, hash, lastFour } = await this.generateKey();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 

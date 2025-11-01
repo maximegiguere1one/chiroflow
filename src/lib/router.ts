@@ -27,6 +27,9 @@ export const routes: Route[] = [
   { path: '/test-signup', name: 'Test Signup', component: 'TestSignup', role: 'public' },
   { path: '/diagnostic', name: 'Diagnostic', component: 'DiagnosticPage', role: 'public' },
   { path: '/admin/dashboard', name: 'Tableau de bord', component: 'AdminDashboard', requiresAuth: true, role: 'admin', icon: 'LayoutDashboard' },
+  { path: '/onboarding', name: 'Configuration', component: 'OnboardingFlow', requiresAuth: true, role: 'admin', hidden: true },
+  { path: '/admin/organization/settings', name: 'Paramètres Organisation', component: 'OrganizationSettings', requiresAuth: true, role: 'admin' },
+  { path: '/saas/admin', name: 'Admin SaaS', component: 'SaaSAdminDashboard', requiresAuth: true, role: 'admin' },
 
   // Patient portal routes
   { path: '/patient-portal/login', name: 'Connexion Patient', component: 'PatientPortalLogin', role: 'patient' },

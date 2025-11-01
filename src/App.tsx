@@ -23,6 +23,10 @@ import AppointmentManagement from './pages/AppointmentManagement';
 import { WaitlistSignup } from './components/WaitlistSignup';
 import { supabase } from './lib/supabase';
 import { router, getBreadcrumbs } from './lib/router';
+import { OrganizationProvider } from './contexts/OrganizationContext';
+import OnboardingFlow from './pages/OnboardingFlow';
+import OrganizationSettings from './pages/OrganizationSettings';
+import SaaSAdminDashboard from './pages/SaaSAdminDashboard';
 
 function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -108,7 +112,11 @@ function App() {
       return <AdminLogin onLogin={handleAdminLogin} />;
     }
     if (route.component === 'AdminDashboard' && isAuthenticated) {
-      return <AdminDashboard />;
+      return (
+        <OrganizationProvider>
+          <AdminDashboard />
+        </OrganizationProvider>
+      );
     }
     if (route.requiresAuth && !isAuthenticated) {
       router.navigate('/admin', true);
@@ -130,7 +138,11 @@ function App() {
   }
 
   if (route?.component === 'OnlineBooking') {
-    return <OnlineBooking />;
+    return (
+      <OrganizationProvider>
+        <OnlineBooking />
+      </OrganizationProvider>
+    );
   }
 
   if (route?.component === 'WaitlistSignup') {
@@ -138,6 +150,30 @@ function App() {
       <div className="min-h-screen bg-gradient-to-br from-gold-50 via-white to-neutral-50 py-12 px-4">
         <WaitlistSignup />
       </div>
+    );
+  }
+
+  if (route?.component === 'OnboardingFlow') {
+    return (
+      <OrganizationProvider>
+        <OnboardingFlow />
+      </OrganizationProvider>
+    );
+  }
+
+  if (route?.component === 'OrganizationSettings') {
+    return (
+      <OrganizationProvider>
+        <OrganizationSettings />
+      </OrganizationProvider>
+    );
+  }
+
+  if (route?.component === 'SaaSAdminDashboard') {
+    return (
+      <OrganizationProvider>
+        <SaaSAdminDashboard />
+      </OrganizationProvider>
     );
   }
 
