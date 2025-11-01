@@ -28,6 +28,7 @@ const WaitlistSignup = lazy(() => import('./components/WaitlistSignup').then(m =
 const OnboardingFlow = lazy(() => import('./pages/OnboardingFlow'));
 const OrganizationSettings = lazy(() => import('./pages/OrganizationSettings'));
 const SaaSAdminDashboard = lazy(() => import('./pages/SaaSAdminDashboard'));
+const SaaSLandingPage = lazy(() => import('./pages/SaaSLandingPage'));
 
 function LoadingFallback() {
   return (
@@ -51,15 +52,8 @@ function App() {
   };
 
   useEffect(() => {
-    if (router.getCurrentPath() === '/') {
-      router.navigate('/admin', true);
-    }
-
     const unsubscribeRouter = router.subscribe((path) => {
       setCurrentPath(path);
-      if (path === '/') {
-        router.navigate('/admin', true);
-      }
     });
 
     return () => {
@@ -98,18 +92,7 @@ function App() {
       </Suspense>
     );
 
-    if (currentPath === '/') {
-      return (
-        <>
-          <Hero onOpenModal={handleOpenModal} isAgendaFull={isAgendaFull} />
-          <Services />
-          <About />
-          <Testimonials />
-          <Contact />
-        </>
-      );
-    }
-
+    if (currentPath === '/') return suspenseWrapper(SaaSLandingPage);
     if (currentPath === '/admin') return suspenseWrapper(AdminLogin, { onLogin: handleAdminLogin });
     if (currentPath === '/admin/dashboard') return suspenseWrapper(AdminDashboard);
     if (currentPath === '/admin/signup') return suspenseWrapper(AdminSignup);
@@ -138,6 +121,7 @@ function App() {
   };
 
   const showHeaderAndFooter = ![
+    '/',
     '/admin',
     '/admin/dashboard',
     '/admin/signup',
