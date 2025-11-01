@@ -1,5 +1,5 @@
-export { CreatePatientUseCase } from './CreatePatientUseCase';
-export { UpdatePatientUseCase } from './UpdatePatientUseCase';
-export { GetPatientUseCase } from './GetPatientUseCase';
-export { ListPatientsUseCase } from './ListPatientsUseCase';
-export { DeletePatientUseCase } from './DeletePatientUseCase';
+export * from './CreatePatientUseCase';
+export * from './UpdatePatientUseCase';
+export * from './DeletePatientUseCase';
+export * from './GetPatientUseCase';
+export * from './ListPatientsUseCase';

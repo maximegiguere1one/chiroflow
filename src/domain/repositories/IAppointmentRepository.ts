@@ -1,13 +1,21 @@
-import type { Appointment, CreateAppointmentInput, UpdateAppointmentInput } from '../entities/Appointment';
+import { Appointment, AppointmentProps } from '../entities/Appointment';
+
+export interface AppointmentFilters {
+  status?: string;
+  patient_id?: string;
+  contact_id?: string;
+  provider_id?: string;
+  start_date?: string;
+  end_date?: string;
+  limit?: number;
+  offset?: number;
+}
 
 export interface IAppointmentRepository {
+  create(appointment: Appointment): Promise<Appointment>;
   findById(id: string): Promise<Appointment | null>;
-  findAll(): Promise<Appointment[]>;
-  findByPatientId(patientId: string): Promise<Appointment[]>;
-  findByDateRange(startDate: string, endDate: string): Promise<Appointment[]>;
-  findUpcoming(limit?: number): Promise<Appointment[]>;
-  create(input: CreateAppointmentInput): Promise<Appointment>;
-  update(input: UpdateAppointmentInput): Promise<Appointment>;
+  findAll(filters?: AppointmentFilters): Promise<Appointment[]>;
+  update(id: string, appointment: Partial<AppointmentProps>): Promise<Appointment>;
   delete(id: string): Promise<void>;
-  count(): Promise<number>;
+  count(filters?: AppointmentFilters): Promise<number>;
 }

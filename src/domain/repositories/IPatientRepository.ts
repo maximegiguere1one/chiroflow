@@ -1,12 +1,17 @@
-import type { Patient, CreatePatientInput, UpdatePatientInput } from '../entities/Patient';
+import { Patient, PatientProps } from '../entities/Patient';
+
+export interface PatientFilters {
+  status?: string;
+  search?: string;
+  limit?: number;
+  offset?: number;
+}
 
 export interface IPatientRepository {
+  create(patient: Patient): Promise<Patient>;
   findById(id: string): Promise<Patient | null>;
-  findAll(): Promise<Patient[]>;
-  findByEmail(email: string): Promise<Patient | null>;
-  search(query: string): Promise<Patient[]>;
-  create(input: CreatePatientInput): Promise<Patient>;
-  update(input: UpdatePatientInput): Promise<Patient>;
+  findAll(filters?: PatientFilters): Promise<Patient[]>;
+  update(id: string, patient: Partial<PatientProps>): Promise<Patient>;
   delete(id: string): Promise<void>;
-  count(): Promise<number>;
+  count(filters?: PatientFilters): Promise<number>;
 }

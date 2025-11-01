@@ -1,2 +1,2 @@
-export { SupabasePatientRepository } from './SupabasePatientRepository';
-export { SupabaseAppointmentRepository } from './SupabaseAppointmentRepository';
+export * from './SupabasePatientRepository';
+export * from './SupabaseAppointmentRepository';

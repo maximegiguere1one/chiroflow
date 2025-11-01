@@ -1,201 +1,194 @@
-import type { IAppointmentRepository } from '../../domain/repositories/IAppointmentRepository';
-import type { Appointment, CreateAppointmentInput, UpdateAppointmentInput } from '../../domain/entities/Appointment';
-import { AppointmentSchema } from '../../domain/entities/Appointment';
 import { supabase } from '../../lib/supabase';
-import { logger } from '../monitoring/Logger';
+import { Appointment, AppointmentProps } from '../../domain/entities/Appointment';
+import { IAppointmentRepository, AppointmentFilters } from '../../domain/repositories/IAppointmentRepository';
 
 export class SupabaseAppointmentRepository implements IAppointmentRepository {
-  private readonly tableName = 'appointments';
+  private tableName = 'appointments_api';
+
+  async create(appointment: Appointment): Promise<Appointment> {
+    const appointmentData = appointment.toJSON();
+
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .insert({
+        id: appointmentData.id,
+        contact_id: appointmentData.contact_id,
+        patient_id: appointmentData.patient_id,
+        provider_id: appointmentData.provider_id,
+        owner_id: appointmentData.owner_id,
+        name: appointmentData.name,
+        email: appointmentData.email,
+        phone: appointmentData.phone,
+        reason: appointmentData.reason,
+        patient_age: appointmentData.patient_age,
+        preferred_time: appointmentData.preferred_time,
+        status: appointmentData.status,
+        scheduled_at: appointmentData.scheduled_at,
+        scheduled_date: appointmentData.scheduled_date,
+        scheduled_time: appointmentData.scheduled_time,
+        duration_minutes: appointmentData.duration_minutes,
+        notes: appointmentData.notes,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to create appointment: ${error.message}`);
+    }
+
+    return this.toDomainModel(data);
+  }
 
   async findById(id: string): Promise<Appointment | null> {
-    try {
-      const { data, error } = await supabase
-        .from(this.tableName)
-        .select('*')
-        .eq('id', id)
-        .maybeSingle();
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
 
-      if (error) throw error;
-      if (!data) return null;
-
-      return AppointmentSchema.parse(this.mapToAppointment(data));
-    } catch (error) {
-      logger.error('Failed to find appointment by ID', error as Error, { id });
-      throw error;
+    if (error) {
+      throw new Error(`Failed to fetch appointment: ${error.message}`);
     }
+
+    return data ? this.toDomainModel(data) : null;
   }
 
-  async findAll(): Promise<Appointment[]> {
-    try {
-      const { data, error } = await supabase
-        .from(this.tableName)
-        .select('*')
-        .order('start_time', { ascending: false });
+  async findAll(filters?: AppointmentFilters): Promise<Appointment[]> {
+    let query = supabase.from(this.tableName).select('*');
 
-      if (error) throw error;
-
-      return data.map(item => AppointmentSchema.parse(this.mapToAppointment(item)));
-    } catch (error) {
-      logger.error('Failed to find all appointments', error as Error);
-      throw error;
+    if (filters?.status) {
+      query = query.eq('status', filters.status);
     }
+
+    if (filters?.patient_id) {
+      query = query.eq('patient_id', filters.patient_id);
+    }
+
+    if (filters?.contact_id) {
+      query = query.eq('contact_id', filters.contact_id);
+    }
+
+    if (filters?.provider_id) {
+      query = query.eq('provider_id', filters.provider_id);
+    }
+
+    if (filters?.start_date) {
+      query = query.gte('scheduled_at', filters.start_date);
+    }
+
+    if (filters?.end_date) {
+      query = query.lte('scheduled_at', filters.end_date);
+    }
+
+    if (filters?.limit) {
+      query = query.limit(filters.limit);
+    }
+
+    if (filters?.offset) {
+      query = query.range(filters.offset, filters.offset + (filters.limit || 50) - 1);
+    }
+
+    query = query.order('scheduled_at', { ascending: true });
+
+    const { data, error } = await query;
+
+    if (error) {
+      throw new Error(`Failed to fetch appointments: ${error.message}`);
+    }
+
+    return (data || []).map(item => this.toDomainModel(item));
   }
 
-  async findByPatientId(patientId: string): Promise<Appointment[]> {
-    try {
-      const { data, error } = await supabase
-        .from(this.tableName)
-        .select('*')
-        .eq('patient_id', patientId)
-        .order('start_time', { ascending: false });
+  async update(id: string, updates: Partial<AppointmentProps>): Promise<Appointment> {
+    const updateData: Record<string, unknown> = {
+      ...updates,
+      updated_at: new Date().toISOString(),
+    };
 
-      if (error) throw error;
+    const { data, error } = await supabase
+      .from(this.tableName)
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single();
 
-      return data.map(item => AppointmentSchema.parse(this.mapToAppointment(item)));
-    } catch (error) {
-      logger.error('Failed to find appointments by patient ID', error as Error, { patientId });
-      throw error;
+    if (error) {
+      throw new Error(`Failed to update appointment: ${error.message}`);
     }
-  }
 
-  async findByDateRange(startDate: string, endDate: string): Promise<Appointment[]> {
-    try {
-      const { data, error } = await supabase
-        .from(this.tableName)
-        .select('*')
-        .gte('start_time', startDate)
-        .lte('start_time', endDate)
-        .order('start_time', { ascending: true });
-
-      if (error) throw error;
-
-      return data.map(item => AppointmentSchema.parse(this.mapToAppointment(item)));
-    } catch (error) {
-      logger.error('Failed to find appointments by date range', error as Error, { startDate, endDate });
-      throw error;
-    }
-  }
-
-  async findUpcoming(limit: number = 10): Promise<Appointment[]> {
-    try {
-      const now = new Date().toISOString();
-
-      const { data, error } = await supabase
-        .from(this.tableName)
-        .select('*')
-        .gte('start_time', now)
-        .in('status', ['scheduled', 'confirmed'])
-        .order('start_time', { ascending: true })
-        .limit(limit);
-
-      if (error) throw error;
-
-      return data.map(item => AppointmentSchema.parse(this.mapToAppointment(item)));
-    } catch (error) {
-      logger.error('Failed to find upcoming appointments', error as Error, { limit });
-      throw error;
-    }
-  }
-
-  async create(input: CreateAppointmentInput): Promise<Appointment> {
-    try {
-      const dbData = this.mapToDatabase(input);
-
-      const { data, error } = await supabase
-        .from(this.tableName)
-        .insert(dbData)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      logger.info('Appointment created', { id: data.id });
-      return AppointmentSchema.parse(this.mapToAppointment(data));
-    } catch (error) {
-      logger.error('Failed to create appointment', error as Error, { input });
-      throw error;
-    }
-  }
-
-  async update(input: UpdateAppointmentInput): Promise<Appointment> {
-    try {
-      const { id, ...updates } = input;
-      const dbData = this.mapToDatabase(updates);
-
-      const { data, error } = await supabase
-        .from(this.tableName)
-        .update(dbData)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      logger.info('Appointment updated', { id });
-      return AppointmentSchema.parse(this.mapToAppointment(data));
-    } catch (error) {
-      logger.error('Failed to update appointment', error as Error, { input });
-      throw error;
-    }
+    return this.toDomainModel(data);
   }
 
   async delete(id: string): Promise<void> {
-    try {
-      const { error } = await supabase
-        .from(this.tableName)
-        .delete()
-        .eq('id', id);
+    const { error } = await supabase
+      .from(this.tableName)
+      .delete()
+      .eq('id', id);
 
-      if (error) throw error;
-
-      logger.info('Appointment deleted', { id });
-    } catch (error) {
-      logger.error('Failed to delete appointment', error as Error, { id });
-      throw error;
+    if (error) {
+      throw new Error(`Failed to delete appointment: ${error.message}`);
     }
   }
 
-  async count(): Promise<number> {
-    try {
-      const { count, error } = await supabase
-        .from(this.tableName)
-        .select('*', { count: 'exact', head: true });
+  async count(filters?: AppointmentFilters): Promise<number> {
+    let query = supabase
+      .from(this.tableName)
+      .select('*', { count: 'exact', head: true });
 
-      if (error) throw error;
-
-      return count || 0;
-    } catch (error) {
-      logger.error('Failed to count appointments', error as Error);
-      throw error;
+    if (filters?.status) {
+      query = query.eq('status', filters.status);
     }
+
+    if (filters?.patient_id) {
+      query = query.eq('patient_id', filters.patient_id);
+    }
+
+    if (filters?.contact_id) {
+      query = query.eq('contact_id', filters.contact_id);
+    }
+
+    if (filters?.provider_id) {
+      query = query.eq('provider_id', filters.provider_id);
+    }
+
+    if (filters?.start_date) {
+      query = query.gte('scheduled_at', filters.start_date);
+    }
+
+    if (filters?.end_date) {
+      query = query.lte('scheduled_at', filters.end_date);
+    }
+
+    const { count, error } = await query;
+
+    if (error) {
+      throw new Error(`Failed to count appointments: ${error.message}`);
+    }
+
+    return count || 0;
   }
 
-  private mapToAppointment(dbData: any): Appointment {
-    return {
-      id: dbData.id,
-      patientId: dbData.patient_id,
-      serviceTypeId: dbData.service_type_id,
-      startTime: dbData.start_time,
-      endTime: dbData.end_time,
-      status: dbData.status,
-      notes: dbData.notes,
-      reminderSent: dbData.reminder_sent || false,
-      createdAt: dbData.created_at,
-      updatedAt: dbData.updated_at,
-    };
-  }
-
-  private mapToDatabase(data: Partial<CreateAppointmentInput | UpdateAppointmentInput>): any {
-    const result: any = {};
-
-    if (data.patientId !== undefined) result.patient_id = data.patientId;
-    if (data.serviceTypeId !== undefined) result.service_type_id = data.serviceTypeId;
-    if (data.startTime !== undefined) result.start_time = data.startTime;
-    if (data.endTime !== undefined) result.end_time = data.endTime;
-    if (data.status !== undefined) result.status = data.status;
-    if (data.notes !== undefined) result.notes = data.notes;
-    if (data.reminderSent !== undefined) result.reminder_sent = data.reminderSent;
-
-    return result;
+  private toDomainModel(data: any): Appointment {
+    return new Appointment({
+      id: data.id,
+      contact_id: data.contact_id,
+      patient_id: data.patient_id,
+      provider_id: data.provider_id,
+      owner_id: data.owner_id,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      reason: data.reason,
+      patient_age: data.patient_age,
+      preferred_time: data.preferred_time,
+      status: data.status,
+      scheduled_at: data.scheduled_at,
+      scheduled_date: data.scheduled_date,
+      scheduled_time: data.scheduled_time,
+      duration_minutes: data.duration_minutes,
+      notes: data.notes,
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+    });
   }
 }

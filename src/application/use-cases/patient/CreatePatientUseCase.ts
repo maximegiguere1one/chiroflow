@@ -1,28 +1,52 @@
-import type { IPatientRepository } from '../../../domain/repositories/IPatientRepository';
-import type { CreatePatientInput, Patient } from '../../../domain/entities/Patient';
-import { CreatePatientSchema } from '../../../domain/entities/Patient';
-import { logger } from '../../../infrastructure/monitoring/Logger';
+import { Patient } from '../../../domain/entities/Patient';
+import { IPatientRepository } from '../../../domain/repositories/IPatientRepository';
+import { CreatePatientDTO, PatientResponseDTO } from '../../dto/PatientDTO';
 
 export class CreatePatientUseCase {
-  constructor(private readonly patientRepository: IPatientRepository) {}
+  constructor(private patientRepository: IPatientRepository) {}
 
-  async execute(input: CreatePatientInput): Promise<Patient> {
-    try {
-      const validatedInput = CreatePatientSchema.parse(input);
+  async execute(dto: CreatePatientDTO): Promise<PatientResponseDTO> {
+    const patient = new Patient({
+      first_name: dto.first_name,
+      last_name: dto.last_name,
+      email: dto.email || null,
+      phone: dto.phone || null,
+      date_of_birth: dto.date_of_birth || null,
+      gender: dto.gender,
+      address: dto.address || null,
+      medical_history: dto.medical_history || null,
+      medications: dto.medications || null,
+      allergies: dto.allergies || null,
+      status: 'active',
+      last_visit: null,
+      total_visits: 0,
+    });
 
-      const existingPatient = await this.patientRepository.findByEmail(validatedInput.email);
-      if (existingPatient) {
-        throw new Error('Un patient avec cet email existe déjà');
-      }
+    const createdPatient = await this.patientRepository.create(patient);
 
-      const patient = await this.patientRepository.create(validatedInput);
+    return this.toResponseDTO(createdPatient);
+  }
 
-      logger.info('Patient created successfully', { patientId: patient.id });
-
-      return patient;
-    } catch (error) {
-      logger.error('Failed to create patient', error as Error, { input });
-      throw error;
-    }
+  private toResponseDTO(patient: Patient): PatientResponseDTO {
+    return {
+      id: patient.id,
+      first_name: patient.first_name,
+      last_name: patient.last_name,
+      full_name: patient.fullName,
+      email: patient.email,
+      phone: patient.phone,
+      date_of_birth: patient.date_of_birth,
+      age: patient.age,
+      gender: patient.gender,
+      address: patient.address,
+      medical_history: patient.medical_history,
+      medications: patient.medications,
+      allergies: patient.allergies,
+      status: patient.status,
+      last_visit: patient.last_visit,
+      total_visits: patient.total_visits,
+      created_at: patient.created_at,
+      updated_at: patient.updated_at,
+    };
   }
 }
