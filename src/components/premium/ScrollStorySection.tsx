@@ -1,6 +1,10 @@
 import React from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useElementInView } from '../../hooks/useScrollProgress';
+import { useLazyAnimation, LAZY_ANIMATION_PRIORITIES } from '../../hooks/useLazyAnimation';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
+import { useOptimizedParallax } from '../../hooks/useOptimizedParallax';
+import { GPU_OPTIMIZED_STYLES } from '../../lib/animations/optimized';
 import { Calendar, Zap, DollarSign } from 'lucide-react';
 
 interface StoryStepProps {
@@ -12,30 +16,34 @@ interface StoryStepProps {
 
 const StoryStep: React.FC<StoryStepProps> = ({ icon: Icon, title, description, index }) => {
   const { ref, isInView } = useElementInView(0.3);
+  const shouldAnimate = useLazyAnimation(LAZY_ANIMATION_PRIORITIES.high);
+  const prefersReducedMotion = useReducedMotion();
 
   return (
     <motion.div
       ref={ref as any}
-      initial={{ opacity: 0, y: 60 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 60 }}
+      animate={isInView && shouldAnimate && !prefersReducedMotion ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
       transition={{
-        duration: 0.8,
-        delay: index * 0.2,
+        duration: 0.6,
+        delay: prefersReducedMotion ? 0 : index * 0.15,
         ease: [0.25, 0.1, 0.25, 1],
       }}
       className="relative"
+      style={GPU_OPTIMIZED_STYLES}
     >
       <div className="flex items-start space-x-6 lg:space-x-12">
         <motion.div
-          initial={{ scale: 0 }}
-          animate={isInView ? { scale: 1 } : {}}
+          initial={prefersReducedMotion ? false : { scale: 0 }}
+          animate={isInView && shouldAnimate && !prefersReducedMotion ? { scale: 1 } : { scale: 1 }}
           transition={{
             type: 'spring',
             stiffness: 200,
             damping: 20,
-            delay: index * 0.2 + 0.3,
+            delay: prefersReducedMotion ? 0 : index * 0.15 + 0.2,
           }}
           className="flex-shrink-0 w-20 h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-emerald-500/40"
+          style={GPU_OPTIMIZED_STYLES}
         >
           <Icon className="w-10 h-10 lg:w-12 lg:h-12 text-white" />
         </motion.div>
@@ -75,14 +83,17 @@ const StoryStep: React.FC<StoryStepProps> = ({ icon: Icon, title, description, i
 
 export const ScrollStorySection: React.FC = () => {
   const { ref, isInView } = useElementInView(0.2);
+  const shouldAnimate = useLazyAnimation(LAZY_ANIMATION_PRIORITIES.medium);
+  const prefersReducedMotion = useReducedMotion();
   const sectionRef = React.useRef<HTMLElement>(null);
+  const parallax1 = useOptimizedParallax({ speed: 0.3, disableOnMobile: true });
+  const parallax2 = useOptimizedParallax({ speed: -0.2, disableOnMobile: true });
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ['start end', 'end start'],
   });
 
-  const y = useTransform(scrollYProgress, [0, 1], [100, -100]);
   const opacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0]);
 
   const steps = [
@@ -114,9 +125,15 @@ export const ScrollStorySection: React.FC = () => {
       }}
       className="relative py-32 lg:py-40 bg-gradient-to-b from-white via-slate-50 to-white overflow-hidden"
     >
-      <motion.div style={{ y, opacity }} className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/4 right-10 w-64 h-64 bg-emerald-200/30 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 left-10 w-64 h-64 bg-teal-200/30 rounded-full blur-3xl" />
+      <motion.div style={{ opacity }} className="absolute inset-0 pointer-events-none">
+        <div
+          className="absolute top-1/4 right-10 w-64 h-64 bg-emerald-200/30 rounded-full blur-3xl"
+          style={parallax1.style}
+        />
+        <div
+          className="absolute bottom-1/4 left-10 w-64 h-64 bg-teal-200/30 rounded-full blur-3xl"
+          style={parallax2.style}
+        />
       </motion.div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">

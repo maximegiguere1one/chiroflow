@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
 import { useElementInView } from '../../hooks/useScrollProgress';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
+import { ANIMATION_DELAYS, GPU_OPTIMIZED_STYLES } from '../../lib/animations/optimized';
 
 interface Testimonial {
   name: string;
@@ -45,6 +47,7 @@ const testimonials: Testimonial[] = [
 export const TestimonialCarousel: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const { ref, isInView } = useElementInView(0.3);
+  const prefersReducedMotion = useReducedMotion();
 
   const next = () => setCurrentIndex((i) => (i + 1) % testimonials.length);
   const prev = () => setCurrentIndex((i) => (i - 1 + testimonials.length) % testimonials.length);
@@ -101,17 +104,24 @@ export const TestimonialCarousel: React.FC = () => {
             </div>
 
             <div className="flex items-center justify-center mb-8">
-              <motion.div
-                key={currentIndex}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-                className="flex space-x-1"
-              >
+              <div className="flex space-x-1">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-8 h-8 fill-yellow-400 text-yellow-400" />
+                  <motion.div
+                    key={`${currentIndex}-${i}`}
+                    initial={prefersReducedMotion ? false : { scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{
+                      type: 'spring',
+                      stiffness: 260,
+                      damping: 20,
+                      delay: prefersReducedMotion ? 0 : i * ANIMATION_DELAYS.stagger,
+                    }}
+                    style={GPU_OPTIMIZED_STYLES}
+                  >
+                    <Star className="w-8 h-8 fill-yellow-400 text-yellow-400" />
+                  </motion.div>
                 ))}
-              </motion.div>
+              </div>
             </div>
 
             <AnimatePresence mode="wait">
