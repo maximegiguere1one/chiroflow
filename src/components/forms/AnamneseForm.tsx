@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Save, FileText, User, Heart, Pill, Activity, AlertTriangle, Sparkles } from 'lucide-react';
+import { Save, FileText, User, Heart, Pill, Activity, AlertTriangle, Sparkles, Clock } from 'lucide-react';
 import { FormSection } from './FormSection';
 import { CheckboxGroup } from './CheckboxGroup';
 import { RadioGroup } from './RadioGroup';
