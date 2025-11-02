@@ -4,6 +4,10 @@ import { FileText, Brain, Bone, Stethoscope, Video, Plus, Search, Filter, Calend
 import { supabase } from '../../lib/supabase';
 import { useToastContext } from '../../contexts/ToastContext';
 import { AnamneseForm } from '../forms/AnamneseForm';
+import { ATMExamForm } from '../forms/ATMExamForm';
+import { SpinalExamForm } from '../forms/SpinalExamForm';
+import { NeurologicalExamForm } from '../forms/NeurologicalExamForm';
+import { TeleconsultationConsentForm } from '../forms/TeleconsultationConsentForm';
 
 interface Contact {
   id: string;
@@ -173,6 +177,46 @@ export function ProfessionalFormsManager() {
           contactId={selectedContactId}
           onSave={handleFormSaved}
           onCancel={handleCancel}
+        />
+      );
+    }
+
+    if (selectedFormType === 'atm') {
+      return (
+        <ATMExamForm
+          contactId={selectedContactId}
+          onSave={handleFormSaved}
+          onClose={handleCancel}
+        />
+      );
+    }
+
+    if (selectedFormType === 'spinal') {
+      return (
+        <SpinalExamForm
+          contactId={selectedContactId}
+          onSave={handleFormSaved}
+          onClose={handleCancel}
+        />
+      );
+    }
+
+    if (selectedFormType === 'neurological') {
+      return (
+        <NeurologicalExamForm
+          contactId={selectedContactId}
+          onSave={handleFormSaved}
+          onClose={handleCancel}
+        />
+      );
+    }
+
+    if (selectedFormType === 'teleconsultation') {
+      return (
+        <TeleconsultationConsentForm
+          contactId={selectedContactId}
+          onSave={handleFormSaved}
+          onClose={handleCancel}
         />
       );
     }
