@@ -5,6 +5,11 @@ import { supabase } from '../../lib/supabase';
 import type { Appointment } from '../../types/database';
 import { useToastContext } from '../../contexts/ToastContext';
 import { createScheduledAt } from '../../lib/dateUtils';
+import { Tooltip } from '../common/Tooltip';
+import { EmptyState } from '../common/EmptyState';
+import { FormSkeleton } from '../common/LoadingSkeleton';
+import { ConfirmModal } from '../common/ConfirmModal';
+import { buttonHover, buttonTap } from '../../lib/animations';
 
 interface AppointmentSchedulingModalProps {
   patient: {
@@ -45,6 +50,8 @@ export function AppointmentSchedulingModal({ patient, onClose }: AppointmentSche
   const [showForm, setShowForm] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [saving, setSaving] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [appointmentToDelete, setAppointmentToDelete] = useState<Appointment | null>(null);
   const toast = useToastContext();
 
   const [formData, setFormData] = useState({
@@ -349,22 +356,16 @@ export function AppointmentSchedulingModal({ patient, onClose }: AppointmentSche
               <div className="w-8 h-8 border-4 border-blue-400 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : appointments.length === 0 ? (
-            <div className="text-center py-12">
-              <CalendarIcon className="w-16 h-16 text-foreground/20 mx-auto mb-4" />
-              <h4 className="text-lg font-medium text-foreground mb-2">
-                Aucun rendez-vous
-              </h4>
-              <p className="text-foreground/60 mb-6">
-                Planifiez le premier rendez-vous pour ce patient
-              </p>
-              <button
-                onClick={handleNewAppointment}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-soft"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Créer un rendez-vous</span>
-              </button>
-            </div>
+            <EmptyState
+              icon={<CalendarIcon size={64} />}
+              title="Aucun rendez-vous"
+              description="Planifiez le premier rendez-vous pour ce patient"
+              primaryAction={{
+                label: 'Créer un rendez-vous',
+                icon: <Plus />,
+                onClick: handleNewAppointment
+              }}
+            />
           ) : (
             <div className="space-y-6">
               {upcomingAppointments.length > 0 && (
