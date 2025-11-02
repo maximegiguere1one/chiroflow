@@ -402,6 +402,661 @@ export function AnamneseForm({ contactId, existingFormId, onSave, onCancel }: An
               }
             />
           </div>
+
+          <div className="mt-6">
+            <RadioGroup
+              label="Irradiation de la douleur"
+              options={[
+                { id: 'no', label: 'Non' },
+                { id: 'yes', label: 'Oui' }
+              ]}
+              selected={formData.has_irradiation ? 'yes' : 'no'}
+              onChange={(v) => updateField('has_irradiation', v === 'yes')}
+              columns={2}
+            />
+            {formData.has_irradiation && (
+              <SmartTextarea
+                label="Détails irradiation"
+                value={formData.irradiation_details || ''}
+                onChange={(v) => updateField('irradiation_details', v)}
+                rows={2}
+                placeholder="Décrivez où la douleur irradie..."
+                className="mt-4"
+              />
+            )}
+          </div>
+        </FormSection>
+
+        <FormSection title="Circonstance de Survenue" icon={<AlertTriangle />} color="amber" required>
+          <CheckboxGroup
+            label="Comment est apparue la douleur?"
+            options={[
+              { id: 'sudden', label: 'Soudainement', sublabel: 'Apparition brutale' },
+              { id: 'gradual', label: 'Graduellement', sublabel: 'Apparition progressive' },
+              { id: 'accident', label: 'Suite à un accident/Traumatisme' },
+              { id: 'unknown', label: 'Cause inconnue' }
+            ]}
+            selected={[
+              formData.onset_sudden && 'sudden',
+              formData.onset_gradual && 'gradual',
+              formData.onset_accident && 'accident',
+              formData.onset_unknown && 'unknown'
+            ].filter(Boolean) as string[]}
+            onChange={(selected) => {
+              updateField('onset_sudden', selected.includes('sudden'));
+              updateField('onset_gradual', selected.includes('gradual'));
+              updateField('onset_accident', selected.includes('accident'));
+              updateField('onset_unknown', selected.includes('unknown'));
+            }}
+            columns={2}
+          />
+
+          <div className="grid grid-cols-2 gap-4 mt-4">
+            <SmartInput
+              label="Date de début"
+              type="date"
+              value={formData.onset_date || ''}
+              onChange={(v) => updateField('onset_date', v)}
+            />
+            <SmartTextarea
+              label="Précisions"
+              value={formData.onset_details || ''}
+              onChange={(v) => updateField('onset_details', v)}
+              rows={2}
+              placeholder="Ex: En soulevant une boîte..."
+            />
+          </div>
+        </FormSection>
+
+        <FormSection title="Durée / Fréquence" icon={<Clock />} color="blue">
+          <CheckboxGroup
+            label="Type de problème"
+            options={[
+              { id: 'acute', label: 'Aigu', sublabel: '< 6 semaines' },
+              { id: 'subacute', label: 'Sub aigu', sublabel: '6-12 semaines' },
+              { id: 'chronic', label: 'Chronique', sublabel: '> 12 semaines' },
+              { id: 'recurrent', label: 'Récurrent', sublabel: 'Épisodes répétés' }
+            ]}
+            selected={[
+              formData.duration_acute && 'acute',
+              formData.duration_subacute && 'subacute',
+              formData.duration_chronic && 'chronic',
+              formData.duration_recurrent && 'recurrent'
+            ].filter(Boolean) as string[]}
+            onChange={(selected) => {
+              updateField('duration_acute', selected.includes('acute'));
+              updateField('duration_subacute', selected.includes('subacute'));
+              updateField('duration_chronic', selected.includes('chronic'));
+              updateField('duration_recurrent', selected.includes('recurrent'));
+            }}
+            columns={4}
+          />
+
+          {formData.duration_recurrent && (
+            <div className="grid grid-cols-3 gap-4 mt-4">
+              <SmartInput
+                label="Nombre d'épisodes"
+                type="number"
+                value={formData.episodes_count?.toString() || ''}
+                onChange={(v) => updateField('episodes_count', v ? parseInt(v) : null)}
+                min={0}
+              />
+              <SmartInput
+                label="Période"
+                value={formData.episodes_period || ''}
+                onChange={(v) => updateField('episodes_period', v)}
+                placeholder="Ex: par mois, par année"
+              />
+              <SmartTextarea
+                label="Notes"
+                value={formData.duration_notes || ''}
+                onChange={(v) => updateField('duration_notes', v)}
+                rows={1}
+              />
+            </div>
+          )}
+        </FormSection>
+
+        <FormSection title="Progression" icon={<Activity />} color="green">
+          <RadioGroup
+            label="Évolution du problème"
+            options={[
+              { id: 'better', label: 'Mieux', sublabel: 'S\'améliore' },
+              { id: 'stable', label: 'Stable', sublabel: 'Aucun changement' },
+              { id: 'worse', label: 'Pire', sublabel: 'Se détériore' },
+              { id: 'variable', label: 'Variable', sublabel: 'Fluctue' }
+            ]}
+            selected={
+              formData.progression_better ? 'better' :
+              formData.progression_stable ? 'stable' :
+              formData.progression_worse ? 'worse' :
+              formData.progression_variable ? 'variable' : ''
+            }
+            onChange={(v) => {
+              updateField('progression_better', v === 'better');
+              updateField('progression_stable', v === 'stable');
+              updateField('progression_worse', v === 'worse');
+              updateField('progression_variable', v === 'variable');
+            }}
+            columns={4}
+          />
+
+          <div className="grid grid-cols-3 gap-4 mt-4">
+            <SmartInput
+              label="Pourcentage changement"
+              type="number"
+              value={formData.progression_percentage?.toString() || ''}
+              onChange={(v) => updateField('progression_percentage', v ? parseInt(v) : null)}
+              min={0}
+              max={100}
+              placeholder="Ex: 30%"
+            />
+            <SmartInput
+              label="Sur quelle période"
+              value={formData.progression_period || ''}
+              onChange={(v) => updateField('progression_period', v)}
+              placeholder="Ex: dernière semaine"
+            />
+            <SmartTextarea
+              label="Notes"
+              value={formData.progression_notes || ''}
+              onChange={(v) => updateField('progression_notes', v)}
+              rows={1}
+            />
+          </div>
+        </FormSection>
+
+        <FormSection title="Caractère / Intensité de la Douleur" icon={<AlertTriangle />} color="red">
+          <CheckboxGroup
+            label="Type de douleur (plusieurs choix possibles)"
+            options={[
+              { id: 'throbbing', label: 'Élancement', sublabel: 'Pulsation' },
+              { id: 'stabbing', label: 'Coup de poignard', sublabel: 'Aiguë' },
+              { id: 'pinching', label: 'Pincement' },
+              { id: 'stretching', label: 'Étirement' },
+              { id: 'burning', label: 'Chaleur / Brûlure' },
+              { id: 'tingling', label: 'Picotement' },
+              { id: 'numbness', label: 'Engourdissement' }
+            ]}
+            selected={[
+              formData.pain_throbbing && 'throbbing',
+              formData.pain_stabbing && 'stabbing',
+              formData.pain_pinching && 'pinching',
+              formData.pain_stretching && 'stretching',
+              formData.pain_burning && 'burning',
+              formData.pain_tingling && 'tingling',
+              formData.pain_numbness && 'numbness'
+            ].filter(Boolean) as string[]}
+            onChange={(selected) => {
+              updateField('pain_throbbing', selected.includes('throbbing'));
+              updateField('pain_stabbing', selected.includes('stabbing'));
+              updateField('pain_pinching', selected.includes('pinching'));
+              updateField('pain_stretching', selected.includes('stretching'));
+              updateField('pain_burning', selected.includes('burning'));
+              updateField('pain_tingling', selected.includes('tingling'));
+              updateField('pain_numbness', selected.includes('numbness'));
+            }}
+            columns={3}
+          />
+
+          <SmartInput
+            label="Autre type de douleur"
+            value={formData.pain_other || ''}
+            onChange={(v) => updateField('pain_other', v)}
+            placeholder="Décrivez si autre type..."
+            className="mt-4"
+          />
+        </FormSection>
+
+        <FormSection title="Facteurs Aggravants (+) et Atténuants (-)" icon={<Activity />} color="blue">
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-3">
+                Glace
+              </label>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateField('factor_ice_helps', formData.factor_ice_helps ? null : true);
+                    updateField('factor_ice_worsens', null);
+                  }}
+                  className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${
+                    formData.factor_ice_helps === true
+                      ? 'border-green-500 bg-green-50 text-green-700'
+                      : 'border-neutral-200 hover:border-neutral-300'
+                  }`}
+                >
+                  <span className="font-medium">+ Aide</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateField('factor_ice_worsens', formData.factor_ice_worsens ? null : true);
+                    updateField('factor_ice_helps', null);
+                  }}
+                  className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${
+                    formData.factor_ice_worsens === true
+                      ? 'border-red-500 bg-red-50 text-red-700'
+                      : 'border-neutral-200 hover:border-neutral-300'
+                  }`}
+                >
+                  <span className="font-medium">- Empire</span>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-3">
+                Chaleur
+              </label>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateField('factor_heat_helps', formData.factor_heat_helps ? null : true);
+                    updateField('factor_heat_worsens', null);
+                  }}
+                  className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${
+                    formData.factor_heat_helps === true
+                      ? 'border-green-500 bg-green-50 text-green-700'
+                      : 'border-neutral-200 hover:border-neutral-300'
+                  }`}
+                >
+                  <span className="font-medium">+ Aide</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateField('factor_heat_worsens', formData.factor_heat_worsens ? null : true);
+                    updateField('factor_heat_helps', null);
+                  }}
+                  className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${
+                    formData.factor_heat_worsens === true
+                      ? 'border-red-500 bg-red-50 text-red-700'
+                      : 'border-neutral-200 hover:border-neutral-300'
+                  }`}
+                >
+                  <span className="font-medium">- Empire</span>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-3">
+                Repos
+              </label>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateField('factor_rest_helps', formData.factor_rest_helps ? null : true);
+                    updateField('factor_rest_worsens', null);
+                  }}
+                  className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${
+                    formData.factor_rest_helps === true
+                      ? 'border-green-500 bg-green-50 text-green-700'
+                      : 'border-neutral-200 hover:border-neutral-300'
+                  }`}
+                >
+                  <span className="font-medium">+ Aide</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateField('factor_rest_worsens', formData.factor_rest_worsens ? null : true);
+                    updateField('factor_rest_helps', null);
+                  }}
+                  className={`flex-1 px-4 py-3 rounded-lg border-2 transition-all ${
+                    formData.factor_rest_worsens === true
+                      ? 'border-red-500 bg-red-50 text-red-700'
+                      : 'border-neutral-200 hover:border-neutral-300'
+                  }`}
+                >
+                  <span className="font-medium">- Empire</span>
+                </button>
+              </div>
+            </div>
+
+            <SmartTextarea
+              label="Mouvements (précisez lesquels aident ou empirent)"
+              value={formData.factor_movement_details || ''}
+              onChange={(v) => updateField('factor_movement_details', v)}
+              rows={2}
+              placeholder="Ex: Flexion empire, extension aide..."
+            />
+
+            <SmartTextarea
+              label="Médication (précisez laquelle aide)"
+              value={formData.factor_medication_details || ''}
+              onChange={(v) => updateField('factor_medication_details', v)}
+              rows={2}
+              placeholder="Ex: Advil aide temporairement..."
+            />
+          </div>
+        </FormSection>
+
+        <FormSection title="Médication et Suppléments" icon={<Pill />} color="purple">
+          <CheckboxGroup
+            label="Médication actuelle"
+            options={[
+              { id: 'tylenol', label: 'Tylenol' },
+              { id: 'aspirin', label: 'Aspirine' },
+              { id: 'ains', label: 'Ains / Relaxants musculaires / Analgésiques' },
+              { id: 'opioids', label: 'Opioïdes' },
+              { id: 'hta', label: 'HTA (Hypertension)' },
+              { id: 'cholesterol', label: 'Cholestérol' },
+              { id: 'anxiolytics', label: 'Anxiolytiques' },
+              { id: 'antidepressants', label: 'Anti-dépresseurs' },
+              { id: 'diabetes', label: 'Diabète' },
+              { id: 'injection', label: 'Médicament en injection' },
+              { id: 'calcium', label: 'Calcium / Vitamine D' },
+              { id: 'otc', label: 'Médicaments en vente libre' },
+              { id: 'contraceptives', label: 'Contraceptifs hormonaux' },
+              { id: 'infiltration', label: 'Infiltration' },
+              { id: 'anticoagulant', label: 'Anti coagulant / Anti plaquettaire' }
+            ]}
+            selected={[
+              (formData as any).takes_tylenol && 'tylenol',
+              (formData as any).takes_aspirin && 'aspirin',
+              (formData as any).takes_ains && 'ains',
+              (formData as any).takes_opioids && 'opioids',
+              (formData as any).takes_hta && 'hta',
+              (formData as any).takes_cholesterol && 'cholesterol',
+              (formData as any).takes_anxiolytics && 'anxiolytics',
+              (formData as any).takes_antidepressants && 'antidepressants',
+              (formData as any).takes_diabetes && 'diabetes',
+              (formData as any).takes_injection_meds && 'injection',
+              (formData as any).takes_calcium_vitd && 'calcium',
+              (formData as any).takes_otc && 'otc',
+              (formData as any).takes_contraceptives && 'contraceptives',
+              (formData as any).takes_infiltration && 'infiltration',
+              (formData as any).takes_anticoagulant && 'anticoagulant'
+            ].filter(Boolean) as string[]}
+            onChange={(selected) => {
+              updateField('takes_tylenol', selected.includes('tylenol'));
+              updateField('takes_aspirin', selected.includes('aspirin'));
+              updateField('takes_ains', selected.includes('ains'));
+              updateField('takes_opioids', selected.includes('opioids'));
+              updateField('takes_hta', selected.includes('hta'));
+              updateField('takes_cholesterol', selected.includes('cholesterol'));
+              updateField('takes_anxiolytics', selected.includes('anxiolytics'));
+              updateField('takes_antidepressants', selected.includes('antidepressants'));
+              updateField('takes_diabetes', selected.includes('diabetes'));
+              updateField('takes_injection_meds', selected.includes('injection'));
+              updateField('takes_calcium_vitd', selected.includes('calcium'));
+              updateField('takes_otc', selected.includes('otc'));
+              updateField('takes_contraceptives', selected.includes('contraceptives'));
+              updateField('takes_infiltration', selected.includes('infiltration'));
+              updateField('takes_anticoagulant', selected.includes('anticoagulant'));
+            }}
+            columns={3}
+          />
+
+          <div className="grid grid-cols-2 gap-4 mt-6">
+            <SmartTextarea
+              label="Médication cessée récemment"
+              value={(formData as any).medication_stopped_recently || ''}
+              onChange={(v) => updateField('medication_stopped_recently', v)}
+              rows={2}
+              placeholder="Ex: Arrêt Advil il y a 2 semaines..."
+            />
+            <SmartTextarea
+              label="Autres médicaments"
+              value={(formData as any).medication_other || ''}
+              onChange={(v) => updateField('medication_other', v)}
+              rows={2}
+              placeholder="Précisez autres médicaments..."
+            />
+          </div>
+        </FormSection>
+
+        <FormSection title="Habitudes de Vie" icon={<Activity />} color="green">
+          <div className="space-y-6">
+            <div>
+              <RadioGroup
+                label="Niveau d'activité sportive"
+                options={[
+                  { id: 'tres_actif', label: 'TRÈS ACTIF', sublabel: '+ 300 min/sem modérée ou + 150 min/sem intense' },
+                  { id: 'actif', label: 'ACTIF', sublabel: '150 min/sem modéré ou 75-150 min/sem intense' },
+                  { id: 'sedentaire', label: 'SÉDENTAIRE', sublabel: '- de 150 min/sem modérée et - de 75 min/sem intense' }
+                ]}
+                selected={(formData as any).activity_level || ''}
+                onChange={(v) => updateField('activity_level', v)}
+                columns={1}
+              />
+              <SmartTextarea
+                label="Activités principales"
+                value={(formData as any).main_activities || ''}
+                onChange={(v) => updateField('main_activities', v)}
+                rows={2}
+                placeholder="Ex: Course 3×/semaine, yoga..."
+                className="mt-4"
+                autoFillValue={previousData?.main_activities}
+              />
+            </div>
+
+            <div className="border-t-2 border-neutral-200 pt-6">
+              <h4 className="font-semibold text-neutral-900 mb-4">Sommeil</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <RadioGroup
+                  label="Qualité sommeil"
+                  options={[
+                    { id: 'restorative', label: 'Sommeil réparateur' },
+                    { id: 'insomnia', label: 'Insomnie' }
+                  ]}
+                  selected={(formData as any).sleep_restorative ? 'restorative' : (formData as any).sleep_insomnia ? 'insomnia' : ''}
+                  onChange={(v) => {
+                    updateField('sleep_restorative', v === 'restorative');
+                    updateField('sleep_insomnia', v === 'insomnia');
+                  }}
+                  columns={2}
+                />
+                <SmartInput
+                  label="Heures de sommeil par nuit"
+                  type="number"
+                  value={(formData as any).sleep_hours_per_night?.toString() || ''}
+                  onChange={(v) => updateField('sleep_hours_per_night', v ? parseFloat(v) : null)}
+                  min={0}
+                  max={24}
+                  step={0.5}
+                  placeholder="Ex: 7.5"
+                />
+              </div>
+
+              <RadioGroup
+                label="Position de sommeil"
+                options={[
+                  { id: 'dos', label: 'Dos' },
+                  { id: 'ventre', label: 'Ventre' },
+                  { id: 'cote', label: 'Côté' },
+                  { id: 'variable', label: 'Variable' }
+                ]}
+                selected={(formData as any).sleep_position || ''}
+                onChange={(v) => updateField('sleep_position', v)}
+                columns={4}
+                className="mt-4"
+              />
+
+              <div className="mt-4">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={(formData as any).sleep_pain_wakes || false}
+                    onChange={(e) => updateField('sleep_pain_wakes', e.target.checked)}
+                    className="w-4 h-4 rounded border-neutral-300"
+                  />
+                  <span className="text-sm font-medium text-neutral-700">
+                    Douleur qui réveille la nuit
+                  </span>
+                </label>
+                {(formData as any).sleep_pain_wakes && (
+                  <SmartTextarea
+                    label="Détails"
+                    value={(formData as any).sleep_pain_details || ''}
+                    onChange={(v) => updateField('sleep_pain_details', v)}
+                    rows={2}
+                    className="mt-3"
+                  />
+                )}
+              </div>
+            </div>
+
+            <div className="border-t-2 border-neutral-200 pt-6">
+              <h4 className="font-semibold text-neutral-900 mb-4">Occupation / Travail</h4>
+              <CheckboxGroup
+                options={[
+                  { id: 'study', label: 'Étude' },
+                  { id: 'work_full', label: 'Travail temps plein' },
+                  { id: 'work_part', label: 'Travail temps partiel' }
+                ]}
+                selected={[
+                  (formData as any).occupation_study && 'study',
+                  (formData as any).occupation_fulltime && 'work_full',
+                  (formData as any).occupation_parttime && 'work_part'
+                ].filter(Boolean) as string[]}
+                onChange={(selected) => {
+                  updateField('occupation_study', selected.includes('study'));
+                  updateField('occupation_fulltime', selected.includes('work_full'));
+                  updateField('occupation_parttime', selected.includes('work_part'));
+                }}
+                columns={3}
+              />
+
+              <div className="grid grid-cols-2 gap-4 mt-4">
+                <SmartTextarea
+                  label="Postures de travail contraignantes"
+                  value={(formData as any).work_posture_details || ''}
+                  onChange={(v) => updateField('work_posture_details', v)}
+                  rows={2}
+                  placeholder="Ex: Assis 8h/jour à l'ordinateur..."
+                />
+                <div>
+                  <SmartInput
+                    label="Satisfaction au travail"
+                    type="number"
+                    value={(formData as any).work_satisfaction_score?.toString() || ''}
+                    onChange={(v) => updateField('work_satisfaction_score', v ? parseInt(v) : null)}
+                    min={0}
+                    max={10}
+                    placeholder="0-10"
+                  />
+                  <label className="flex items-center gap-2 mt-4">
+                    <input
+                      type="checkbox"
+                      checked={(formData as any).recent_work_stoppage || false}
+                      onChange={(e) => updateField('recent_work_stoppage', e.target.checked)}
+                      className="w-4 h-4 rounded border-neutral-300"
+                    />
+                    <span className="text-sm font-medium text-neutral-700">
+                      Arrêt de travail récent
+                    </span>
+                  </label>
+                  {(formData as any).recent_work_stoppage && (
+                    <SmartInput
+                      label="Détails arrêt travail"
+                      value={(formData as any).work_stoppage_details || ''}
+                      onChange={(v) => updateField('work_stoppage_details', v)}
+                      className="mt-3"
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </FormSection>
+
+        <FormSection title="🚨 Drapeaux Rouges NMS" icon={<AlertTriangle />} color="red" required>
+          <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 mb-6">
+            <p className="text-sm text-red-800 font-medium">
+              ⚠️ IMPORTANT: Cochez UNIQUEMENT si le patient présente ces symptômes.
+              Ces drapeaux rouges nécessitent une évaluation médicale immédiate.
+            </p>
+          </div>
+
+          <CheckboxGroup
+            label="Drapeaux rouges neuromusculosquelettiques"
+            options={[
+              { id: 'genital_loss', label: 'Perte de sensation génitale / Péri-anale', sublabel: '🚨 URGENT' },
+              { id: 'incontinence', label: 'Incontinence urinaire ou fécale', sublabel: '🚨 URGENT' },
+              { id: 'urinary_retention', label: 'Rétention urinaire', sublabel: '🚨 URGENT' },
+              { id: 'morning_stiffness', label: 'Déverrouillage matinal > 1h' },
+              { id: 'cancer_history', label: 'Historique de cancer' },
+              { id: 'progressive_deficit', label: 'Déficit neurologique progressif', sublabel: '🚨 URGENT' }
+            ]}
+            selected={[
+              (formData as any).red_flag_genital_loss && 'genital_loss',
+              (formData as any).red_flag_incontinence && 'incontinence',
+              (formData as any).red_flag_urinary_retention && 'urinary_retention',
+              (formData as any).red_flag_morning_stiffness_1h && 'morning_stiffness',
+              (formData as any).red_flag_cancer_history && 'cancer_history',
+              (formData as any).red_flag_progressive_neuro_deficit && 'progressive_deficit'
+            ].filter(Boolean) as string[]}
+            onChange={(selected) => {
+              updateField('red_flag_genital_loss', selected.includes('genital_loss'));
+              updateField('red_flag_incontinence', selected.includes('incontinence'));
+              updateField('red_flag_urinary_retention', selected.includes('urinary_retention'));
+              updateField('red_flag_morning_stiffness_1h', selected.includes('morning_stiffness'));
+              updateField('red_flag_cancer_history', selected.includes('cancer_history'));
+              updateField('red_flag_progressive_neuro_deficit', selected.includes('progressive_deficit'));
+
+              if (selected.includes('genital_loss') || selected.includes('incontinence') ||
+                  selected.includes('urinary_retention') || selected.includes('progressive_deficit')) {
+                toast.error('⚠️ DRAPEAU ROUGE CRITIQUE! Évaluation médicale urgente requise!');
+              }
+            }}
+            columns={2}
+          />
+
+          <SmartTextarea
+            label="Autres drapeaux rouges"
+            value={(formData as any).red_flag_other || ''}
+            onChange={(v) => updateField('red_flag_other', v)}
+            rows={2}
+            placeholder="Précisez autres drapeaux rouges observés..."
+            className="mt-6"
+          />
+
+          <div className="mt-6 p-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+            <h4 className="font-semibold text-amber-900 mb-3">Symptômes Constitutionnels</h4>
+            <CheckboxGroup
+              options={[
+                { id: 'fever', label: 'Fièvre' },
+                { id: 'malaise', label: 'Malaise généralisé' },
+                { id: 'fatigue', label: 'Fatigue' },
+                { id: 'weight_loss', label: 'Perte de poids inexpliquée' },
+                { id: 'night_sweats', label: 'Sueurs nocturnes' },
+                { id: 'night_pain', label: 'Douleur nocturne' }
+              ]}
+              selected={[
+                (formData as any).symptom_fever && 'fever',
+                (formData as any).symptom_malaise && 'malaise',
+                (formData as any).symptom_fatigue && 'fatigue',
+                (formData as any).symptom_weight_loss && 'weight_loss',
+                (formData as any).symptom_night_sweats && 'night_sweats',
+                (formData as any).symptom_night_pain && 'night_pain'
+              ].filter(Boolean) as string[]}
+              onChange={(selected) => {
+                updateField('symptom_fever', selected.includes('fever'));
+                updateField('symptom_malaise', selected.includes('malaise'));
+                updateField('symptom_fatigue', selected.includes('fatigue'));
+                updateField('symptom_weight_loss', selected.includes('weight_loss'));
+                updateField('symptom_night_sweats', selected.includes('night_sweats'));
+                updateField('symptom_night_pain', selected.includes('night_pain'));
+              }}
+              columns={3}
+            />
+          </div>
+        </FormSection>
+
+        <FormSection title="Commentaires Additionnels" icon={<FileText />} color="neutral">
+          <SmartTextarea
+            label="Autres informations pertinentes"
+            value={(formData as any).other_comments || ''}
+            onChange={(v) => updateField('other_comments', v)}
+            rows={4}
+            placeholder="Notes additionnelles, observations, etc..."
+          />
         </FormSection>
 
         {/* Footer Actions */}
