@@ -26,16 +26,26 @@ export const useScrollProgress = () => {
   return { scrollProgress, scrollY };
 };
 
-export const useElementInView = (threshold = 0.1) => {
+export const useElementInView = (threshold = 0.1, once = true) => {
   const [ref, setRef] = useState<HTMLElement | null>(null);
   const [isInView, setIsInView] = useState(false);
+  const [hasAnimated, setHasAnimated] = useState(false);
 
   useEffect(() => {
     if (!ref) return;
+    if (once && hasAnimated) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setIsInView(entry.isIntersecting);
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          if (once) {
+            setHasAnimated(true);
+            observer.disconnect();
+          }
+        } else if (!once) {
+          setIsInView(false);
+        }
       },
       { threshold }
     );
@@ -45,9 +55,9 @@ export const useElementInView = (threshold = 0.1) => {
     return () => {
       observer.disconnect();
     };
-  }, [ref, threshold]);
+  }, [ref, threshold, once, hasAnimated]);
 
-  return { ref: setRef, isInView };
+  return { ref: setRef, isInView: once ? hasAnimated : isInView };
 };
 
 export const useParallax = (speed = 0.5) => {

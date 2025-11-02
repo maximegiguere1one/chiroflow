@@ -3,9 +3,12 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { ArrowRight, Sparkles, Zap } from 'lucide-react';
 import { motionConfig } from '../../lib/motion-config';
 import { useMagneticEffect } from '../../hooks/useMagneticEffect';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
+import { ANIMATION_DELAYS, ANIMATION_DURATIONS, GPU_OPTIMIZED_STYLES } from '../../lib/animations/optimized';
 
 export const HeroSectionPremium: React.FC = () => {
   const [isLoaded, setIsLoaded] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
   const { scrollY } = useScroll();
   const ctaMagnetic = useMagneticEffect({ strength: 0.3, maxDistance: 80 });
 
@@ -25,40 +28,46 @@ export const HeroSectionPremium: React.FC = () => {
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
           className="absolute top-20 left-10 w-96 h-96 bg-emerald-200/40 rounded-full mix-blend-multiply filter blur-3xl"
-          animate={{
+          style={GPU_OPTIMIZED_STYLES}
+          animate={prefersReducedMotion ? {} : {
             x: [0, 100, 0],
             y: [0, 50, 0],
             scale: [1, 1.2, 1],
           }}
           transition={{
-            duration: 20,
+            duration: 30,
             repeat: Infinity,
+            repeatType: 'reverse',
             ease: 'easeInOut',
           }}
         />
         <motion.div
           className="absolute top-40 right-20 w-96 h-96 bg-teal-200/40 rounded-full mix-blend-multiply filter blur-3xl"
-          animate={{
+          style={GPU_OPTIMIZED_STYLES}
+          animate={prefersReducedMotion ? {} : {
             x: [0, -80, 0],
             y: [0, 80, 0],
             scale: [1, 1.1, 1],
           }}
           transition={{
-            duration: 25,
+            duration: 35,
             repeat: Infinity,
+            repeatType: 'reverse',
             ease: 'easeInOut',
           }}
         />
         <motion.div
           className="absolute -bottom-20 left-1/2 w-96 h-96 bg-blue-200/40 rounded-full mix-blend-multiply filter blur-3xl"
-          animate={{
+          style={GPU_OPTIMIZED_STYLES}
+          animate={prefersReducedMotion ? {} : {
             x: [0, 60, 0],
             y: [0, -60, 0],
             scale: [1, 1.15, 1],
           }}
           transition={{
-            duration: 22,
+            duration: 32,
             repeat: Infinity,
+            repeatType: 'reverse',
             ease: 'easeInOut',
           }}
         />
@@ -69,9 +78,9 @@ export const HeroSectionPremium: React.FC = () => {
         className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center"
       >
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={isLoaded ? { opacity: 1, y: 0 } : {}}
-          transition={{ ...motionConfig.spring.smooth, delay: 0.2 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: -20 }}
+          animate={isLoaded && !prefersReducedMotion ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
+          transition={{ ...motionConfig.spring.smooth, delay: prefersReducedMotion ? 0 : ANIMATION_DELAYS.stagger }}
           className="inline-flex items-center space-x-2 bg-white/70 backdrop-blur-md border border-emerald-200/50 text-emerald-700 px-6 py-3 rounded-full text-sm font-medium mb-12 shadow-lg"
         >
           <Sparkles className="w-4 h-4 text-emerald-600" />
@@ -83,12 +92,13 @@ export const HeroSectionPremium: React.FC = () => {
             {words.map((word, index) => (
               <motion.span
                 key={word}
-                initial={{ opacity: 0, y: 30, rotateX: -90 }}
-                animate={isLoaded ? { opacity: 1, y: 0, rotateX: 0 } : {}}
+                initial={prefersReducedMotion ? false : { opacity: 0, y: 30, rotateX: -90 }}
+                animate={isLoaded && !prefersReducedMotion ? { opacity: 1, y: 0, rotateX: 0 } : { opacity: 1, y: 0, rotateX: 0 }}
                 transition={{
                   ...motionConfig.spring.medium,
-                  delay: 0.4 + index * 0.1,
+                  delay: prefersReducedMotion ? 0 : (ANIMATION_DELAYS.section + index * ANIMATION_DELAYS.stagger),
                 }}
+                style={GPU_OPTIMIZED_STYLES}
                 className="inline-block mr-4"
                 style={{ transformOrigin: 'bottom' }}
               >
@@ -105,9 +115,9 @@ export const HeroSectionPremium: React.FC = () => {
         </div>
 
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={isLoaded ? { opacity: 1, y: 0 } : {}}
-          transition={{ ...motionConfig.spring.smooth, delay: 1.2 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+          animate={isLoaded && !prefersReducedMotion ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
+          transition={{ ...motionConfig.spring.smooth, delay: prefersReducedMotion ? 0 : ANIMATION_DELAYS.medium * 2 }}
           className="text-xl md:text-2xl text-slate-600 mb-12 max-w-3xl mx-auto leading-relaxed"
         >
           Automatisez votre clinique chiropratique et éliminez les coûts d'assistante.{' '}
@@ -116,9 +126,9 @@ export const HeroSectionPremium: React.FC = () => {
         </motion.p>
 
         <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={isLoaded ? { opacity: 1, scale: 1 } : {}}
-          transition={{ ...motionConfig.spring.bouncy, delay: 1.5 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.8 }}
+          animate={isLoaded && !prefersReducedMotion ? { opacity: 1, scale: 1 } : { opacity: 1, scale: 1 }}
+          transition={{ ...motionConfig.spring.bouncy, delay: prefersReducedMotion ? 0 : ANIMATION_DELAYS.medium * 2.5 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-16"
         >
           <motion.button
@@ -155,9 +165,9 @@ export const HeroSectionPremium: React.FC = () => {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0 }}
+          initial={prefersReducedMotion ? false : { opacity: 0 }}
           animate={isLoaded ? { opacity: 1 } : {}}
-          transition={{ delay: 2 }}
+          transition={{ delay: prefersReducedMotion ? 0 : ANIMATION_DELAYS.medium * 3 }}
           className="flex flex-wrap items-center justify-center gap-8 text-sm text-slate-600"
         >
           {[
@@ -168,9 +178,9 @@ export const HeroSectionPremium: React.FC = () => {
           ].map((text, i) => (
             <motion.div
               key={text}
-              initial={{ opacity: 0, x: -10 }}
+              initial={prefersReducedMotion ? false : { opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 2 + i * 0.1 }}
+              transition={{ delay: prefersReducedMotion ? 0 : (ANIMATION_DELAYS.medium * 3 + i * ANIMATION_DELAYS.stagger) }}
               className="flex items-center space-x-2"
             >
               <span>{text}</span>
@@ -179,24 +189,26 @@ export const HeroSectionPremium: React.FC = () => {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={isLoaded ? { opacity: 1, scale: 1 } : {}}
-          transition={{ ...motionConfig.spring.soft, delay: 1.8 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.9 }}
+          animate={isLoaded && !prefersReducedMotion ? { opacity: 1, scale: 1 } : { opacity: 1, scale: 1 }}
+          transition={{ ...motionConfig.spring.soft, delay: prefersReducedMotion ? 0 : ANIMATION_DELAYS.medium * 2.2 }}
           className="mt-20"
-          style={{ filter: `blur(${blur}px)` }}
+          style={{ filter: prefersReducedMotion ? 'none' : `blur(${Math.min(blur, 5)}px)` }}
         >
           <div className="relative w-full max-w-5xl mx-auto aspect-[16/9] bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-700">
             <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/10 to-teal-500/10" />
             <motion.div
               className="absolute inset-0 flex items-center justify-center p-8"
-              animate={{
+              animate={prefersReducedMotion ? {} : {
                 y: [0, -10, 0],
               }}
               transition={{
-                duration: 4,
+                duration: 5,
                 repeat: Infinity,
+                repeatType: 'reverse',
                 ease: 'easeInOut',
               }}
+              style={GPU_OPTIMIZED_STYLES}
             >
               <div className="w-full h-full bg-slate-900/50 backdrop-blur-md rounded-2xl border border-emerald-500/30 shadow-xl p-8">
                 <div className="flex items-center space-x-3 mb-6">
@@ -229,9 +241,9 @@ export const HeroSectionPremium: React.FC = () => {
           ].map((stat, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, scale: 0.8 }}
+              initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 2.5 + i * 0.1 }}
+              transition={{ delay: prefersReducedMotion ? 0 : (ANIMATION_DELAYS.medium * 3.5 + i * ANIMATION_DELAYS.stagger) }}
               className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-slate-200"
             >
               <div className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600 mb-2">
@@ -250,8 +262,9 @@ export const HeroSectionPremium: React.FC = () => {
         className="absolute bottom-10 left-1/2 transform -translate-x-1/2"
       >
         <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
+          animate={prefersReducedMotion ? {} : { y: [0, 10, 0] }}
+          transition={{ duration: 2, repeat: Infinity, repeatType: 'reverse' }}
+          style={GPU_OPTIMIZED_STYLES}
           className="text-slate-400 text-sm flex flex-col items-center space-y-2"
         >
           <span>Découvrez comment ça fonctionne</span>
