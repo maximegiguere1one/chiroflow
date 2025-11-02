@@ -7,6 +7,9 @@ import {
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useToastContext } from '../../contexts/ToastContext';
+import { Tooltip } from '../common/Tooltip';
+import { CardSkeleton } from '../common/LoadingSkeleton';
+import { buttonHover, buttonTap } from '../../lib/animations';
 
 interface AnalyticsData {
   revenue: {
@@ -179,8 +182,18 @@ export function AnalyticsDashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="w-12 h-12 border-4 border-gold-400 border-t-transparent rounded-full animate-spin" />
+      <div className="space-y-6">
+        <div className="h-20 bg-neutral-200 rounded animate-pulse" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <CardSkeleton />
+          <CardSkeleton />
+        </div>
       </div>
     );
   }
@@ -210,22 +223,29 @@ export function AnalyticsDashboard() {
             <option value="all">Toute la période</option>
           </select>
 
-          <button
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="p-2 border border-neutral-300 rounded hover:bg-neutral-50 transition-colors disabled:opacity-50"
-            title="Actualiser"
-          >
-            <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
-          </button>
+          <Tooltip content="Actualiser les données" placement="bottom">
+            <motion.button
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="p-2 border border-neutral-300 rounded hover:bg-neutral-50 transition-colors disabled:opacity-50"
+              whileHover={buttonHover}
+              whileTap={buttonTap}
+            >
+              <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
+            </motion.button>
+          </Tooltip>
 
-          <button
-            onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-gold-500 to-gold-600 text-white rounded hover:from-gold-600 hover:to-gold-700 transition-all shadow-soft"
-          >
-            <Download className="w-4 h-4" />
-            Exporter
-          </button>
+          <Tooltip content="Exporter le rapport en PDF" placement="bottom">
+            <motion.button
+              onClick={handleExport}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-gold-500 to-gold-600 text-white rounded hover:from-gold-600 hover:to-gold-700 transition-all shadow-soft"
+              whileHover={buttonHover}
+              whileTap={buttonTap}
+            >
+              <Download className="w-4 h-4" />
+              Exporter
+            </motion.button>
+          </Tooltip>
         </div>
       </div>
 

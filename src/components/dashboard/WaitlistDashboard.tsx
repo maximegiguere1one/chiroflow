@@ -4,6 +4,10 @@ import { Users, Clock, CheckCircle, AlertCircle, Send, Loader, Calendar } from '
 import { supabase } from '../../lib/supabase';
 import { useToastContext } from '../../contexts/ToastContext';
 import EmailConfigWizard from './EmailConfigWizard';
+import { Tooltip } from '../common/Tooltip';
+import { EmptyState } from '../common/EmptyState';
+import { CardSkeleton, TableSkeleton } from '../common/LoadingSkeleton';
+import { buttonHover, buttonTap } from '../../lib/animations';
 
 interface WaitlistEntry {
   id: string;
@@ -388,8 +392,17 @@ export default function WaitlistDashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader className="w-8 h-8 text-gold-500 animate-spin" />
+      <div className="space-y-6">
+        <div className="h-20 bg-neutral-200 rounded animate-pulse" />
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
+        </div>
+        <TableSkeleton rows={8} />
       </div>
     );
   }
@@ -404,25 +417,36 @@ export default function WaitlistDashboard() {
           </p>
         </div>
         <div className="flex gap-2">
-          <button
-            onClick={runDiagnostics}
-            className="px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all text-sm flex items-center gap-2"
-            title="Vérifier la configuration complète du système d'emails"
-          >
-            🔍 Diagnostic
-          </button>
-          <button
-            onClick={testEmailConfiguration}
-            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all text-sm"
-          >
-            📧 Tester email
-          </button>
-          <button
-            onClick={testCancellation}
-            className="px-4 py-2 bg-gradient-to-r from-gold-500 to-gold-600 text-white rounded-lg hover:from-gold-600 hover:to-gold-700 transition-all text-sm"
-          >
-            🧪 Tester annulation
-          </button>
+          <Tooltip content="Vérifier la configuration complète du système d'emails" placement="bottom">
+            <motion.button
+              onClick={runDiagnostics}
+              className="px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all text-sm flex items-center gap-2"
+              whileHover={buttonHover}
+              whileTap={buttonTap}
+            >
+              🔍 Diagnostic
+            </motion.button>
+          </Tooltip>
+          <Tooltip content="Envoyer un email de test pour vérifier la configuration" placement="bottom">
+            <motion.button
+              onClick={testEmailConfiguration}
+              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all text-sm"
+              whileHover={buttonHover}
+              whileTap={buttonTap}
+            >
+              📧 Tester email
+            </motion.button>
+          </Tooltip>
+          <Tooltip content="Simuler une annulation pour tester le système automatique" placement="bottom">
+            <motion.button
+              onClick={testCancellation}
+              className="px-4 py-2 bg-gradient-to-r from-gold-500 to-gold-600 text-white rounded-lg hover:from-gold-600 hover:to-gold-700 transition-all text-sm"
+              whileHover={buttonHover}
+              whileTap={buttonTap}
+            >
+              🧪 Tester annulation
+            </motion.button>
+          </Tooltip>
         </div>
       </div>
 
@@ -485,10 +509,11 @@ export default function WaitlistDashboard() {
           </div>
           <div className="divide-y divide-neutral-200 max-h-[600px] overflow-y-auto">
             {filteredEntries.length === 0 ? (
-              <div className="p-8 text-center">
-                <Users className="w-12 h-12 text-foreground/20 mx-auto mb-3" />
-                <p className="text-foreground/60">Aucune personne en attente</p>
-              </div>
+              <EmptyState
+                icon={<Users size={48} />}
+                title="Liste de rappel vide"
+                description="Les personnes intéressées par des créneaux annulés apparaîtront ici"
+              />
             ) : (
               filteredEntries.map((entry) => (
                 <motion.div
@@ -533,10 +558,11 @@ export default function WaitlistDashboard() {
             </div>
             <div className="divide-y divide-neutral-200 max-h-[250px] overflow-y-auto">
               {slotOffers.filter((s) => s.status !== 'claimed').length === 0 ? (
-                <div className="p-8 text-center">
-                  <Calendar className="w-12 h-12 text-foreground/20 mx-auto mb-3" />
-                  <p className="text-foreground/60">Aucun créneau disponible</p>
-                </div>
+                <EmptyState
+                  icon={<Calendar size={48} />}
+                  title="Aucun créneau disponible"
+                  description="Les créneaux annulés seront automatiquement proposés ici"
+                />
               ) : (
                 slotOffers
                   .filter((s) => s.status !== 'claimed')
@@ -576,10 +602,11 @@ export default function WaitlistDashboard() {
             </div>
             <div className="divide-y divide-neutral-200 max-h-[250px] overflow-y-auto">
               {invitations.length === 0 ? (
-                <div className="p-8 text-center">
-                  <Send className="w-12 h-12 text-foreground/20 mx-auto mb-3" />
-                  <p className="text-foreground/60">Aucune invitation</p>
-                </div>
+                <EmptyState
+                  icon={<Send size={48} />}
+                  title="Aucune invitation envoyée"
+                  description="L'historique des invitations automatiques apparaîtra ici"
+                />
               ) : (
                 invitations.map((inv) => (
                   <div key={inv.id} className="p-4">
