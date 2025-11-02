@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { AllSettings } from '../../hooks/useSettings';
 import { useToastContext } from '../../contexts/ToastContext';
 import { Palette, Save, Eye, Upload, Sparkles } from 'lucide-react';
+import { buttonHover, buttonTap } from '../../lib/animations';
 
 interface BrandingConfigProps {
   settings: AllSettings;

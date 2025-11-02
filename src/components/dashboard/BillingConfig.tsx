@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 import { useToastContext } from '../../contexts/ToastContext';
 import { DollarSign, Save, FileText, CreditCard } from 'lucide-react';
+import { buttonHover, buttonTap } from '../../lib/animations';
 import { AllSettings } from '../../hooks/useSettings';
 
 interface BillingConfigProps {
