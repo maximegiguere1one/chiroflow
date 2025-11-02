@@ -1,9 +1,15 @@
 import React, { useEffect } from 'react';
+import { StickyNav } from '../components/premium/StickyNav';
 import { HeroSectionPremium } from '../components/premium/HeroSectionPremium';
+import { TrustLogos } from '../components/premium/TrustLogos';
 import { ScrollStorySection } from '../components/premium/ScrollStorySection';
 import { TestimonialCarousel } from '../components/premium/TestimonialCarousel';
 import { BeforeAfterSlider } from '../components/premium/BeforeAfterSlider';
+import { ROICalculator } from '../components/premium/ROICalculator';
+import { FAQSection } from '../components/premium/FAQSection';
 import { PremiumCTA } from '../components/premium/PremiumCTA';
+import { MobileCTA } from '../components/premium/MobileCTA';
+import { Zap } from 'lucide-react';
 
 export const ChiroflowPremiumLanding: React.FC = () => {
   useEffect(() => {
@@ -40,74 +46,77 @@ export const ChiroflowPremiumLanding: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white overflow-hidden">
+      <StickyNav />
       <HeroSectionPremium />
+      <TrustLogos />
       <ScrollStorySection />
       <TestimonialCarousel />
       <BeforeAfterSlider />
+      <ROICalculator />
+      <FAQSection />
       <PremiumCTA />
+      <MobileCTA />
 
       <footer className="bg-slate-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-12 mb-12">
             <div>
               <div className="flex items-center space-x-3 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
+                <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
+                  <Zap className="w-6 h-6 text-white" />
                 </div>
                 <span className="text-2xl font-bold">ChiroFlow</span>
               </div>
               <p className="text-slate-400 text-sm leading-relaxed">
-                Innovation canadienne en technologie du confort. Breveté et cliniquement prouvé.
+                Le logiciel de gestion #1 des chiropraticiens québécois. Automatisation complète pour éliminer votre assistante.
               </p>
             </div>
 
             <div>
-              <h3 className="font-bold mb-4 text-cyan-400">Produit</h3>
+              <h3 className="font-bold mb-4 text-emerald-400">Fonctionnalités</h3>
               <ul className="space-y-3 text-sm text-slate-400">
-                <li><a href="#science" className="hover:text-white transition">Science</a></li>
-                <li><a href="#temoignages" className="hover:text-white transition">Témoignages</a></li>
-                <li><a href="#garantie" className="hover:text-white transition">Garantie 100 nuits</a></li>
+                <li><a href="#fonctionnalites" className="hover:text-white transition">Réservation en ligne</a></li>
+                <li><a href="#fonctionnalites" className="hover:text-white transition">Rappels automatiques</a></li>
+                <li><a href="#fonctionnalites" className="hover:text-white transition">Facturation intelligente</a></li>
                 <li><a href="#faq" className="hover:text-white transition">FAQ</a></li>
               </ul>
             </div>
 
             <div>
-              <h3 className="font-bold mb-4 text-cyan-400">Entreprise</h3>
+              <h3 className="font-bold mb-4 text-emerald-400">Ressources</h3>
               <ul className="space-y-3 text-sm text-slate-400">
-                <li><a href="#" className="hover:text-white transition">À propos</a></li>
-                <li><a href="#" className="hover:text-white transition">Notre histoire</a></li>
-                <li><a href="#" className="hover:text-white transition">Recherche clinique</a></li>
-                <li><a href="#" className="hover:text-white transition">Contact</a></li>
+                <li><a href="#temoignages" className="hover:text-white transition">Témoignages</a></li>
+                <li><a href="#calculateur" className="hover:text-white transition">Calculateur ROI</a></li>
+                <li><a href="/admin/signup" className="hover:text-white transition">Commencer l'essai</a></li>
+                <li><a href="mailto:support@chiroflow.ca" className="hover:text-white transition">Contact</a></li>
               </ul>
             </div>
 
             <div>
-              <h3 className="font-bold mb-4 text-cyan-400">Support</h3>
+              <h3 className="font-bold mb-4 text-emerald-400">Support</h3>
               <ul className="space-y-3 text-sm text-slate-400">
                 <li className="flex items-center space-x-2">
                   <span>📧</span>
-                  <span>support@chiroflow.ca</span>
+                  <a href="mailto:support@chiroflow.ca" className="hover:text-white transition">support@chiroflow.ca</a>
                 </li>
                 <li className="flex items-center space-x-2">
                   <span>📞</span>
-                  <span>1-855-CONFORT</span>
+                  <a href="tel:1-855-244-7636" className="hover:text-white transition">1-855-CHIROFLOW</a>
                 </li>
                 <li className="flex items-center space-x-2">
                   <span>⏰</span>
-                  <span>Lun-Ven 9h-18h EST</span>
+                  <span>Support 24/7 en français</span>
                 </li>
               </ul>
             </div>
           </div>
 
           <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row items-center justify-between text-sm text-slate-400">
-            <p>&copy; 2025 ChiroFlow. Tous droits réservés. Conçu au Canada.</p>
+            <p>&copy; 2025 ChiroFlow. Tous droits réservés. Fait au Québec avec ❤️</p>
             <div className="flex items-center space-x-6 mt-4 md:mt-0">
               <a href="#" className="hover:text-white transition">Confidentialité</a>
-              <a href="#" className="hover:text-white transition">Conditions</a>
-              <a href="#" className="hover:text-white transition">Remboursements</a>
+              <a href="#" className="hover:text-white transition">Conditions d'utilisation</a>
+              <a href="#" className="hover:text-white transition">Politique de remboursement</a>
             </div>
           </div>
         </div>

@@ -18,7 +18,7 @@ export const HeroSectionPremium: React.FC = () => {
     setIsLoaded(true);
   }, []);
 
-  const words = ['Gérez', 'votre', 'clinique', 'sans', 'assistante'];
+  const words = ['Économisez', '50 000$', 'et', 'récupérez', '10h/semaine'];
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-emerald-50 via-teal-50/30 to-slate-100">
@@ -75,7 +75,7 @@ export const HeroSectionPremium: React.FC = () => {
           className="inline-flex items-center space-x-2 bg-white/70 backdrop-blur-md border border-emerald-200/50 text-emerald-700 px-6 py-3 rounded-full text-sm font-medium mb-12 shadow-lg"
         >
           <Sparkles className="w-4 h-4 text-emerald-600" />
-          <span>Automatisation 100% • Fait par des chiros, pour des chiros</span>
+          <span>500+ cliniques québécoises • Économie moyenne 47 052$/an</span>
         </motion.div>
 
         <div className="mb-8">
@@ -92,7 +92,7 @@ export const HeroSectionPremium: React.FC = () => {
                 className="inline-block mr-4"
                 style={{ transformOrigin: 'bottom' }}
               >
-                {word === 'assistante' ? (
+                {word === '50 000$' || word === '10h/semaine' ? (
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600">
                     {word}
                   </span>
@@ -110,10 +110,9 @@ export const HeroSectionPremium: React.FC = () => {
           transition={{ ...motionConfig.spring.smooth, delay: 1.2 }}
           className="text-xl md:text-2xl text-slate-600 mb-12 max-w-3xl mx-auto leading-relaxed"
         >
-          ChiroFlow automatise 100% de votre administratif. Réservations en ligne, rappels
-          automatiques, facturation intelligente. Vous vous concentrez sur{' '}
-          <span className="font-semibold text-emerald-700">soigner vos patients</span>,
-          on s'occupe du reste.
+          Éliminez votre assistante et automatisez 100% de votre administratif.{' '}
+          <span className="font-semibold text-emerald-700">Réservations 24/7, rappels automatiques, facturation instantanée.</span>{' '}
+          Plus de 500 cliniques ont éliminé leur poste d'assistante et économisent en moyenne 47 052$/an.
         </motion.p>
 
         <motion.div
@@ -135,7 +134,7 @@ export const HeroSectionPremium: React.FC = () => {
           >
             <div className="absolute inset-0 bg-gradient-to-r from-teal-600 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <span className="relative flex items-center space-x-2">
-              <span>Essai gratuit 14 jours</span>
+              <span>Commencer mon essai gratuit</span>
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </span>
             <motion.div
@@ -151,7 +150,7 @@ export const HeroSectionPremium: React.FC = () => {
             whileTap={{ scale: 0.98 }}
             className="px-10 py-5 bg-white/80 backdrop-blur-sm border-2 border-slate-300 text-slate-900 rounded-2xl font-semibold text-lg shadow-lg hover:bg-white hover:border-emerald-400 transition-all duration-300"
           >
-            Voir la démo (2 min)
+            📞 Parler à un expert
           </motion.button>
         </motion.div>
 
@@ -162,10 +161,10 @@ export const HeroSectionPremium: React.FC = () => {
           className="flex flex-wrap items-center justify-center gap-8 text-sm text-slate-600"
         >
           {[
-            '⭐ 4.9/5 • 500+ cliniques au Québec',
-            '🚀 Configuration en 5 minutes',
-            '🔒 Sans carte de crédit',
-            '🇨🇦 Support en français',
+            '⭐ 4.9/5 • 500+ cliniques',
+            '✅ Sans carte de crédit',
+            '⚡ Opérationnel en 5 minutes',
+            '🇨🇦 Support québécois 24/7',
           ].map((text, i) => (
             <motion.div
               key={text}
