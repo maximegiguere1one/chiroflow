@@ -25,14 +25,14 @@ export const BeforeAfterSlider: React.FC = () => {
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           className="text-center mb-20"
         >
-          <span className="inline-block px-6 py-2 bg-cyan-500/20 text-cyan-300 rounded-full text-sm font-semibold mb-6">
-            Transformation visible
+          <span className="inline-block px-6 py-2 bg-emerald-500/20 text-emerald-300 rounded-full text-sm font-semibold mb-6">
+            Transformation complète
           </span>
           <h2 className="text-5xl lg:text-6xl font-bold text-white mb-6">
-            Avant / Après ChiroFlow
+            Avec ou Sans Assistante
           </h2>
           <p className="text-xl text-slate-400 max-w-3xl mx-auto">
-            Glissez pour voir la différence dans votre qualité de sommeil
+            Comparaison directe entre une clinique traditionnelle et ChiroFlow
           </p>
         </motion.div>
 
@@ -45,14 +45,15 @@ export const BeforeAfterSlider: React.FC = () => {
           >
             <h3 className="text-3xl font-bold text-white flex items-center space-x-3">
               <XCircle className="w-8 h-8 text-red-400" />
-              <span>Oreiller traditionnel</span>
+              <span>Avec assistante (Avant)</span>
             </h3>
             {[
-              'Mal de cou au réveil',
-              'Doit ajuster 3-4 fois par nuit',
-              'Se tasse et perd sa forme',
-              'Migraines fréquentes',
-              'Sommeil agité et interrompu',
+              'Payer 40 000-50 000$/an en salaire',
+              'Gérer les vacances, congés maladie',
+              '2-3h/jour au téléphone pour rdv',
+              'Rappels manuels = patients oubliés',
+              'Facturation en retard, erreurs',
+              'Stress constant de gestion d\'employé',
             ].map((text, i) => (
               <motion.div
                 key={i}
@@ -65,6 +66,10 @@ export const BeforeAfterSlider: React.FC = () => {
                 <span className="text-lg">{text}</span>
               </motion.div>
             ))}
+            <div className="bg-red-900/20 rounded-xl p-4 border border-red-500/30 mt-6">
+              <p className="text-red-400 font-bold">Coût total annuel : 50 000$+</p>
+              <p className="text-sm text-red-300 mt-1">+ stress + gestion + imprévus</p>
+            </div>
           </motion.div>
 
           <motion.div
@@ -74,27 +79,32 @@ export const BeforeAfterSlider: React.FC = () => {
             className="space-y-6"
           >
             <h3 className="text-3xl font-bold text-white flex items-center space-x-3">
-              <CheckCircle className="w-8 h-8 text-cyan-400" />
-              <span>Avec ChiroFlow</span>
+              <CheckCircle className="w-8 h-8 text-emerald-400" />
+              <span>Avec ChiroFlow (Après)</span>
             </h3>
             {[
-              'Réveil sans douleur, énergisé',
-              'Aucun ajustement nécessaire',
-              'Maintient son soutien à vie',
-              'Zéro tension cervicale',
-              'Sommeil profond continu',
+              'Réservation en ligne 24/7 automatique',
+              'Rappels automatiques (courriel, SMS, appel)',
+              'Agenda rempli pendant que vous dormez',
+              'Facturation instantanée après chaque visite',
+              'Zéro gestion d\'employé, zéro stress',
+              'Liste d\'attente = aucune perte de revenu',
             ].map((text, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, x: 20 }}
                 animate={isInView ? { opacity: 1, x: 0 } : {}}
                 transition={{ delay: 0.3 + i * 0.1 }}
-                className="flex items-center space-x-3 text-cyan-300"
+                className="flex items-center space-x-3 text-emerald-300"
               >
-                <CheckCircle className="w-5 h-5 text-cyan-400" />
+                <CheckCircle className="w-5 h-5 text-emerald-400" />
                 <span className="text-lg font-medium">{text}</span>
               </motion.div>
             ))}
+            <div className="bg-emerald-900/20 rounded-xl p-4 border border-emerald-500/30 mt-6">
+              <p className="text-emerald-400 font-bold">Coût total annuel : 948$ (79$/mois)</p>
+              <p className="text-sm text-emerald-300 mt-1">Économie de 49 052$/an 🎉</p>
+            </div>
           </motion.div>
         </div>
 
@@ -109,7 +119,7 @@ export const BeforeAfterSlider: React.FC = () => {
             <div className="absolute left-0 w-1/2 h-full bg-red-900/20 flex items-center justify-center">
               <span className="text-white text-2xl font-bold">Avant</span>
             </div>
-            <div className="absolute right-0 w-1/2 h-full bg-cyan-900/20 flex items-center justify-center">
+            <div className="absolute right-0 w-1/2 h-full bg-emerald-900/20 flex items-center justify-center">
               <span className="text-white text-2xl font-bold">Après</span>
             </div>
           </div>
@@ -136,6 +146,37 @@ export const BeforeAfterSlider: React.FC = () => {
         >
           Déplacez le curseur pour comparer
         </motion.p>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 1 }}
+          className="mt-16 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-3xl p-12 border border-emerald-500/30"
+        >
+          <h3 className="text-3xl font-bold text-white text-center mb-8">
+            Économie réelle par an
+          </h3>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400 mb-2">
+                49 052$
+              </div>
+              <div className="text-slate-400">Salaire assistante économisé</div>
+            </div>
+            <div className="text-center">
+              <div className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400 mb-2">
+                520h
+              </div>
+              <div className="text-slate-400">Heures de vie récupérées</div>
+            </div>
+            <div className="text-center">
+              <div className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400 mb-2">
+                100%
+              </div>
+              <div className="text-slate-400">Automatisation garantie</div>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </section>
   );

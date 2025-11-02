@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useElementInView } from '../../hooks/useScrollProgress';
-import { Droplets, Settings, Heart } from 'lucide-react';
+import { Calendar, Zap, DollarSign } from 'lucide-react';
 
 interface StoryStepProps {
   icon: React.ComponentType<any>;
@@ -35,7 +35,7 @@ const StoryStep: React.FC<StoryStepProps> = ({ icon: Icon, title, description, i
             damping: 20,
             delay: index * 0.2 + 0.3,
           }}
-          className="flex-shrink-0 w-20 h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-cyan-500/40"
+          className="flex-shrink-0 w-20 h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-emerald-500/40"
         >
           <Icon className="w-10 h-10 lg:w-12 lg:h-12 text-white" />
         </motion.div>
@@ -65,7 +65,7 @@ const StoryStep: React.FC<StoryStepProps> = ({ icon: Icon, title, description, i
           initial={{ scaleY: 0 }}
           animate={isInView ? { scaleY: 1 } : {}}
           transition={{ duration: 0.6, delay: index * 0.2 + 0.8 }}
-          className="absolute left-10 lg:left-12 top-24 lg:top-28 w-0.5 h-32 lg:h-40 bg-gradient-to-b from-cyan-500 to-transparent"
+          className="absolute left-10 lg:left-12 top-24 lg:top-28 w-0.5 h-32 lg:h-40 bg-gradient-to-b from-emerald-500 to-transparent"
           style={{ transformOrigin: 'top' }}
         />
       )}
@@ -87,22 +87,22 @@ export const ScrollStorySection: React.FC = () => {
 
   const steps = [
     {
-      icon: Droplets,
-      title: "L'eau réagit à votre corps",
+      icon: Calendar,
+      title: "Réservation en ligne 24/7",
       description:
-        "Le système breveté ChiroFlow contient une chambre d'eau intelligente qui répartit uniformément votre poids. Chaque mouvement est absorbé naturellement, créant un soutien fluide et personnalisé.",
+        "Vos patients prennent leurs rendez-vous en ligne, jour et nuit. Plus besoin de passer 2-3 heures par jour au téléphone. Votre agenda se remplit automatiquement pendant que vous vous occupez de vos patients.",
     },
     {
-      icon: Settings,
-      title: 'Ajustement automatique du soutien',
+      icon: Zap,
+      title: 'Rappels automatiques intelligents',
       description:
-        "Contrairement aux oreillers statiques, ChiroFlow s'adapte en temps réel à vos changements de position. Fini les ajustements nocturnes : le confort vous suit naturellement.",
+        "ChiroFlow envoie automatiquement des rappels par courriel, texto et appel vocal. Vos patients reçoivent 3 rappels avant leur rendez-vous. Résultat : 85% moins d'absences et zéro temps perdu à faire des rappels manuels.",
     },
     {
-      icon: Heart,
-      title: 'Soulagement cervical prouvé',
+      icon: DollarSign,
+      title: 'Facturation & Paiements automatisés',
       description:
-        "Des études cliniques ont démontré une réduction de 50% des douleurs cervicales après 30 jours d'utilisation. Votre colonne vertébrale maintient son alignement naturel, nuit après nuit.",
+        "La facturation se fait automatiquement après chaque visite. Paiements en ligne sécurisés, rappels de paiement automatiques, rapports financiers instantanés. Vous récupérez 10+ heures par semaine sur la comptabilité.",
     },
   ];
 
@@ -115,8 +115,8 @@ export const ScrollStorySection: React.FC = () => {
       className="relative py-32 lg:py-40 bg-gradient-to-b from-white via-slate-50 to-white overflow-hidden"
     >
       <motion.div style={{ y, opacity }} className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/4 right-10 w-64 h-64 bg-cyan-200/30 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 left-10 w-64 h-64 bg-blue-200/30 rounded-full blur-3xl" />
+        <div className="absolute top-1/4 right-10 w-64 h-64 bg-emerald-200/30 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 left-10 w-64 h-64 bg-teal-200/30 rounded-full blur-3xl" />
       </motion.div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
@@ -126,18 +126,18 @@ export const ScrollStorySection: React.FC = () => {
           transition={{ duration: 0.8 }}
           className="text-center mb-20"
         >
-          <span className="inline-block px-6 py-2 bg-cyan-100 text-cyan-800 rounded-full text-sm font-semibold mb-6">
-            Science du confort
+          <span className="inline-block px-6 py-2 bg-emerald-100 text-emerald-800 rounded-full text-sm font-semibold mb-6">
+            Automatisation complète
           </span>
           <h2 className="text-5xl lg:text-6xl font-bold text-slate-900 mb-6 leading-tight">
-            Une technologie qui
+            3 automatisations qui
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-blue-600">
-              pense à votre bien-être
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600">
+              transforment votre clinique
             </span>
           </h2>
           <p className="text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
-            Trois innovations qui transforment votre sommeil en expérience régénératrice
+            Éliminez les tâches manuelles répétitives et concentrez-vous sur vos patients
           </p>
         </motion.div>
 
@@ -155,9 +155,9 @@ export const ScrollStorySection: React.FC = () => {
         >
           <div className="grid md:grid-cols-3 gap-12 text-center">
             {[
-              { value: '50%', label: 'Réduction douleurs cervicales' },
-              { value: '15 000+', label: 'Clients satisfaits' },
-              { value: '100', label: 'Nuits de garantie' },
+              { value: '10h+', label: 'Gagnées par semaine' },
+              { value: '500+', label: 'Cliniques au Québec' },
+              { value: '85%', label: 'Moins d\'absences' },
             ].map((stat, i) => (
               <motion.div
                 key={i}
@@ -165,7 +165,7 @@ export const ScrollStorySection: React.FC = () => {
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: 1.7 + i * 0.1 }}
               >
-                <div className="text-5xl lg:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400 mb-3">
+                <div className="text-5xl lg:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400 mb-3">
                   {stat.value}
                 </div>
                 <div className="text-slate-400 text-lg">{stat.label}</div>

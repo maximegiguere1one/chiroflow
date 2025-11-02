@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, Zap } from 'lucide-react';
 import { motionConfig } from '../../lib/motion-config';
 import { useMagneticEffect } from '../../hooks/useMagneticEffect';
 
@@ -18,13 +18,13 @@ export const HeroSectionPremium: React.FC = () => {
     setIsLoaded(true);
   }, []);
 
-  const words = ['Confort', 'révolutionnaire', 'pour', 'votre', 'corps'];
+  const words = ['Gérez', 'votre', 'clinique', 'sans', 'assistante'];
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-100">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-emerald-50 via-teal-50/30 to-slate-100">
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
-          className="absolute top-20 left-10 w-96 h-96 bg-blue-200/40 rounded-full mix-blend-multiply filter blur-3xl"
+          className="absolute top-20 left-10 w-96 h-96 bg-emerald-200/40 rounded-full mix-blend-multiply filter blur-3xl"
           animate={{
             x: [0, 100, 0],
             y: [0, 50, 0],
@@ -37,7 +37,7 @@ export const HeroSectionPremium: React.FC = () => {
           }}
         />
         <motion.div
-          className="absolute top-40 right-20 w-96 h-96 bg-cyan-200/40 rounded-full mix-blend-multiply filter blur-3xl"
+          className="absolute top-40 right-20 w-96 h-96 bg-teal-200/40 rounded-full mix-blend-multiply filter blur-3xl"
           animate={{
             x: [0, -80, 0],
             y: [0, 80, 0],
@@ -50,7 +50,7 @@ export const HeroSectionPremium: React.FC = () => {
           }}
         />
         <motion.div
-          className="absolute -bottom-20 left-1/2 w-96 h-96 bg-slate-200/40 rounded-full mix-blend-multiply filter blur-3xl"
+          className="absolute -bottom-20 left-1/2 w-96 h-96 bg-blue-200/40 rounded-full mix-blend-multiply filter blur-3xl"
           animate={{
             x: [0, 60, 0],
             y: [0, -60, 0],
@@ -72,10 +72,10 @@ export const HeroSectionPremium: React.FC = () => {
           initial={{ opacity: 0, y: -20 }}
           animate={isLoaded ? { opacity: 1, y: 0 } : {}}
           transition={{ ...motionConfig.spring.smooth, delay: 0.2 }}
-          className="inline-flex items-center space-x-2 bg-white/70 backdrop-blur-md border border-slate-200/50 text-slate-700 px-6 py-3 rounded-full text-sm font-medium mb-12 shadow-lg"
+          className="inline-flex items-center space-x-2 bg-white/70 backdrop-blur-md border border-emerald-200/50 text-emerald-700 px-6 py-3 rounded-full text-sm font-medium mb-12 shadow-lg"
         >
-          <Sparkles className="w-4 h-4 text-cyan-600" />
-          <span>Technologie brevetée • Science du confort</span>
+          <Sparkles className="w-4 h-4 text-emerald-600" />
+          <span>Automatisation 100% • Fait par des chiros, pour des chiros</span>
         </motion.div>
 
         <div className="mb-8">
@@ -92,7 +92,13 @@ export const HeroSectionPremium: React.FC = () => {
                 className="inline-block mr-4"
                 style={{ transformOrigin: 'bottom' }}
               >
-                {word}
+                {word === 'assistante' ? (
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600">
+                    {word}
+                  </span>
+                ) : (
+                  word
+                )}
               </motion.span>
             ))}
           </h1>
@@ -104,10 +110,10 @@ export const HeroSectionPremium: React.FC = () => {
           transition={{ ...motionConfig.spring.smooth, delay: 1.2 }}
           className="text-xl md:text-2xl text-slate-600 mb-12 max-w-3xl mx-auto leading-relaxed"
         >
-          Une innovation qui s'adapte à vous. ChiroFlow allie la science de l'eau
-          à l'intelligence du design pour un{' '}
-          <span className="font-semibold text-cyan-700">soutien parfait</span>,
-          nuit après nuit.
+          ChiroFlow automatise 100% de votre administratif. Réservations en ligne, rappels
+          automatiques, facturation intelligente. Vous vous concentrez sur{' '}
+          <span className="font-semibold text-emerald-700">soigner vos patients</span>,
+          on s'occupe du reste.
         </motion.p>
 
         <motion.div
@@ -124,11 +130,12 @@ export const HeroSectionPremium: React.FC = () => {
             }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="group relative px-10 py-5 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-2xl font-semibold text-lg shadow-2xl shadow-cyan-600/30 overflow-hidden"
+            onClick={() => window.location.href = '/admin/signup'}
+            className="group relative px-10 py-5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-2xl font-semibold text-lg shadow-2xl shadow-emerald-600/30 overflow-hidden"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="absolute inset-0 bg-gradient-to-r from-teal-600 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <span className="relative flex items-center space-x-2">
-              <span>Découvrir le confort parfait</span>
+              <span>Essai gratuit 14 jours</span>
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </span>
             <motion.div
@@ -142,9 +149,9 @@ export const HeroSectionPremium: React.FC = () => {
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="px-10 py-5 bg-white/80 backdrop-blur-sm border-2 border-slate-300 text-slate-900 rounded-2xl font-semibold text-lg shadow-lg hover:bg-white hover:border-cyan-400 transition-all duration-300"
+            className="px-10 py-5 bg-white/80 backdrop-blur-sm border-2 border-slate-300 text-slate-900 rounded-2xl font-semibold text-lg shadow-lg hover:bg-white hover:border-emerald-400 transition-all duration-300"
           >
-            Voir la démo (30s)
+            Voir la démo (2 min)
           </motion.button>
         </motion.div>
 
@@ -155,10 +162,10 @@ export const HeroSectionPremium: React.FC = () => {
           className="flex flex-wrap items-center justify-center gap-8 text-sm text-slate-600"
         >
           {[
-            '⭐ 4.9/5 • 15 000+ clients satisfaits',
-            '🚚 Livraison express gratuite',
-            '🔒 Garantie 100 nuits',
-            '🇨🇦 Conçu au Canada',
+            '⭐ 4.9/5 • 500+ cliniques au Québec',
+            '🚀 Configuration en 5 minutes',
+            '🔒 Sans carte de crédit',
+            '🇨🇦 Support en français',
           ].map((text, i) => (
             <motion.div
               key={text}
@@ -179,10 +186,10 @@ export const HeroSectionPremium: React.FC = () => {
           className="mt-20"
           style={{ filter: `blur(${blur}px)` }}
         >
-          <div className="relative w-full max-w-4xl mx-auto aspect-[16/10] bg-gradient-to-br from-slate-200 to-slate-300 rounded-3xl shadow-2xl overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/20 to-blue-500/20" />
+          <div className="relative w-full max-w-5xl mx-auto aspect-[16/9] bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-700">
+            <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/10 to-teal-500/10" />
             <motion.div
-              className="absolute inset-0 flex items-center justify-center"
+              className="absolute inset-0 flex items-center justify-center p-8"
               animate={{
                 y: [0, -10, 0],
               }}
@@ -192,9 +199,48 @@ export const HeroSectionPremium: React.FC = () => {
                 ease: 'easeInOut',
               }}
             >
-              <div className="w-3/4 h-3/4 bg-white/30 backdrop-blur-md rounded-2xl border border-white/50 shadow-xl" />
+              <div className="w-full h-full bg-slate-900/50 backdrop-blur-md rounded-2xl border border-emerald-500/30 shadow-xl p-8">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
+                    <Zap className="w-6 h-6 text-white" />
+                  </div>
+                  <span className="text-white font-bold text-xl">ChiroFlow Dashboard</span>
+                </div>
+                <div className="space-y-3">
+                  <div className="h-3 bg-emerald-500/30 rounded w-3/4"></div>
+                  <div className="h-3 bg-teal-500/30 rounded w-1/2"></div>
+                  <div className="h-3 bg-emerald-500/30 rounded w-2/3"></div>
+                </div>
+              </div>
             </motion.div>
           </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isLoaded ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 2.3 }}
+          className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto"
+        >
+          {[
+            { value: '10h+', label: 'gagnées/semaine' },
+            { value: '85%', label: 'moins d\'absences' },
+            { value: '0$', label: 'frais assistante' },
+            { value: '100%', label: 'automatisé' },
+          ].map((stat, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 2.5 + i * 0.1 }}
+              className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-slate-200"
+            >
+              <div className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600 mb-2">
+                {stat.value}
+              </div>
+              <div className="text-sm text-slate-600">{stat.label}</div>
+            </motion.div>
+          ))}
         </motion.div>
       </motion.div>
 
@@ -209,7 +255,7 @@ export const HeroSectionPremium: React.FC = () => {
           transition={{ duration: 1.5, repeat: Infinity }}
           className="text-slate-400 text-sm flex flex-col items-center space-y-2"
         >
-          <span>Découvrez la science</span>
+          <span>Découvrez comment ça fonctionne</span>
           <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M12 5v14M5 12l7 7 7-7" />
           </svg>
