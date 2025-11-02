@@ -79,7 +79,7 @@ export const HeroSectionPremium: React.FC = () => {
       >
         <motion.div
           initial={prefersReducedMotion ? false : { opacity: 0, y: -20 }}
-          animate={isLoaded && !prefersReducedMotion ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
+          animate={isLoaded ? { opacity: 1, y: 0 } : {}}
           transition={{ ...motionConfig.spring.smooth, delay: prefersReducedMotion ? 0 : ANIMATION_DELAYS.stagger }}
           className="inline-flex items-center space-x-2 bg-white/70 backdrop-blur-md border border-emerald-200/50 text-emerald-700 px-6 py-3 rounded-full text-sm font-medium mb-12 shadow-lg"
         >
@@ -93,7 +93,7 @@ export const HeroSectionPremium: React.FC = () => {
               <motion.span
                 key={word}
                 initial={prefersReducedMotion ? false : { opacity: 0, y: 30, rotateX: -90 }}
-                animate={isLoaded && !prefersReducedMotion ? { opacity: 1, y: 0, rotateX: 0 } : { opacity: 1, y: 0, rotateX: 0 }}
+                animate={isLoaded ? { opacity: 1, y: 0, rotateX: 0 } : {}}
                 transition={{
                   ...motionConfig.spring.medium,
                   delay: prefersReducedMotion ? 0 : (ANIMATION_DELAYS.section + index * ANIMATION_DELAYS.stagger),
@@ -116,7 +116,7 @@ export const HeroSectionPremium: React.FC = () => {
 
         <motion.p
           initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-          animate={isLoaded && !prefersReducedMotion ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
+          animate={isLoaded ? { opacity: 1, y: 0 } : {}}
           transition={{ ...motionConfig.spring.smooth, delay: prefersReducedMotion ? 0 : ANIMATION_DELAYS.medium * 2 }}
           className="text-xl md:text-2xl text-slate-600 mb-12 max-w-3xl mx-auto leading-relaxed"
         >
@@ -127,7 +127,7 @@ export const HeroSectionPremium: React.FC = () => {
 
         <motion.div
           initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.8 }}
-          animate={isLoaded && !prefersReducedMotion ? { opacity: 1, scale: 1 } : { opacity: 1, scale: 1 }}
+          animate={isLoaded ? { opacity: 1, scale: 1 } : {}}
           transition={{ ...motionConfig.spring.bouncy, delay: prefersReducedMotion ? 0 : ANIMATION_DELAYS.medium * 2.5 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-16"
         >
@@ -190,7 +190,7 @@ export const HeroSectionPremium: React.FC = () => {
 
         <motion.div
           initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.9 }}
-          animate={isLoaded && !prefersReducedMotion ? { opacity: 1, scale: 1 } : { opacity: 1, scale: 1 }}
+          animate={isLoaded ? { opacity: 1, scale: 1 } : {}}
           transition={{ ...motionConfig.spring.soft, delay: prefersReducedMotion ? 0 : ANIMATION_DELAYS.medium * 2.2 }}
           className="mt-20"
           style={{ filter: prefersReducedMotion ? 'none' : `blur(${Math.min(blur, 5)}px)` }}

@@ -23,10 +23,10 @@ const StoryStep: React.FC<StoryStepProps> = ({ icon: Icon, title, description, i
     <motion.div
       ref={ref as any}
       initial={prefersReducedMotion ? false : { opacity: 0, y: 60 }}
-      animate={isInView && shouldAnimate && !prefersReducedMotion ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{
         duration: 0.6,
-        delay: prefersReducedMotion ? 0 : index * 0.15,
+        delay: prefersReducedMotion ? 0 : (shouldAnimate ? index * 0.15 : 0),
         ease: [0.25, 0.1, 0.25, 1],
       }}
       className="relative"
@@ -35,12 +35,12 @@ const StoryStep: React.FC<StoryStepProps> = ({ icon: Icon, title, description, i
       <div className="flex items-start space-x-6 lg:space-x-12">
         <motion.div
           initial={prefersReducedMotion ? false : { scale: 0 }}
-          animate={isInView && shouldAnimate && !prefersReducedMotion ? { scale: 1 } : { scale: 1 }}
+          animate={isInView ? { scale: 1 } : {}}
           transition={{
             type: 'spring',
             stiffness: 200,
             damping: 20,
-            delay: prefersReducedMotion ? 0 : index * 0.15 + 0.2,
+            delay: prefersReducedMotion ? 0 : (shouldAnimate ? index * 0.15 + 0.2 : 0),
           }}
           className="flex-shrink-0 w-20 h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-emerald-500/40"
           style={GPU_OPTIMIZED_STYLES}
