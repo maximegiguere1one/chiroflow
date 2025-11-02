@@ -4,6 +4,7 @@ import { X, Save, Zap, Copy, DollarSign, Calendar, Clock } from 'lucide-react';
 import { soapTemplates, quickNotes } from '../../lib/quickTemplates';
 import { useToastContext } from '../../contexts/ToastContext';
 import { supabase } from '../../lib/supabase';
+import { VoiceInput } from '../common/VoiceInput';
 
 interface UltraFastSoapNoteProps {
   isOpen: boolean;
@@ -443,18 +444,16 @@ export function UltraFastSoapNote({
             <div className="col-span-2 space-y-4">
               {(['subjective', 'objective', 'assessment', 'plan'] as const).map((field) => (
                 <div key={field}>
-                  <label className="block text-sm font-bold text-gray-700 mb-2 uppercase">
-                    {field === 'subjective' && '📝 S - Subjectif (Patient dit)'}
-                    {field === 'objective' && '🔍 O - Objectif (Observations)'}
-                    {field === 'assessment' && '⚕️ A - Assessment (Diagnostic)'}
-                    {field === 'plan' && '📋 P - Plan (Traitement)'}
-                  </label>
-                  <textarea
+                  <VoiceInput
+                    label={
+                      field === 'subjective' ? '📝 S - Subjectif (Patient dit)' :
+                      field === 'objective' ? '🔍 O - Objectif (Observations)' :
+                      field === 'assessment' ? '⚕️ A - Assessment (Diagnostic)' :
+                      '📋 P - Plan (Traitement)'
+                    }
                     value={formData[field]}
-                    onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
-                    onFocus={() => setCurrentField(field)}
+                    onChange={(value) => setFormData({ ...formData, [field]: value })}
                     rows={field === 'objective' ? 5 : 3}
-                    className="w-full px-4 py-3 border-2 border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 rounded-lg transition-all resize-none text-base"
                     placeholder={
                       field === 'subjective' ? 'Ex: Douleur bas dos depuis 3 jours...' :
                       field === 'objective' ? 'Ex: Restriction L5-S1, tension paravertébrale...' :

@@ -184,7 +184,14 @@ export function EnhancedCalendar({ onAppointmentClick, onNewAppointment }: Enhan
 
       if (error) throw error;
 
-      toast.success('Rendez-vous déplacé avec succès');
+      const formattedDate = date.toLocaleDateString('fr-CA', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric'
+      });
+      const formattedTime = time;
+
+      toast.success(`✅ RDV déplacé au ${formattedDate} à ${formattedTime}`);
       await loadAppointments();
       await loadNoShowPredictions();
     } catch (error: any) {
@@ -833,6 +840,12 @@ function AppointmentCard({
         onDragStart={(e: React.DragEvent<HTMLDivElement>) => {
           onDragStart();
           e.dataTransfer.effectAllowed = 'move';
+          const dragImage = e.currentTarget.cloneNode(true) as HTMLElement;
+          dragImage.style.opacity = '0.7';
+          dragImage.style.transform = 'rotate(2deg)';
+          document.body.appendChild(dragImage);
+          e.dataTransfer.setDragImage(dragImage, 0, 0);
+          setTimeout(() => document.body.removeChild(dragImage), 0);
         }}
         onClick={onClick}
         whileHover={{ scale: 1.02 }}
