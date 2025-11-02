@@ -16,6 +16,13 @@ import {
 import { useToastContext } from '../../contexts/ToastContext';
 import { InvoicePreviewModal } from './InvoicePreviewModal';
 import { generateInvoiceHTML } from '../../lib/invoiceHtmlGenerator';
+import { Tooltip } from '../common/Tooltip';
+import { EmptyState } from '../common/EmptyState';
+import { TableSkeleton } from '../common/LoadingSkeleton';
+import { ConfirmModal } from '../common/ConfirmModal';
+import { Confetti, useConfetti } from '../common/Confetti';
+import { buttonHover, buttonTap } from '../../lib/animations';
+import { useKeyboardShortcuts, COMMON_SHORTCUTS } from '../../hooks/useKeyboardShortcuts';
 
 interface Invoice {
   id: string;
@@ -71,7 +78,17 @@ export function BillingPage() {
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [invoicePreviewData, setInvoicePreviewData] = useState<InvoicePreviewData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sendConfirmOpen, setSendConfirmOpen] = useState(false);
+  const [invoiceToSend, setInvoiceToSend] = useState<Invoice | null>(null);
   const toast = useToastContext();
+  const { showConfetti, triggerConfetti } = useConfetti();
+
+  const shortcuts = [
+    { ...COMMON_SHORTCUTS.NEW_INVOICE, action: () => setShowNewInvoiceModal(true) },
+    { ...COMMON_SHORTCUTS.SEARCH, action: () => document.getElementById('billing-search')?.focus() },
+  ];
+
+  useKeyboardShortcuts(shortcuts);
 
   useEffect(() => {
     loadData();
@@ -194,10 +211,16 @@ export function BillingPage() {
         throw error;
       }
 
-      toast.success(`Facture envoyée à ${patientEmail}`);
+      toast.success(
+        `✓ Facture ${invoice.invoice_number} envoyée!`,
+        `Email envoyé à ${patientEmail} avec la facture en pièce jointe`
+      );
     } catch (error) {
       console.error('Error sending invoice:', error);
-      toast.error('Erreur lors de l\'envoi de la facture');
+      toast.error(
+        'Impossible d\'envoyer la facture',
+        'Vérifiez l\'adresse email du patient et réessayez'
+      );
     }
   }
 
@@ -225,8 +248,15 @@ export function BillingPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="w-8 h-8 border-4 border-gold-400 border-t-transparent rounded-full animate-spin" />
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <div className="h-8 w-48 bg-neutral-200 rounded animate-pulse mb-2" />
+            <div className="h-4 w-32 bg-neutral-200 rounded animate-pulse" />
+          </div>
+          <div className="h-12 w-48 bg-neutral-200 rounded animate-pulse" />
+        </div>
+        <TableSkeleton rows={8} />
       </div>
     );
   }
@@ -238,13 +268,17 @@ export function BillingPage() {
           <h2 className="text-2xl font-heading text-foreground">Facturation</h2>
           <p className="text-sm text-foreground/60 mt-1">{invoices.length} factures au total</p>
         </div>
-        <button
-          onClick={() => setShowNewInvoiceModal(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-gold-500 to-gold-600 text-white hover:from-gold-600 hover:to-gold-700 transition-all duration-300 shadow-soft hover:shadow-gold"
-        >
-          <Plus className="w-4 h-4" />
-          <span className="font-light">Nouvelle facture</span>
-        </button>
+        <Tooltip content="Créer une nouvelle facture" shortcut="Ctrl+N" placement="bottom">
+          <motion.button
+            onClick={() => setShowNewInvoiceModal(true)}
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-gold-500 to-gold-600 text-white hover:from-gold-600 hover:to-gold-700 transition-all duration-300 shadow-soft hover:shadow-gold"
+            whileHover={buttonHover}
+            whileTap={buttonTap}
+          >
+            <Plus className="w-4 h-4" />
+            <span className="font-light">Nouvelle facture</span>
+          </motion.button>
+        </Tooltip>
       </div>
 
       {/* Stats */}
@@ -377,27 +411,39 @@ export function BillingPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => setSelectedInvoice(invoice)}
-                        className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
-                        title="Voir"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDownloadInvoice(invoice)}
-                        className="p-2 hover:bg-gold-50 hover:text-gold-600 rounded-lg transition-colors group"
-                        title="Télécharger la facture"
-                      >
-                        <Download className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                      </button>
-                      <button
-                        onClick={() => handleSendInvoice(invoice)}
-                        className="p-2 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors group"
-                        title="Envoyer par email"
-                      >
-                        <Send className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                      </button>
+                      <Tooltip content="Voir les détails" placement="top">
+                        <motion.button
+                          onClick={() => setSelectedInvoice(invoice)}
+                          className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+                          whileHover={buttonHover}
+                          whileTap={buttonTap}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </motion.button>
+                      </Tooltip>
+                      <Tooltip content="Télécharger PDF" placement="top">
+                        <motion.button
+                          onClick={() => handleDownloadInvoice(invoice)}
+                          className="p-2 hover:bg-gold-50 hover:text-gold-600 rounded-lg transition-colors group"
+                          whileHover={buttonHover}
+                          whileTap={buttonTap}
+                        >
+                          <Download className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                        </motion.button>
+                      </Tooltip>
+                      <Tooltip content="Envoyer par email au patient" placement="top">
+                        <motion.button
+                          onClick={() => {
+                            setInvoiceToSend(invoice);
+                            setSendConfirmOpen(true);
+                          }}
+                          className="p-2 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors group"
+                          whileHover={buttonHover}
+                          whileTap={buttonTap}
+                        >
+                          <Send className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                        </motion.button>
+                      </Tooltip>
                     </div>
                   </td>
                 </tr>
@@ -406,10 +452,16 @@ export function BillingPage() {
           </table>
 
           {filteredInvoices.length === 0 && (
-            <div className="text-center py-12">
-              <DollarSign className="w-12 h-12 text-foreground/20 mx-auto mb-3" />
-              <p className="text-foreground/60">Aucune facture trouvée</p>
-            </div>
+            <EmptyState
+              icon={<DollarSign size={48} />}
+              title="Aucune facture pour l'instant"
+              description={searchTerm ? `Aucun résultat pour "${searchTerm}"` : 'Créez votre première facture pour commencer'}
+              primaryAction={!searchTerm ? {
+                label: 'Nouvelle facture',
+                icon: <Plus />,
+                onClick: () => setShowNewInvoiceModal(true)
+              } : undefined}
+            />
           )}
         </div>
       </div>
@@ -439,6 +491,26 @@ export function BillingPage() {
           onClose={() => setInvoicePreviewData(null)}
         />
       )}
+
+      <ConfirmModal
+        isOpen={sendConfirmOpen}
+        onClose={() => {
+          setSendConfirmOpen(false);
+          setInvoiceToSend(null);
+        }}
+        onConfirm={async () => {
+          if (invoiceToSend) {
+            await handleSendInvoice(invoiceToSend);
+            setSendConfirmOpen(false);
+            setInvoiceToSend(null);
+          }
+        }}
+        title={`Envoyer la facture ${invoiceToSend?.invoice_number}?`}
+        description={`Un email sera envoyé au patient avec la facture en pièce jointe.`}
+        confirmLabel="Envoyer maintenant"
+      />
+
+      <Confetti trigger={showConfetti} />
     </div>
   );
 }

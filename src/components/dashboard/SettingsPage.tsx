@@ -17,6 +17,13 @@ import {
 } from 'lucide-react';
 import { OnlineBookingConfig } from './OnlineBookingConfig';
 import { useToastContext } from '../../contexts/ToastContext';
+import { Tooltip } from '../common/Tooltip';
+import { FormSkeleton } from '../common/LoadingSkeleton';
+import { ValidationInput } from '../common/ValidationInput';
+import { ConfirmModal } from '../common/ConfirmModal';
+import { buttonHover, buttonTap } from '../../lib/animations';
+import { useKeyboardShortcuts, COMMON_SHORTCUTS } from '../../hooks/useKeyboardShortcuts';
+import { emailValidation, phoneValidation } from '../../lib/validations';
 
 interface ClinicSettings {
   id: string;
@@ -45,7 +52,14 @@ export function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [clinicSettings, setClinicSettings] = useState<ClinicSettings | null>(null);
+  const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
   const toast = useToastContext();
+
+  const shortcuts = [
+    { ...COMMON_SHORTCUTS.SAVE, action: handleSave },
+  ];
+
+  useKeyboardShortcuts(shortcuts);
 
   useEffect(() => {
     loadSettings();
@@ -80,8 +94,9 @@ export function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="w-8 h-8 border-4 border-gold-400 border-t-transparent rounded-full animate-spin" />
+      <div className="space-y-6">
+        <div className="h-12 bg-neutral-200 rounded animate-pulse" />
+        <FormSkeleton fields={8} />
       </div>
     );
   }
@@ -240,13 +255,17 @@ function ProfileSettings({
         </div>
 
         <div className="flex items-center justify-end pt-4 border-t border-neutral-200">
-          <button
-            type="submit"
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-gold-500 to-gold-600 text-white hover:from-gold-600 hover:to-gold-700 transition-all duration-300 shadow-soft hover:shadow-gold"
-          >
-            <Save className="w-4 h-4" />
-            <span>Enregistrer</span>
-          </button>
+          <Tooltip content="Enregistrer les modifications" shortcut="Ctrl+S" placement="top">
+            <motion.button
+              type="submit"
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-gold-500 to-gold-600 text-white hover:from-gold-600 hover:to-gold-700 transition-all duration-300 shadow-soft hover:shadow-gold"
+              whileHover={buttonHover}
+              whileTap={buttonTap}
+            >
+              <Save className="w-4 h-4" />
+              <span>Enregistrer</span>
+            </motion.button>
+          </Tooltip>
         </div>
       </form>
     </motion.div>
@@ -382,13 +401,17 @@ function ClinicSettingsForm({
         </div>
 
         <div className="flex items-center justify-end pt-4 border-t border-neutral-200">
-          <button
-            type="submit"
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-gold-500 to-gold-600 text-white hover:from-gold-600 hover:to-gold-700 transition-all duration-300 shadow-soft hover:shadow-gold"
-          >
-            <Save className="w-4 h-4" />
-            <span>Enregistrer</span>
-          </button>
+          <Tooltip content="Enregistrer les modifications" shortcut="Ctrl+S" placement="top">
+            <motion.button
+              type="submit"
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-gold-500 to-gold-600 text-white hover:from-gold-600 hover:to-gold-700 transition-all duration-300 shadow-soft hover:shadow-gold"
+              whileHover={buttonHover}
+              whileTap={buttonTap}
+            >
+              <Save className="w-4 h-4" />
+              <span>Enregistrer</span>
+            </motion.button>
+          </Tooltip>
         </div>
       </form>
     </motion.div>
@@ -407,7 +430,10 @@ function NotificationSettings() {
   const toast = useToastContext();
 
   function handleSave() {
-    toast.success('Préférences de notifications enregistrées');
+    toast.success(
+      '✓ Paramètres enregistrés',
+      'Vos préférences de notifications ont été mises à jour'
+    );
   }
 
   return (
