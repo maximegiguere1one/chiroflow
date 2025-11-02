@@ -329,39 +329,8 @@ export default function AdminDashboard() {
           sidebarOpen ? 'lg:ml-[280px]' : 'lg:ml-[80px]'
         }`}
       >
-        {/* Organization Banner */}
-        {organization && organization.subscription_status === 'trialing' && (() => {
-          const trialEnd = new Date(organization.trial_ends_at);
-          const daysLeft = Math.ceil((trialEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-          return (
-            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-b border-yellow-200">
-              <div className="px-4 lg:px-8 py-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <AlertCircle className="w-5 h-5 text-yellow-600" />
-                    <div>
-                      <p className="font-medium text-yellow-900">
-                        Essai gratuit - {daysLeft} jours restants
-                      </p>
-                      <p className="text-sm text-yellow-700">
-                        Choisissez un plan pour continuer après l'essai
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => router.navigate('/admin/organization/settings')}
-                    className="px-6 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
-                  >
-                    Choisir un Plan
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
-        })()}
-
-        {/* Header with Breadcrumbs */}
-        <div className="bg-white/80 backdrop-blur-xl border-b border-neutral-200/50 sticky top-0 z-30">
+        {/* Header with Breadcrumbs - STICKY TOP */}
+        <div className="bg-white/80 backdrop-blur-xl border-b border-neutral-200/50 sticky top-0 z-40">
           <div className="px-4 lg:px-8 py-6">
             <div className="flex items-center gap-4 mb-4 min-w-0">
               <button
@@ -404,6 +373,37 @@ export default function AdminDashboard() {
             </p>
           </div>
         </div>
+
+        {/* Organization Banner */}
+        {organization && organization.subscription_status === 'trialing' && (() => {
+          const trialEnd = new Date(organization.trial_ends_at);
+          const daysLeft = Math.ceil((trialEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+          return (
+            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-b border-yellow-200 sticky top-[145px] z-30">
+              <div className="px-4 lg:px-8 py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <AlertCircle className="w-5 h-5 text-yellow-600" />
+                    <div>
+                      <p className="font-medium text-yellow-900">
+                        Essai gratuit - {daysLeft} jours restants
+                      </p>
+                      <p className="text-sm text-yellow-700">
+                        Choisissez un plan pour continuer après l'essai
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => router.navigate('/admin/organization/settings')}
+                    className="px-6 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors flex-shrink-0"
+                  >
+                    Choisir un Plan
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Content */}
         <div className="p-8">
