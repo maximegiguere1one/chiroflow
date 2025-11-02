@@ -221,10 +221,11 @@ export default function AppointmentManager() {
       {/* Appointments List */}
       <div className="bg-white border border-neutral-200 shadow-soft-lg">
         {filteredAppointments.length === 0 ? (
-          <div className="text-center py-12">
-            <CalendarIcon className="w-12 h-12 text-foreground/20 mx-auto mb-3" />
-            <p className="text-foreground/60">Aucun rendez-vous</p>
-          </div>
+          <EmptyState
+            icon={<CalendarIcon size={48} />}
+            title="Aucun rendez-vous pour l'instant"
+            description={filter === 'all' ? 'Les demandes de rendez-vous apparaîtront ici' : `Aucun rendez-vous ${filter}`}
+          />
         ) : (
           <div className="divide-y divide-neutral-200">
             {filteredAppointments.map((appointment) => (
@@ -305,42 +306,55 @@ export default function AppointmentManager() {
                   <div className="flex items-center gap-2 ml-4">
                     {appointment.status === 'pending' && (
                       <>
-                        <button
-                          onClick={() => handleUpdateStatus(appointment.id, 'confirmed')}
-                          className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg transition-colors"
-                          title="Confirmer"
-                        >
-                          <CheckCircle className="w-5 h-5" />
-                          <span className="text-sm font-medium">Confirmer</span>
-                        </button>
-                        <button
-                          onClick={() => handleUpdateStatus(appointment.id, 'cancelled')}
-                          className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
-                          title="Refuser"
-                        >
-                          <XCircle className="w-5 h-5" />
-                          <span className="text-sm font-medium">Refuser</span>
-                        </button>
+                        <Tooltip content="Confirmer le rendez-vous et notifier le patient" placement="top">
+                          <motion.button
+                            onClick={() => openConfirmModal(appointment)}
+                            className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg transition-colors"
+                            whileHover={buttonHover}
+                            whileTap={buttonTap}
+                          >
+                            <CheckCircle className="w-5 h-5" />
+                            <span className="text-sm font-medium">Confirmer</span>
+                          </motion.button>
+                        </Tooltip>
+                        <Tooltip content="Refuser cette demande" placement="top">
+                          <motion.button
+                            onClick={() => { setSelectedAppointment(appointment); handleUpdateStatus('cancelled'); }}
+                            className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                            whileHover={buttonHover}
+                            whileTap={buttonTap}
+                          >
+                            <XCircle className="w-5 h-5" />
+                            <span className="text-sm font-medium">Refuser</span>
+                          </motion.button>
+                        </Tooltip>
                       </>
                     )}
 
                     {appointment.status === 'confirmed' && (
-                      <button
-                        onClick={() => handleUpdateStatus(appointment.id, 'completed')}
-                        className="flex items-center gap-2 px-4 py-2 bg-neutral-100 text-foreground hover:bg-neutral-200 rounded-lg transition-colors"
-                      >
-                        <CheckCircle className="w-5 h-5" />
-                        <span className="text-sm font-medium">Marquer complété</span>
-                      </button>
+                      <Tooltip content="Marquer comme terminé et prêt à facturer" placement="top">
+                        <motion.button
+                          onClick={() => { setSelectedAppointment(appointment); handleUpdateStatus('completed'); }}
+                          className="flex items-center gap-2 px-4 py-2 bg-neutral-100 text-foreground hover:bg-neutral-200 rounded-lg transition-colors"
+                          whileHover={buttonHover}
+                          whileTap={buttonTap}
+                        >
+                          <CheckCircle className="w-5 h-5" />
+                          <span className="text-sm font-medium">Marquer complété</span>
+                        </motion.button>
+                      </Tooltip>
                     )}
 
-                    <button
-                      onClick={() => handleDelete(appointment.id)}
-                      className="p-2 hover:bg-red-50 rounded-lg transition-colors group"
-                      title="Supprimer"
-                    >
-                      <XCircle className="w-5 h-5 text-red-400 group-hover:text-red-600" />
-                    </button>
+                    <Tooltip content="Supprimer cette demande" placement="top">
+                      <motion.button
+                        onClick={() => openDeleteModal(appointment)}
+                        className="p-2 hover:bg-red-50 rounded-lg transition-colors group"
+                        whileHover={buttonHover}
+                        whileTap={buttonTap}
+                      >
+                        <Trash2 className="w-5 h-5 text-red-400 group-hover:text-red-600" />
+                      </motion.button>
+                    </Tooltip>
                   </div>
                 </div>
               </motion.div>
@@ -348,6 +362,38 @@ export default function AppointmentManager() {
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={confirmModalOpen}
+        onClose={() => {
+          setConfirmModalOpen(false);
+          setSelectedAppointment(null);
+        }}
+        onConfirm={() => handleUpdateStatus('confirmed')}
+        title={`Confirmer le RDV de ${selectedAppointment?.name}?`}
+        description="Un email de confirmation sera envoyé au patient avec les détails."
+        confirmLabel="Confirmer et notifier"
+      />
+
+      <ConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setSelectedAppointment(null);
+        }}
+        onConfirm={handleDelete}
+        title={`Supprimer la demande de ${selectedAppointment?.name}?`}
+        description="Cette action est irréversible."
+        consequences={[
+          'Demande de rendez-vous',
+          'Informations du patient',
+          'Historique de communication'
+        ]}
+        danger
+        confirmLabel="Supprimer définitivement"
+      />
+
+      <Confetti trigger={showConfetti} />
     </div>
   );
 }
