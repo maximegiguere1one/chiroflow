@@ -9,6 +9,8 @@ import { SoapNotesListModal } from './SoapNotesListModal';
 import { AppointmentSchedulingModal } from './AppointmentSchedulingModal';
 import { PatientBillingModal } from './PatientBillingModal';
 import { CSVImportModal } from './CSVImportModal';
+import { EmptyState } from '../common/EmptyState';
+import { ConfirmModal } from '../common/ConfirmModal';
 
 interface Patient {
   id: string;
@@ -31,6 +33,8 @@ export default function PatientManager() {
   const [loading, setLoading] = useState(true);
   const [activeModal, setActiveModal] = useState<ModalType>('none');
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [patientToDelete, setPatientToDelete] = useState<Patient | null>(null);
   const toast = useToastContext();
 
   useEffect(() => {
@@ -62,11 +66,23 @@ export default function PatientManager() {
       if (error) throw error;
 
       setActiveModal('none');
-      loadPatients();
-      toast.success('Patient ajouté avec succès');
+      await loadPatients();
+      const fullName = `${formData.first_name} ${formData.last_name}`;
+      toast.success(`✓ ${fullName} ajouté!`, 'Le dossier patient est prêt. Voulez-vous planifier le premier rendez-vous?');
     } catch (error) {
       console.error('Error adding patient:', error);
-      toast.error('Erreur lors de l\'ajout du patient');
+      const message = (error as any)?.message || '';
+      if (message.includes('duplicate') || message.includes('unique')) {
+        toast.error(
+          'Patient déjà existant',
+          'Un patient avec ces informations existe déjà. Vérifiez l\'email ou le téléphone.'
+        );
+      } else {
+        toast.error(
+          'Impossible d\'ajouter le patient',
+          'Vérifiez que tous les champs requis sont remplis correctement.'
+        );
+      }
     }
   }
 
@@ -74,10 +90,16 @@ export default function PatientManager() {
     try {
       const patientsToExport = filteredPatients as unknown as PatientType[];
       exportPatientsToCSV(patientsToExport);
-      toast.success(`${patientsToExport.length} patients exportés`);
+      toast.success(
+        `✓ ${patientsToExport.length} patients exportés`,
+        'Le fichier CSV a été téléchargé dans votre dossier de téléchargements.'
+      );
     } catch (error) {
       console.error('Export error:', error);
-      toast.error('Erreur lors de l\'export');
+      toast.error(
+        'Impossible d\'exporter les patients',
+        'Vérifiez que vous avez des patients dans votre liste et réessayez.'
+      );
     }
   }
 
@@ -92,29 +114,51 @@ export default function PatientManager() {
 
       setActiveModal('none');
       setSelectedPatient(null);
-      loadPatients();
-      toast.success('Patient modifié avec succès');
+      await loadPatients();
+      const fullName = `${formData.first_name} ${formData.last_name}`;
+      toast.success(
+        `✓ Dossier de ${fullName} mis à jour`,
+        'Les modifications ont été enregistrées.'
+      );
     } catch (error) {
       console.error('Error updating patient:', error);
-      toast.error('Erreur lors de la modification du patient');
+      toast.error(
+        'Impossible de modifier le patient',
+        'Vérifiez les informations et réessayez.'
+      );
     }
   }
 
-  async function handleDeletePatient(id: string) {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer ce patient?')) return;
+  function openDeleteModal(patient: Patient) {
+    setPatientToDelete(patient);
+    setDeleteModalOpen(true);
+  }
+
+  async function handleDeletePatient() {
+    if (!patientToDelete) return;
 
     try {
       const { error } = await supabase
         .from('patients_full')
         .delete()
-        .eq('id', id);
+        .eq('id', patientToDelete.id);
 
       if (error) throw error;
-      loadPatients();
-      toast.success('Patient supprimé');
+      await loadPatients();
+      const fullName = `${patientToDelete.first_name} ${patientToDelete.last_name}`;
+      toast.success(
+        `✓ ${fullName} supprimé`,
+        'Le dossier patient a été supprimé définitivement.'
+      );
     } catch (error) {
       console.error('Error deleting patient:', error);
-      toast.error('Erreur lors de la suppression');
+      toast.error(
+        'Impossible de supprimer le patient',
+        'Ce patient a peut-être des rendez-vous actifs. Annulez-les d\'abord.'
+      );
+    } finally {
+      setDeleteModalOpen(false);
+      setPatientToDelete(null);
     }
   }
 
@@ -177,13 +221,36 @@ export default function PatientManager() {
       </div>
 
       {/* Patients List */}
-      <div className="bg-white border border-neutral-200 shadow-soft-lg">
-        {filteredPatients.length === 0 ? (
+      {patients.length === 0 ? (
+        <EmptyState
+          icon={<Users size={32} />}
+          title="Aucun patient pour l'instant"
+          description="Commencez en ajoutant votre premier patient pour gérer votre clinique. Vous pouvez aussi importer une liste existante depuis un fichier CSV."
+          primaryAction={{
+            label: 'Ajouter un patient',
+            icon: <Plus size={20} />,
+            onClick: () => setActiveModal('add')
+          }}
+          secondaryActions={[
+            { label: 'Importer depuis CSV', onClick: () => setActiveModal('import') }
+          ]}
+        />
+      ) : filteredPatients.length === 0 ? (
+        <div className="bg-white border border-neutral-200 shadow-soft-lg">
           <div className="text-center py-12">
-            <Users className="w-12 h-12 text-foreground/20 mx-auto mb-3" />
-            <p className="text-foreground/60">Aucun patient trouvé</p>
+            <Search className="w-12 h-12 text-foreground/20 mx-auto mb-3" />
+            <p className="text-foreground/60 mb-2">Aucun résultat pour "{searchTerm}"</p>
+            <p className="text-sm text-foreground/50">Essayez de rechercher par nom, email ou téléphone</p>
+            <button
+              onClick={() => setSearchTerm('')}
+              className="mt-4 text-sm text-gold-600 hover:text-gold-700"
+            >
+              Réinitialiser la recherche
+            </button>
           </div>
-        ) : (
+        </div>
+      ) : (
+        <div className="bg-white border border-neutral-200 shadow-soft-lg">
           <div className="divide-y divide-neutral-200">
             {filteredPatients.map((patient) => (
               <motion.div
@@ -284,7 +351,7 @@ export default function PatientManager() {
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        handleDeletePatient(patient.id);
+                        openDeleteModal(patient);
                       }}
                       className="p-2 hover:bg-red-50 rounded-lg transition-colors group cursor-pointer shrink-0"
                       title="Supprimer"
@@ -750,6 +817,25 @@ function EditPatientModal({ patient, onClose, onUpdate }: { patient: Patient; on
           </div>
         </form>
       </motion.div>
+
+      <ConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setPatientToDelete(null);
+        }}
+        onConfirm={handleDeletePatient}
+        title={`Supprimer ${patientToDelete?.first_name} ${patientToDelete?.last_name}?`}
+        description="Cette action est irréversible."
+        consequences={[
+          'Dossier patient complet',
+          'Historique de rendez-vous',
+          'Notes SOAP',
+          'Données de facturation'
+        ]}
+        danger
+        confirmLabel="Supprimer définitivement"
+      />
     </div>
   );
 }

@@ -1,7 +1,9 @@
 import { motion } from 'framer-motion';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, Key } from 'lucide-react';
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { ValidationInput } from '../components/common/ValidationInput';
+import { emailValidation, passwordValidation, inviteCodeValidation } from '../lib/validations';
 
 export default function AdminSignup() {
   const [email, setEmail] = useState('');
@@ -20,19 +22,19 @@ export default function AdminSignup() {
     setError('');
 
     if (inviteCode !== VALID_INVITE_CODE) {
-      setError('Code d\'invitation invalide');
+      setError('Ce code d\'invitation n\'est pas valide. Vérifiez avec votre administrateur ou demandez un nouveau code.');
       setLoading(false);
       return;
     }
 
     if (!email || !password || !fullName) {
-      setError('Tous les champs sont requis');
+      setError('Veuillez remplir tous les champs obligatoires pour créer votre compte.');
       setLoading(false);
       return;
     }
 
-    if (password.length < 6) {
-      setError('Le mot de passe doit contenir au moins 6 caractères');
+    if (password.length < 8) {
+      setError(`Mot de passe trop court : ${8 - password.length} caractères manquants (minimum 8)`);
       setLoading(false);
       return;
     }
@@ -58,12 +60,15 @@ export default function AdminSignup() {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Erreur lors de la création du compte');
+        const errorMsg = data.error?.includes('already')
+          ? 'Un compte existe déjà avec cet email. Connectez-vous ou utilisez une autre adresse.'
+          : data.error || 'Impossible de créer le compte. Vérifiez les informations et réessayez.';
+        throw new Error(errorMsg);
       }
 
       setSuccess(true);
     } catch (err: any) {
-      setError(err.message || 'Erreur lors de la création du compte');
+      setError(err.message || 'Une erreur s\'est produite. Vérifiez votre connexion et réessayez.');
     } finally {
       setLoading(false);
     }
@@ -97,66 +102,62 @@ export default function AdminSignup() {
 
           {!success ? (
             <form onSubmit={handleSignup} className="space-y-6">
-              <div className="bg-gold-50 border border-gold-200 p-4 rounded-lg text-sm text-foreground/70">
-                Code d'invitation requis pour créer un compte administrateur.
+              <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg text-sm text-blue-900">
+                🔒 Code d'invitation requis pour créer un compte administrateur. Contactez votre administrateur si vous n'avez pas de code.
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-foreground/70 mb-2">
                   Nom complet <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  required
-                  className="w-full px-4 py-3 bg-white/50 border border-neutral-300 focus:border-gold-400 focus:outline-none focus:ring-2 focus:ring-gold-200 transition-all"
-                  placeholder="Dr. Janie Leblanc"
-                />
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/40" />
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required
+                    className="w-full pl-11 pr-4 py-3 bg-white/50 border border-neutral-300 focus:border-gold-400 focus:outline-none focus:ring-2 focus:ring-gold-200 transition-all rounded-lg"
+                    placeholder="Dr. Marie Tremblay"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-foreground/70 mb-2">
-                  Email <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="w-full px-4 py-3 bg-white/50 border border-neutral-300 focus:border-gold-400 focus:outline-none focus:ring-2 focus:ring-gold-200 transition-all"
-                  placeholder="votre@email.com"
-                />
-              </div>
+              <ValidationInput
+                label="Email professionnel"
+                hint="utilisé pour connexion et notifications"
+                placeholder="dr.tremblay@clinique.com"
+                type="email"
+                value={email}
+                onChange={setEmail}
+                validation={emailValidation}
+                icon={<Mail className="w-5 h-5" />}
+                required
+              />
 
-              <div>
-                <label className="block text-sm font-medium text-foreground/70 mb-2">
-                  Mot de passe <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  className="w-full px-4 py-3 bg-white/50 border border-neutral-300 focus:border-gold-400 focus:outline-none focus:ring-2 focus:ring-gold-200 transition-all"
-                  placeholder="Minimum 6 caractères"
-                />
-              </div>
+              <ValidationInput
+                label="Mot de passe sécurisé"
+                hint="min. 8 caractères, 1 majuscule, 1 chiffre"
+                placeholder="Créez un mot de passe fort"
+                type="password"
+                value={password}
+                onChange={setPassword}
+                validation={passwordValidation}
+                icon={<Lock className="w-5 h-5" />}
+                required
+              />
 
-              <div>
-                <label className="block text-sm font-medium text-foreground/70 mb-2">
-                  Code d'invitation <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={inviteCode}
-                  onChange={(e) => setInviteCode(e.target.value)}
-                  required
-                  className="w-full px-4 py-3 bg-white/50 border border-neutral-300 focus:border-gold-400 focus:outline-none focus:ring-2 focus:ring-gold-200 transition-all"
-                  placeholder="Code fourni par l'administrateur"
-                />
-              </div>
+              <ValidationInput
+                label="Code d'invitation"
+                hint="code de 6 lettres fourni par votre admin"
+                placeholder="CHIRO2024"
+                type="text"
+                value={inviteCode}
+                onChange={setInviteCode}
+                validation={inviteCodeValidation}
+                icon={<Key className="w-5 h-5" />}
+                required
+              />
 
               {error && (
                 <motion.div
@@ -176,10 +177,10 @@ export default function AdminSignup() {
                 {loading ? (
                   <div className="flex items-center justify-center gap-2">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Création en cours...</span>
+                    <span>Configuration de votre clinique...</span>
                   </div>
                 ) : (
-                  'Créer le compte admin'
+                  'Créer mon compte administrateur'
                 )}
               </button>
 
@@ -205,9 +206,9 @@ export default function AdminSignup() {
               </div>
 
               <div>
-                <h2 className="text-2xl font-heading text-foreground mb-2">Compte créé!</h2>
+                <h2 className="text-2xl font-heading text-foreground mb-2">🎉 Bienvenue dans ChiroFlow!</h2>
                 <p className="text-foreground/60 font-light">
-                  Votre compte administrateur a été créé avec succès.
+                  Votre compte administrateur est prêt. Vous pouvez maintenant vous connecter et commencer à gérer votre clinique.
                 </p>
               </div>
 
@@ -223,9 +224,9 @@ export default function AdminSignup() {
 
               <a
                 href="/admin"
-                className="block w-full py-4 bg-foreground text-background hover:bg-foreground/90 transition-all duration-300 text-center font-light tracking-wide"
+                className="block w-full py-4 bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-white hover:text-white transition-all duration-300 text-center font-medium tracking-wide rounded-lg shadow-soft hover:shadow-gold"
               >
-                Se connecter maintenant
+                Se connecter à ma clinique
               </a>
             </motion.div>
           )}

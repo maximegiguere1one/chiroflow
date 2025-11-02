@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { OrganizationService } from '../lib/saas/organizationService';
 import { router } from '../lib/router';
+import { ValidationInput } from '../components/common/ValidationInput';
+import { emailValidation } from '../lib/validations';
 
 interface AdminLoginProps {
   onLogin: () => void;
@@ -38,7 +40,13 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
         }
       }
     } catch (err: any) {
-      setError(err.message || 'Erreur de connexion');
+      if (err.message?.includes('Invalid login credentials')) {
+        setError('Email ou mot de passe incorrect. Vérifiez vos identifiants et réessayez.');
+      } else if (err.message?.includes('Email not confirmed')) {
+        setError('Veuillez confirmer votre email avant de vous connecter.');
+      } else {
+        setError(err.message || 'Impossible de se connecter. Vérifiez votre connexion internet.');
+      }
     } finally {
       setLoading(false);
     }
@@ -83,25 +91,20 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
               </motion.div>
             )}
 
-            <div>
-              <label className="block text-sm font-light text-foreground/70 mb-2">
-                Email
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/40" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-white/50 border border-neutral-300 focus:border-gold-400 focus:outline-none focus:ring-2 focus:ring-gold-200 transition-all"
-                  placeholder="votre@email.com"
-                  required
-                />
-              </div>
-            </div>
+            <ValidationInput
+              label="Email professionnel"
+              hint="utilisé pour la connexion"
+              placeholder="dr.tremblay@clinique.com"
+              type="email"
+              value={email}
+              onChange={setEmail}
+              validation={emailValidation}
+              icon={<Mail className="w-5 h-5" />}
+              required
+            />
 
             <div>
-              <label className="block text-sm font-light text-foreground/70 mb-2">
+              <label className="block text-sm font-medium text-foreground/70 mb-2">
                 Mot de passe
               </label>
               <div className="relative">
@@ -110,8 +113,8 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-white/50 border border-neutral-300 focus:border-gold-400 focus:outline-none focus:ring-2 focus:ring-gold-200 transition-all"
-                  placeholder="••••••••"
+                  className="w-full pl-11 pr-4 py-3 bg-white/50 border border-neutral-300 focus:border-gold-400 focus:outline-none focus:ring-2 focus:ring-gold-200 transition-all rounded-lg"
+                  placeholder="Entrez votre mot de passe"
                   required
                 />
               </div>
@@ -125,10 +128,10 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
               {loading ? (
                 <div className="flex items-center justify-center gap-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Connexion...</span>
+                  <span>Vérification de vos identifiants...</span>
                 </div>
               ) : (
-                'Se connecter'
+                'Se connecter à ma clinique'
               )}
             </button>
           </form>
