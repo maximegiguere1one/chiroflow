@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Plus, Search, CreditCard as Edit, Trash2, FileText, Calendar, DollarSign, X, Mail, Phone, Users, Download, Upload } from 'lucide-react';
+import { Plus, Search, CreditCard as Edit, Trash2, FileText, Calendar, DollarSign, X, Mail, Phone, Users, Download, Upload, HelpCircle } from 'lucide-react';
 import { exportPatientsToCSV } from '../../lib/exportUtils';
 import type { Patient as PatientType } from '../../types/database';
 import { useToastContext } from '../../contexts/ToastContext';
@@ -11,6 +11,12 @@ import { PatientBillingModal } from './PatientBillingModal';
 import { CSVImportModal } from './CSVImportModal';
 import { EmptyState } from '../common/EmptyState';
 import { ConfirmModal } from '../common/ConfirmModal';
+import { Tooltip } from '../common/Tooltip';
+import { Confetti, useConfetti } from '../common/Confetti';
+import { ShortcutsHelp } from '../common/ShortcutsHelp';
+import { useKeyboardShortcuts, COMMON_SHORTCUTS, type KeyboardShortcut } from '../../hooks/useKeyboardShortcuts';
+import { TableSkeleton } from '../common/LoadingSkeleton';
+import { buttonHover, buttonTap } from '../../lib/animations';
 
 interface Patient {
   id: string;
@@ -35,11 +41,24 @@ export default function PatientManager() {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [patientToDelete, setPatientToDelete] = useState<Patient | null>(null);
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  const { showConfetti, triggerConfetti } = useConfetti();
   const toast = useToastContext();
 
   useEffect(() => {
     loadPatients();
   }, []);
+
+  const shortcuts: KeyboardShortcut[] = [
+    { ...COMMON_SHORTCUTS.NEW_PATIENT, action: () => setActiveModal('add') },
+    { ...COMMON_SHORTCUTS.SEARCH, action: () => document.querySelector('input[type="text"]')?.focus() },
+    { ...COMMON_SHORTCUTS.EXPORT, action: handleExport },
+    { ...COMMON_SHORTCUTS.IMPORT, action: () => setActiveModal('import') },
+    { ...COMMON_SHORTCUTS.HELP, action: () => setShowShortcuts(true) },
+    { ...COMMON_SHORTCUTS.CANCEL, action: () => setActiveModal('none') }
+  ];
+
+  useKeyboardShortcuts(shortcuts);
 
   async function loadPatients() {
     try {
@@ -68,6 +87,7 @@ export default function PatientManager() {
       setActiveModal('none');
       await loadPatients();
       const fullName = `${formData.first_name} ${formData.last_name}`;
+      triggerConfetti();
       toast.success(`✓ ${fullName} ajouté!`, 'Le dossier patient est prêt. Voulez-vous planifier le premier rendez-vous?');
     } catch (error) {
       console.error('Error adding patient:', error);
@@ -169,9 +189,22 @@ export default function PatientManager() {
   );
 
   if (loading) {
-    return <div className="flex items-center justify-center py-12">
-      <div className="w-8 h-8 border-4 border-gold-400 border-t-transparent rounded-full animate-spin" />
-    </div>;
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <div className="h-8 w-32 bg-neutral-200 rounded animate-pulse mb-2" />
+            <div className="h-4 w-48 bg-neutral-200 rounded animate-pulse" />
+          </div>
+          <div className="flex gap-3">
+            <div className="h-12 w-32 bg-neutral-200 rounded animate-pulse" />
+            <div className="h-12 w-32 bg-neutral-200 rounded animate-pulse" />
+            <div className="h-12 w-40 bg-neutral-200 rounded animate-pulse" />
+          </div>
+        </div>
+        <TableSkeleton rows={5} />
+      </div>
+    );
   }
 
   return (
@@ -183,28 +216,53 @@ export default function PatientManager() {
           <p className="text-sm text-foreground/60 mt-1">{patients.length} dossiers au total</p>
         </div>
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => setActiveModal('import')}
-            className="flex items-center gap-2 px-4 py-3 border border-neutral-300 text-foreground hover:border-blue-400 hover:bg-blue-50 transition-all"
-          >
-            <Upload className="w-4 h-4" />
-            <span className="font-light">Importer CSV</span>
-          </button>
-          <button
-            onClick={handleExport}
-            disabled={filteredPatients.length === 0}
-            className="flex items-center gap-2 px-4 py-3 border border-neutral-300 text-foreground hover:border-gold-400 hover:bg-gold-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-          >
-            <Download className="w-4 h-4" />
-            <span className="font-light">Exporter CSV</span>
-          </button>
-          <button
-            onClick={() => setActiveModal('add')}
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-gold-500 to-gold-600 text-white hover:from-gold-600 hover:to-gold-700 transition-all duration-300 shadow-soft hover:shadow-gold"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="font-light">Nouveau patient</span>
-          </button>
+          <Tooltip content="Aide raccourcis clavier" shortcut="?" placement="bottom">
+            <motion.button
+              onClick={() => setShowShortcuts(true)}
+              className="p-3 border border-neutral-300 text-foreground hover:border-blue-400 hover:bg-blue-50 rounded-lg transition-all"
+              whileHover={buttonHover}
+              whileTap={buttonTap}
+            >
+              <HelpCircle className="w-5 h-5" />
+            </motion.button>
+          </Tooltip>
+
+          <Tooltip content="Importer des patients depuis un fichier CSV" shortcut="Ctrl+I" placement="bottom">
+            <motion.button
+              onClick={() => setActiveModal('import')}
+              className="flex items-center gap-2 px-4 py-3 border border-neutral-300 text-foreground hover:border-blue-400 hover:bg-blue-50 rounded-lg transition-all"
+              whileHover={buttonHover}
+              whileTap={buttonTap}
+            >
+              <Upload className="w-4 h-4" />
+              <span className="font-light">Importer CSV</span>
+            </motion.button>
+          </Tooltip>
+
+          <Tooltip content="Exporter tous les patients" shortcut="Ctrl+E" placement="bottom">
+            <motion.button
+              onClick={handleExport}
+              disabled={filteredPatients.length === 0}
+              className="flex items-center gap-2 px-4 py-3 border border-neutral-300 text-foreground hover:border-gold-400 hover:bg-gold-50 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-all"
+              whileHover={buttonHover}
+              whileTap={buttonTap}
+            >
+              <Download className="w-4 h-4" />
+              <span className="font-light">Exporter CSV</span>
+            </motion.button>
+          </Tooltip>
+
+          <Tooltip content="Ajouter un nouveau patient" shortcut="Ctrl+N" placement="bottom">
+            <motion.button
+              onClick={() => setActiveModal('add')}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-gold-500 to-gold-600 text-white hover:from-gold-600 hover:to-gold-700 rounded-lg transition-all duration-300 shadow-soft hover:shadow-gold"
+              whileHover={buttonHover}
+              whileTap={buttonTap}
+            >
+              <Plus className="w-4 h-4" />
+              <span className="font-light">Nouveau patient</span>
+            </motion.button>
+          </Tooltip>
         </div>
       </div>
 
@@ -836,6 +894,14 @@ function EditPatientModal({ patient, onClose, onUpdate }: { patient: Patient; on
         danger
         confirmLabel="Supprimer définitivement"
       />
+
+      <ShortcutsHelp
+        isOpen={showShortcuts}
+        onClose={() => setShowShortcuts(false)}
+        shortcuts={shortcuts}
+      />
+
+      <Confetti trigger={showConfetti} />
     </div>
   );
 }

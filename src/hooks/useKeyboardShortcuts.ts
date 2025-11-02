@@ -15,6 +15,11 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[], enabled = tr
     if (!enabled) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return;
+      }
+
       const matchingShortcut = shortcuts.find((shortcut) => {
         const eventKey = event.key?.toLowerCase() || '';
         const shortcutKey = shortcut.key?.toLowerCase() || '';
@@ -41,13 +46,25 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[], enabled = tr
 
 export function getShortcutLabel(shortcut: KeyboardShortcut): string {
   const modifiers: string[] = [];
+  const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/.test(navigator.platform);
 
-  if (shortcut.ctrlKey) modifiers.push('Ctrl');
-  if (shortcut.altKey) modifiers.push('Alt');
-  if (shortcut.shiftKey) modifiers.push('Shift');
-  if (shortcut.metaKey) modifiers.push('Cmd');
+  if (shortcut.ctrlKey) modifiers.push(isMac ? '⌘' : 'Ctrl');
+  if (shortcut.altKey) modifiers.push(isMac ? '⌥' : 'Alt');
+  if (shortcut.shiftKey) modifiers.push('⇧');
+  if (shortcut.metaKey) modifiers.push('⌘');
 
   modifiers.push(shortcut.key.toUpperCase());
 
-  return modifiers.join('+');
+  return modifiers.join(isMac ? '' : '+');
 }
+
+export const COMMON_SHORTCUTS = {
+  NEW_PATIENT: { key: 'n', ctrlKey: true, description: 'Nouveau patient' },
+  SEARCH: { key: 'k', ctrlKey: true, description: 'Rechercher' },
+  SAVE: { key: 's', ctrlKey: true, description: 'Enregistrer' },
+  CANCEL: { key: 'Escape', description: 'Annuler/Fermer' },
+  HELP: { key: '?', shiftKey: true, description: 'Aide raccourcis clavier' },
+  NEW_APPOINTMENT: { key: 'a', ctrlKey: true, description: 'Nouveau rendez-vous' },
+  EXPORT: { key: 'e', ctrlKey: true, description: 'Exporter CSV' },
+  IMPORT: { key: 'i', ctrlKey: true, description: 'Importer CSV' },
+} as const;
