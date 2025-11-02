@@ -91,39 +91,11 @@ export function usePatientFullData(contactId: string): PatientFullData {
         loadDocuments()
       ]);
 
-      const mockGoals: Goal[] = [
-        {
-          id: '1',
-          goal: 'Réduire la douleur de 8/10 à 3/10',
-          target_value: 3,
-          current_value: 5,
-          status: 'en cours',
-          progress: 60,
-          created_at: new Date().toISOString()
-        },
-        {
-          id: '2',
-          goal: 'Améliorer la flexion lombaire à 80°',
-          target_value: 80,
-          current_value: 65,
-          status: 'en cours',
-          progress: 65,
-          created_at: new Date().toISOString()
-        },
-        {
-          id: '3',
-          goal: 'Reprendre les activités sportives',
-          status: 'planifié',
-          progress: 30,
-          created_at: new Date().toISOString()
-        }
-      ];
-
       setData({
         soapNotes: soapRes,
         billing: billingRes,
         communications: commsRes,
-        goals: mockGoals,
+        goals: [],
         documents: docsRes,
         loading: false,
         error: null

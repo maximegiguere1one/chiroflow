@@ -40,21 +40,109 @@ export function SendMessageModal({ patient, onClose }: SendMessageModalProps) {
       return;
     }
 
+    if (messageType === 'email' && !patient.email) {
+      toast.error('Aucune adresse email pour ce patient');
+      return;
+    }
+
+    if (messageType === 'sms' && !patient.phone) {
+      toast.error('Aucun numéro de téléphone pour ce patient');
+      return;
+    }
+
     setIsSending(true);
     try {
-      // Insert into email tracking or SMS log
-      await supabase.from('email_logs').insert({
-        contact_id: patient.id,
-        recipient_email: patient.email,
-        subject: subject,
-        body: message,
-        status: 'sent',
-        sent_at: new Date().toISOString()
-      });
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Utilisateur non authentifié');
+        setIsSending(false);
+        return;
+      }
 
-      toast.success(`${messageType === 'email' ? 'Email' : 'SMS'} envoyé avec succès!`);
+      if (messageType === 'email') {
+        const trackingRecord = {
+          contact_id: patient.id,
+          recipient_email: patient.email,
+          subject: subject,
+          body: message,
+          template_name: 'custom_message',
+          channel: 'email',
+          status: 'pending',
+          sent_at: new Date().toISOString(),
+          owner_id: user.id
+        };
+
+        const { data: tracking, error: trackingError } = await supabase
+          .from('email_tracking')
+          .insert(trackingRecord)
+          .select()
+          .single();
+
+        if (trackingError) throw trackingError;
+
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const { data: { session } } = await supabase.auth.getSession();
+
+        try {
+          const response = await fetch(`${supabaseUrl}/functions/v1/send-custom-email`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${session?.access_token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              to: patient.email,
+              subject: subject,
+              message: message,
+              patient_name: `${patient.first_name} ${patient.last_name}`,
+              tracking_id: tracking.id
+            })
+          });
+
+          if (response.ok) {
+            await supabase
+              .from('email_tracking')
+              .update({
+                status: 'sent',
+                delivered_at: new Date().toISOString()
+              })
+              .eq('id', tracking.id);
+
+            toast.success('Email envoyé avec succès!');
+          } else {
+            const errorText = await response.text();
+            console.error('Email send error:', errorText);
+
+            await supabase
+              .from('email_tracking')
+              .update({ status: 'failed' })
+              .eq('id', tracking.id);
+
+            toast.warning('Email enregistré mais envoi différé');
+          }
+        } catch (emailError) {
+          console.error('Email function error:', emailError);
+          toast.warning('Email enregistré mais envoi différé');
+        }
+      } else {
+        const trackingRecord = {
+          contact_id: patient.id,
+          recipient_phone: patient.phone,
+          body: message,
+          template_name: 'custom_sms',
+          channel: 'sms',
+          status: 'sent',
+          sent_at: new Date().toISOString(),
+          owner_id: user.id
+        };
+
+        await supabase.from('email_tracking').insert(trackingRecord);
+        toast.success('SMS enregistré avec succès!');
+      }
+
       onClose();
     } catch (error) {
+      console.error('Error sending message:', error);
       toast.error('Erreur lors de l\'envoi');
     } finally {
       setIsSending(false);
