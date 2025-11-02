@@ -15,7 +15,7 @@ interface NeurologicalExamFormProps {
 }
 
 export const NeurologicalExamForm = ({ contactId, onSave, onClose }: NeurologicalExamFormProps) => {
-  const { showToast } = useToastContext();
+  const toast = useToastContext();
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     headaches: false,
@@ -53,11 +53,11 @@ export const NeurologicalExamForm = ({ contactId, onSave, onClose }: Neurologica
 
       if (error) throw error;
 
-      showToast('Examen neurologique sauvegardé avec succès', 'success');
+      toast.success('Examen neurologique sauvegardé avec succès');
       onSave?.();
       onClose?.();
     } catch (error: any) {
-      showToast(error.message, 'error');
+      toast.error(error.message);
     } finally {
       setSaving(false);
     }

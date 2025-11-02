@@ -14,7 +14,7 @@ interface SpinalExamFormProps {
 }
 
 export const SpinalExamForm = ({ contactId, onSave, onClose }: SpinalExamFormProps) => {
-  const { showToast } = useToastContext();
+  const toast = useToastContext();
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     bp_left_systolic: '',
@@ -66,11 +66,11 @@ export const SpinalExamForm = ({ contactId, onSave, onClose }: SpinalExamFormPro
 
       if (error) throw error;
 
-      showToast('Examen colonne sauvegardé avec succès', 'success');
+      toast.success('Examen colonne sauvegardé avec succès');
       onSave?.();
       onClose?.();
     } catch (error: any) {
-      showToast(error.message, 'error');
+      toast.error(error.message);
     } finally {
       setSaving(false);
     }

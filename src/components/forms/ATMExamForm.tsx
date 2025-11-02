@@ -14,7 +14,7 @@ interface ATMExamFormProps {
 }
 
 export const ATMExamForm = ({ contactId, onSave, onClose }: ATMExamFormProps) => {
-  const { showToast } = useToastContext();
+  const toast = useToastContext();
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     mouth_opening_normal: false,
@@ -46,11 +46,11 @@ export const ATMExamForm = ({ contactId, onSave, onClose }: ATMExamFormProps) =>
 
       if (error) throw error;
 
-      showToast('Examen ATM sauvegardé avec succès', 'success');
+      toast.success('Examen ATM sauvegardé avec succès');
       onSave?.();
       onClose?.();
     } catch (error: any) {
-      showToast(error.message, 'error');
+      toast.error(error.message);
     } finally {
       setSaving(false);
     }

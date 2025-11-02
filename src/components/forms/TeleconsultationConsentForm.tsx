@@ -14,7 +14,7 @@ interface TeleconsultationConsentFormProps {
 }
 
 export const TeleconsultationConsentForm = ({ contactId, onSave, onClose }: TeleconsultationConsentFormProps) => {
-  const { showToast } = useToastContext();
+  const toast = useToastContext();
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     patient_name: '',
@@ -35,12 +35,12 @@ export const TeleconsultationConsentForm = ({ contactId, onSave, onClose }: Tele
 
   const handleSave = async () => {
     if (!formData.patient_name || !formData.chiropractor_name) {
-      showToast('Veuillez remplir les noms requis', 'error');
+      toast.error('Veuillez remplir les noms requis');
       return;
     }
 
     if (!formData.understands_risks || !formData.understands_limits) {
-      showToast('Veuillez accepter tous les consentements requis', 'error');
+      toast.error('Veuillez accepter tous les consentements requis');
       return;
     }
 
@@ -59,11 +59,11 @@ export const TeleconsultationConsentForm = ({ contactId, onSave, onClose }: Tele
 
       if (error) throw error;
 
-      showToast('Consentement téléconsultation sauvegardé', 'success');
+      toast.success('Consentement téléconsultation sauvegardé');
       onSave?.();
       onClose?.();
     } catch (error: any) {
-      showToast(error.message, 'error');
+      toast.error(error.message);
     } finally {
       setSaving(false);
     }
