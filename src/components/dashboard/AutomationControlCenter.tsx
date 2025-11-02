@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import {
   Mail, MessageSquare, Calendar, TrendingUp,
   CheckCircle, XCircle, Clock, Play, Pause,
   BarChart3, Activity, Zap, Users
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { useToastContext } from '../../contexts/ToastContext';
+import { Tooltip } from '../common/Tooltip';
+import { CardSkeleton } from '../common/LoadingSkeleton';
+import { buttonHover, buttonTap } from '../../lib/animations';
 
 interface AutomationMetric {
   job_name: string;
@@ -29,6 +34,7 @@ interface RecentLog {
 }
 
 export function AutomationControlCenter() {
+  const toast = useToastContext();
   const [metrics, setMetrics] = useState<AutomationMetric[]>([]);
   const [recentLogs, setRecentLogs] = useState<RecentLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -154,8 +160,14 @@ export function AutomationControlCenter() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
+        </div>
+        <CardSkeleton />
       </div>
     );
   }
