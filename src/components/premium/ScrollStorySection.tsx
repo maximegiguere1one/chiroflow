@@ -75,8 +75,10 @@ const StoryStep: React.FC<StoryStepProps> = ({ icon: Icon, title, description, i
 
 export const ScrollStorySection: React.FC = () => {
   const { ref, isInView } = useElementInView(0.2);
+  const sectionRef = React.useRef<HTMLElement>(null);
+
   const { scrollYProgress } = useScroll({
-    target: ref as any,
+    target: sectionRef,
     offset: ['start end', 'end start'],
   });
 
@@ -106,7 +108,10 @@ export const ScrollStorySection: React.FC = () => {
 
   return (
     <section
-      ref={ref as any}
+      ref={(node) => {
+        sectionRef.current = node;
+        ref(node);
+      }}
       className="relative py-32 lg:py-40 bg-gradient-to-b from-white via-slate-50 to-white overflow-hidden"
     >
       <motion.div style={{ y, opacity }} className="absolute inset-0 pointer-events-none">
