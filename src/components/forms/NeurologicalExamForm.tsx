@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Save, Brain } from 'lucide-react';
 import { FormSection } from './FormSection';
-import { CheckboxGroup } from './CheckboxGroup';
+import { SimpleCheckbox } from './SimpleCheckbox';
 import { SmartInput } from './SmartInput';
 import { RadioGroup } from './RadioGroup';
 import { supabase } from '../../lib/supabase';
@@ -79,22 +79,22 @@ export const NeurologicalExamForm = ({ contactId, onSave, onClose }: Neurologica
 
       <FormSection icon={Brain} title="Indications Examen">
         <div className="grid grid-cols-2 gap-4">
-          <CheckboxGroup
+          <SimpleCheckbox
             label="Céphalées"
             checked={formData.headaches}
             onChange={(checked) => setFormData({ ...formData, headaches: checked })}
           />
-          <CheckboxGroup
+          <SimpleCheckbox
             label="Étourdissements"
             checked={formData.dizziness}
             onChange={(checked) => setFormData({ ...formData, dizziness: checked })}
           />
-          <CheckboxGroup
+          <SimpleCheckbox
             label="Faiblesse"
             checked={formData.weakness}
             onChange={(checked) => setFormData({ ...formData, weakness: checked })}
           />
-          <CheckboxGroup
+          <SimpleCheckbox
             label="Engourdissement"
             checked={formData.numbness}
             onChange={(checked) => setFormData({ ...formData, numbness: checked })}
@@ -112,22 +112,22 @@ export const NeurologicalExamForm = ({ contactId, onSave, onClose }: Neurologica
 
       <FormSection icon={Brain} title="Observations">
         <div className="grid grid-cols-2 gap-4">
-          <CheckboxGroup
+          <SimpleCheckbox
             label="Patient confus"
             checked={formData.patient_confused}
             onChange={(checked) => setFormData({ ...formData, patient_confused: checked })}
           />
-          <CheckboxGroup
+          <SimpleCheckbox
             label="Patient incohérent"
             checked={formData.patient_incoherent}
             onChange={(checked) => setFormData({ ...formData, patient_incoherent: checked })}
           />
-          <CheckboxGroup
+          <SimpleCheckbox
             label="Dysarthrie"
             checked={formData.dysarthria}
             onChange={(checked) => setFormData({ ...formData, dysarthria: checked })}
           />
-          <CheckboxGroup
+          <SimpleCheckbox
             label="Alerte"
             checked={formData.consciousness_alert}
             onChange={(checked) => setFormData({ ...formData, consciousness_alert: checked })}
@@ -186,7 +186,7 @@ export const NeurologicalExamForm = ({ contactId, onSave, onClose }: Neurologica
       </FormSection>
 
       <FormSection icon={Brain} title="Langage">
-        <CheckboxGroup
+        <SimpleCheckbox
           label="Langage fluide"
           checked={formData.language_fluent}
           onChange={(checked) => setFormData({ ...formData, language_fluent: checked })}

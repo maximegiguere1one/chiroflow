@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Save, Video } from 'lucide-react';
 import { FormSection } from './FormSection';
-import { CheckboxGroup } from './CheckboxGroup';
+import { SimpleCheckbox } from './SimpleCheckbox';
 import { SmartInput } from './SmartInput';
 import { supabase } from '../../lib/supabase';
 import { useToastContext } from '../../contexts/ToastContext';
@@ -162,27 +162,27 @@ export const TeleconsultationConsentForm = ({ contactId, onSave, onClose }: Tele
 
       <FormSection icon={Video} title="Consentements Requis">
         <div className="space-y-3">
-          <CheckboxGroup
+          <SimpleCheckbox
             label="Je comprends les risques liés à la téléconsultation *"
             checked={formData.understands_risks}
             onChange={(checked) => setFormData({ ...formData, understands_risks: checked })}
           />
-          <CheckboxGroup
+          <SimpleCheckbox
             label="Je comprends les limites de la téléconsultation *"
             checked={formData.understands_limits}
             onChange={(checked) => setFormData({ ...formData, understands_limits: checked })}
           />
-          <CheckboxGroup
+          <SimpleCheckbox
             label="Je comprends les règles d'enregistrement"
             checked={formData.understands_recording_rules}
             onChange={(checked) => setFormData({ ...formData, understands_recording_rules: checked })}
           />
-          <CheckboxGroup
+          <SimpleCheckbox
             label="Je comprends la procédure en cas de défaillance technique"
             checked={formData.understands_tech_failure_procedure}
             onChange={(checked) => setFormData({ ...formData, understands_tech_failure_procedure: checked })}
           />
-          <CheckboxGroup
+          <SimpleCheckbox
             label="Je comprends la procédure en cas d'urgence"
             checked={formData.understands_emergency_procedure}
             onChange={(checked) => setFormData({ ...formData, understands_emergency_procedure: checked })}

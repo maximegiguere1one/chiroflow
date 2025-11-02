@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Save, Activity } from 'lucide-react';
 import { FormSection } from './FormSection';
-import { CheckboxGroup } from './CheckboxGroup';
+import { SimpleCheckbox } from './SimpleCheckbox';
 import { SmartInput } from './SmartInput';
 import { supabase } from '../../lib/supabase';
 import { useToastContext } from '../../contexts/ToastContext';
@@ -139,12 +139,12 @@ export const SpinalExamForm = ({ contactId, onSave, onClose }: SpinalExamFormPro
 
       <FormSection icon={Activity} title="Observations">
         <div className="grid grid-cols-2 gap-4">
-          <CheckboxGroup
+          <SimpleCheckbox
             label="Signe de Rust"
             checked={formData.rust_sign}
             onChange={(checked) => setFormData({ ...formData, rust_sign: checked })}
           />
-          <CheckboxGroup
+          <SimpleCheckbox
             label="Signe de Bakody"
             checked={formData.bakody_sign}
             onChange={(checked) => setFormData({ ...formData, bakody_sign: checked })}
@@ -200,12 +200,12 @@ export const SpinalExamForm = ({ contactId, onSave, onClose }: SpinalExamFormPro
 
       <FormSection icon={Activity} title="Radiographies">
         <div className="grid grid-cols-2 gap-4">
-          <CheckboxGroup
+          <SimpleCheckbox
             label="Radio à la clinique"
             checked={formData.has_xrays_at_clinic}
             onChange={(checked) => setFormData({ ...formData, has_xrays_at_clinic: checked })}
           />
-          <CheckboxGroup
+          <SimpleCheckbox
             label="Demande radio"
             checked={formData.xray_request}
             onChange={(checked) => setFormData({ ...formData, xray_request: checked })}

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Save, Bone } from 'lucide-react';
 import { FormSection } from './FormSection';
-import { CheckboxGroup } from './CheckboxGroup';
+import { SimpleCheckbox } from './SimpleCheckbox';
 import { SmartInput } from './SmartInput';
 import { supabase } from '../../lib/supabase';
 import { useToastContext } from '../../contexts/ToastContext';
@@ -71,7 +71,7 @@ export const ATMExamForm = ({ contactId, onSave, onClose }: ATMExamFormProps) =>
       </div>
 
       <FormSection icon={Bone} title="Ouverture Buccale">
-        <CheckboxGroup
+        <SimpleCheckbox
           label="Ouverture normale"
           checked={formData.mouth_opening_normal}
           onChange={(checked) => setFormData({ ...formData, mouth_opening_normal: checked })}
@@ -86,7 +86,7 @@ export const ATMExamForm = ({ contactId, onSave, onClose }: ATMExamFormProps) =>
       </FormSection>
 
       <FormSection icon={Bone} title="Démarche Mandibulaire">
-        <CheckboxGroup
+        <SimpleCheckbox
           label="Déviation >2mm"
           checked={formData.mandibular_2mm_deviation}
           onChange={(checked) => setFormData({ ...formData, mandibular_2mm_deviation: checked })}
@@ -94,7 +94,7 @@ export const ATMExamForm = ({ contactId, onSave, onClose }: ATMExamFormProps) =>
       </FormSection>
 
       <FormSection icon={Bone} title="Occlusion/Dentition">
-        <CheckboxGroup
+        <SimpleCheckbox
           label="Occlusion normale"
           checked={formData.occlusion_normal}
           onChange={(checked) => setFormData({ ...formData, occlusion_normal: checked })}
@@ -103,12 +103,12 @@ export const ATMExamForm = ({ contactId, onSave, onClose }: ATMExamFormProps) =>
 
       <FormSection icon={Bone} title="Palpation ATM">
         <div className="grid grid-cols-2 gap-4">
-          <CheckboxGroup
+          <SimpleCheckbox
             label="Douleur gauche"
             checked={formData.palpation_left_pain}
             onChange={(checked) => setFormData({ ...formData, palpation_left_pain: checked })}
           />
-          <CheckboxGroup
+          <SimpleCheckbox
             label="Douleur droite"
             checked={formData.palpation_right_pain}
             onChange={(checked) => setFormData({ ...formData, palpation_right_pain: checked })}
@@ -126,12 +126,12 @@ export const ATMExamForm = ({ contactId, onSave, onClose }: ATMExamFormProps) =>
 
       <FormSection icon={Bone} title="Radiographies">
         <div className="grid grid-cols-2 gap-4">
-          <CheckboxGroup
+          <SimpleCheckbox
             label="Radio à la clinique"
             checked={formData.has_xrays_at_clinic}
             onChange={(checked) => setFormData({ ...formData, has_xrays_at_clinic: checked })}
           />
-          <CheckboxGroup
+          <SimpleCheckbox
             label="Demande radio"
             checked={formData.xray_request}
             onChange={(checked) => setFormData({ ...formData, xray_request: checked })}
