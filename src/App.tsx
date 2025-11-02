@@ -20,6 +20,7 @@ const OnboardingFlow = lazy(() => import('./pages/OnboardingFlow'));
 const OrganizationSettings = lazy(() => import('./pages/OrganizationSettings'));
 const SaaSAdminDashboard = lazy(() => import('./pages/SaaSAdminDashboard'));
 const SaaSLandingPage = lazy(() => import('./pages/SaaSLandingPage'));
+const ChiroflowPremiumLanding = lazy(() => import('./pages/ChiroflowPremiumLanding'));
 
 function LoadingFallback() {
   return (
@@ -77,7 +78,8 @@ function App() {
       </Suspense>
     );
 
-    if (currentPath === '/') return suspenseWrapper(SaaSLandingPage);
+    if (currentPath === '/') return suspenseWrapper(ChiroflowPremiumLanding);
+    if (currentPath === '/saas') return suspenseWrapper(SaaSLandingPage);
     if (currentPath === '/admin') return suspenseWrapper(AdminLogin, { onLogin: handleAdminLogin });
     if (currentPath === '/admin/dashboard') return suspenseWrapper(AdminDashboard);
     if (currentPath === '/admin/signup') return suspenseWrapper(AdminSignup);
@@ -94,7 +96,7 @@ function App() {
     if (currentPath === '/organization/settings') return suspenseWrapper(OrganizationSettings);
     if (currentPath === '/saas/admin') return suspenseWrapper(SaaSAdminDashboard);
 
-    return suspenseWrapper(SaaSLandingPage);
+    return suspenseWrapper(ChiroflowPremiumLanding);
   };
 
   const showBreadcrumbs = [
