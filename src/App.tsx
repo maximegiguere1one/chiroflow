@@ -36,6 +36,7 @@ function LoadingFallback() {
 function App() {
   const [currentPath, setCurrentPath] = useState(router.getCurrentPath());
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
     const unsubscribeRouter = router.subscribe((path) => {
@@ -49,19 +50,47 @@ function App() {
 
   useEffect(() => {
     const checkAuth = async () => {
+      setIsCheckingAuth(true);
       const { data } = await supabase.auth.getSession();
-      setIsAuthenticated(!!data?.session);
+      const hasSession = !!data?.session;
+      setIsAuthenticated(hasSession);
+      setIsCheckingAuth(false);
+
+      if (hasSession && currentPath === '/admin') {
+        router.navigate('/admin/dashboard', false);
+      }
+
+      if (hasSession && currentPath === '/patient/login') {
+        router.navigate('/patient/portal', false);
+      }
     };
     checkAuth();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      setIsAuthenticated(!!session);
+      const hasSession = !!session;
+      setIsAuthenticated(hasSession);
+
+      if (event === 'SIGNED_IN' && currentPath === '/admin') {
+        router.navigate('/admin/dashboard', false);
+      }
+
+      if (event === 'SIGNED_IN' && currentPath === '/patient/login') {
+        router.navigate('/patient/portal', false);
+      }
+
+      if (event === 'SIGNED_OUT') {
+        if (currentPath.startsWith('/admin')) {
+          router.navigate('/admin', false);
+        } else if (currentPath.startsWith('/patient')) {
+          router.navigate('/patient/login', false);
+        }
+      }
     });
 
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, []);
+  }, [currentPath]);
 
   const handleAdminLogin = () => {
     router.navigate('/admin/dashboard', false);
@@ -77,6 +106,30 @@ function App() {
         <Component {...props} />
       </Suspense>
     );
+
+    if (isCheckingAuth) {
+      return <LoadingFallback />;
+    }
+
+    const protectedRoutes = [
+      '/admin/dashboard',
+      '/admin/diagnostic',
+      '/onboarding',
+      '/organization/settings',
+      '/saas/admin'
+    ];
+
+    const patientProtectedRoutes = ['/patient/portal'];
+
+    if (protectedRoutes.includes(currentPath) && !isAuthenticated) {
+      router.navigate('/admin', true);
+      return suspenseWrapper(AdminLogin, { onLogin: handleAdminLogin });
+    }
+
+    if (patientProtectedRoutes.includes(currentPath) && !isAuthenticated) {
+      router.navigate('/patient/login', true);
+      return suspenseWrapper(PatientPortalLogin, { onLogin: handlePatientLogin });
+    }
 
     if (currentPath === '/') return suspenseWrapper(ChiroflowPremiumLanding);
     if (currentPath === '/saas') return suspenseWrapper(SaaSLandingPage);

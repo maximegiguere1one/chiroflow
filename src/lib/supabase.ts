@@ -7,7 +7,13 @@ export const supabase = createClient(env.supabaseUrl, env.supabaseAnonKey, {
     storageKey: 'chiroflow-auth',
     storage: window.localStorage,
     autoRefreshToken: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    flowType: 'pkce'
+  },
+  global: {
+    headers: {
+      'x-application-name': 'chiroflow'
+    }
   }
 });
 
