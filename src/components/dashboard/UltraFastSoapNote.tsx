@@ -1,10 +1,23 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect, useMemo } from 'react';
-import { X, Save, Zap, Copy, DollarSign, Calendar, Clock } from 'lucide-react';
+import { X, Save, Zap, Copy, DollarSign, Calendar, Clock, Sparkles } from 'lucide-react';
 import { soapTemplates, quickNotes } from '../../lib/quickTemplates';
 import { useToastContext } from '../../contexts/ToastContext';
 import { supabase } from '../../lib/supabase';
 import { VoiceInput } from '../common/VoiceInput';
+import { SmartTemplateSelector } from './SmartTemplateSelector';
+import { SmartTextarea } from '../common/SmartTextarea';
+import {
+  CONDITIONS_TEMPLATES,
+  COMMON_PHRASES,
+  getPatientHistory,
+  analyzePatternFromHistory,
+  getSmartSuggestions,
+  findMatchingTemplate,
+  trackTemplateUsage,
+  type SoapTemplate,
+  type SmartSuggestion
+} from '../../lib/smartSoapTemplates';
 
 interface UltraFastSoapNoteProps {
   isOpen: boolean;
@@ -59,6 +72,9 @@ export function UltraFastSoapNote({
   const [showLastNote, setShowLastNote] = useState(false);
   const [autoSuggestions, setAutoSuggestions] = useState<string[]>([]);
   const [currentField, setCurrentField] = useState<'subjective' | 'objective' | 'assessment' | 'plan'>('subjective');
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
+  const [patientHistoryNotes, setPatientHistoryNotes] = useState<any[]>([]);
+  const [smartSuggestions, setSmartSuggestions] = useState<SmartSuggestion[]>([]);
 
   const [formData, setFormData] = useState({
     subjective: '',
@@ -85,8 +101,19 @@ export function UltraFastSoapNote({
     if (isOpen && selectedPatientId) {
       loadPatientContext();
       loadServiceTypes();
+      loadSmartData();
     }
   }, [isOpen, selectedPatientId]);
+
+  async function loadSmartData() {
+    if (!selectedPatientId) return;
+
+    const history = await getPatientHistory(selectedPatientId, 10);
+    setPatientHistoryNotes(history);
+
+    const suggestions = await analyzePatternFromHistory(selectedPatientId);
+    setSmartSuggestions(suggestions);
+  }
 
   useEffect(() => {
     if (formData.plan) {
@@ -185,6 +212,17 @@ export function UltraFastSoapNote({
 
     detected.total = detected.services.reduce((sum, s) => sum + s.price, 0);
     setBilling(detected);
+  }
+
+  function handleSelectTemplate(template: SoapTemplate) {
+    setFormData({
+      subjective: template.subjective,
+      objective: template.objective,
+      assessment: template.assessment,
+      plan: template.plan
+    });
+    trackTemplateUsage(template.id);
+    toast.success(`Template "${template.name}" appliqué! Personnalisez les champs [...]`);
   }
 
   function applyQuickTemplate(type: 'routine' | 'new' | 'urgent' | 'followup') {
@@ -413,6 +451,19 @@ export function UltraFastSoapNote({
         )}
 
         <div className="p-6">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setShowTemplateSelector(true)}
+            className="w-full mb-6 px-6 py-4 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3 font-semibold"
+          >
+            <Sparkles className="w-6 h-6" />
+            <span className="text-lg">Templates SOAP Intelligents</span>
+            <span className="px-3 py-1 bg-white/20 rounded-full text-sm">
+              {CONDITIONS_TEMPLATES.length} disponibles
+            </span>
+          </motion.button>
+
           <div className="mb-6 flex gap-2">
             <button
               onClick={() => applyQuickTemplate('routine')}
@@ -444,7 +495,7 @@ export function UltraFastSoapNote({
             <div className="col-span-2 space-y-4">
               {(['subjective', 'objective', 'assessment', 'plan'] as const).map((field) => (
                 <div key={field}>
-                  <VoiceInput
+                  <SmartTextarea
                     label={
                       field === 'subjective' ? '📝 S - Subjectif (Patient dit)' :
                       field === 'objective' ? '🔍 O - Objectif (Observations)' :
@@ -453,7 +504,9 @@ export function UltraFastSoapNote({
                     }
                     value={formData[field]}
                     onChange={(value) => setFormData({ ...formData, [field]: value })}
+                    onFocus={() => setCurrentField(field)}
                     rows={field === 'objective' ? 5 : 3}
+                    suggestions={COMMON_PHRASES[field]}
                     placeholder={
                       field === 'subjective' ? 'Ex: Douleur bas dos depuis 3 jours...' :
                       field === 'objective' ? 'Ex: Restriction L5-S1, tension paravertébrale...' :
@@ -592,6 +645,14 @@ export function UltraFastSoapNote({
           </div>
         </div>
       </motion.div>
+
+      <SmartTemplateSelector
+        isOpen={showTemplateSelector}
+        onClose={() => setShowTemplateSelector(false)}
+        onSelectTemplate={handleSelectTemplate}
+        patientHistory={patientHistoryNotes}
+        smartSuggestions={smartSuggestions}
+      />
     </div>
   );
 }
