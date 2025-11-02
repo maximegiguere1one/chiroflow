@@ -1,7 +1,15 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Calendar as CalendarIcon, Clock, CheckCircle, XCircle, Phone, Mail, User } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, CheckCircle, XCircle, Phone, Mail, User, Plus, HelpCircle, Trash2 } from 'lucide-react';
+import { ConfirmModal } from '../common/ConfirmModal';
+import { EmptyState } from '../common/EmptyState';
+import { Tooltip } from '../common/Tooltip';
+import { Confetti, useConfetti } from '../common/Confetti';
+import { TableSkeleton } from '../common/LoadingSkeleton';
+import { buttonHover, buttonTap } from '../../lib/animations';
+import { useKeyboardShortcuts, COMMON_SHORTCUTS } from '../../hooks/useKeyboardShortcuts';
+import { useToastContext } from '../../contexts/ToastContext';
 
 interface Appointment {
   id: string;
@@ -19,6 +27,11 @@ export default function AppointmentManager() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [filter, setFilter] = useState<'all' | 'pending' | 'confirmed' | 'completed'>('all');
   const [loading, setLoading] = useState(true);
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const { showConfetti, triggerConfetti } = useConfetti();
+  const toast = useToastContext();
 
   useEffect(() => {
     loadAppointments();
@@ -40,39 +53,77 @@ export default function AppointmentManager() {
     }
   }
 
-  async function handleUpdateStatus(id: string, status: string) {
+  function openConfirmModal(appointment: Appointment) {
+    setSelectedAppointment(appointment);
+    setConfirmModalOpen(true);
+  }
+
+  async function handleUpdateStatus(status: string) {
+    if (!selectedAppointment) return;
+
     try {
       const { error } = await supabase
         .from('appointments_api')
         .update({ status })
-        .eq('id', id);
+        .eq('id', selectedAppointment.id);
 
       if (error) throw error;
 
-      loadAppointments();
+      await loadAppointments();
 
       if (status === 'confirmed') {
-        alert('Rendez-vous confirmé! Un email de confirmation a été envoyé au patient.');
+        triggerConfetti();
+        toast.success(
+          `✓ RDV de ${selectedAppointment.name} confirmé!`,
+          `Email de confirmation envoyé à ${selectedAppointment.email}`
+        );
+      } else if (status === 'completed') {
+        toast.success(
+          `✓ RDV de ${selectedAppointment.name} marqué comme complété`,
+          'Le patient peut maintenant être facturé'
+        );
       }
     } catch (error) {
       console.error('Error updating appointment:', error);
-      alert('Erreur lors de la mise à jour');
+      toast.error(
+        'Impossible de mettre à jour le rendez-vous',
+        'Vérifiez votre connexion et réessayez.'
+      );
+    } finally {
+      setConfirmModalOpen(false);
+      setSelectedAppointment(null);
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette demande?')) return;
+  function openDeleteModal(appointment: Appointment) {
+    setSelectedAppointment(appointment);
+    setDeleteModalOpen(true);
+  }
+
+  async function handleDelete() {
+    if (!selectedAppointment) return;
 
     try {
       const { error } = await supabase
         .from('appointments_api')
         .delete()
-        .eq('id', id);
+        .eq('id', selectedAppointment.id);
 
       if (error) throw error;
-      loadAppointments();
+      await loadAppointments();
+      toast.success(
+        `✓ Demande de ${selectedAppointment.name} supprimée`,
+        'La demande a été retirée du système.'
+      );
     } catch (error) {
       console.error('Error deleting appointment:', error);
+      toast.error(
+        'Impossible de supprimer la demande',
+        'Ce rendez-vous est peut-être déjà confirmé.'
+      );
+    } finally {
+      setDeleteModalOpen(false);
+      setSelectedAppointment(null);
     }
   }
 
@@ -87,10 +138,25 @@ export default function AppointmentManager() {
     completed: appointments.filter(a => a.status === 'completed').length
   };
 
+  const shortcuts = [
+    { ...COMMON_SHORTCUTS.NEW_APPOINTMENT, action: () => window.location.href = '/admin/appointments/new' },
+    { ...COMMON_SHORTCUTS.HELP, action: () => toast.info('Raccourcis clavier', 'Ctrl+A: Nouveau RDV, ?: Aide') }
+  ];
+
+  useKeyboardShortcuts(shortcuts);
+
   if (loading) {
-    return <div className="flex items-center justify-center py-12">
-      <div className="w-8 h-8 border-4 border-gold-400 border-t-transparent rounded-full animate-spin" />
-    </div>;
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <div className="h-8 w-48 bg-neutral-200 rounded animate-pulse mb-2" />
+            <div className="h-4 w-64 bg-neutral-200 rounded animate-pulse" />
+          </div>
+        </div>
+        <TableSkeleton rows={5} />
+      </div>
+    );
   }
 
   return (
