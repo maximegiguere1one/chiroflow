@@ -15,6 +15,7 @@ import { QuickSoapNote } from './QuickSoapNote';
 import { PatientBillingModal } from './PatientBillingModal';
 import { SendMessageModal } from './SendMessageModal';
 import { PatientFormsHistory } from './PatientFormsHistory';
+import { usePatientFullData } from '../../hooks/usePatientFullData';
 
 interface Patient {
   id: string;
@@ -75,6 +76,8 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
 
   const [editedPatient, setEditedPatient] = useState(patient);
   const [appointments, setAppointments] = useState<any[]>([]);
+
+  const fullData = usePatientFullData(patient.id);
 
   const documentInputRef = useRef<HTMLInputElement>(null);
   const imagingInputRef = useRef<HTMLInputElement>(null);
@@ -766,7 +769,42 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
                         Ajouter note
                       </button>
                     </div>
-                    <div className="text-sm text-gray-600">3 notes disponibles</div>
+                    {fullData.loading ? (
+                      <div className="text-center py-4 text-gray-500">Chargement...</div>
+                    ) : fullData.soapNotes.length === 0 ? (
+                      <div className="text-center py-4 text-gray-500">Aucune note SOAP</div>
+                    ) : (
+                      <div className="space-y-3">
+                        {fullData.soapNotes.slice(0, 5).map((note) => (
+                          <div
+                            key={note.id}
+                            onClick={() => toast.info(`Note SOAP du ${new Date(note.created_at).toLocaleDateString('fr-FR')}`)}
+                            className="p-4 bg-purple-50 rounded-lg border border-purple-200 cursor-pointer hover:border-purple-400 hover:shadow-md transition-all"
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="font-semibold text-purple-900">
+                                {new Date(note.created_at).toLocaleDateString('fr-FR', {
+                                  day: 'numeric',
+                                  month: 'long',
+                                  year: 'numeric'
+                                })}
+                              </div>
+                              <div className="text-xs text-purple-600">Par {note.created_by_name}</div>
+                            </div>
+                            <div className="text-sm text-gray-700">
+                              <div className="line-clamp-2">
+                                <strong>S:</strong> {note.subjective?.substring(0, 100)}...
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                        <div className="text-center pt-2">
+                          <div className="text-sm text-purple-600 font-semibold">
+                            {fullData.soapNotes.length} note{fullData.soapNotes.length > 1 ? 's' : ''} au total
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               )}
@@ -776,15 +814,15 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
                   <div className="grid grid-cols-3 gap-4">
                     <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
                       <div className="text-sm text-blue-700 mb-2">Total facturé</div>
-                      <div className="text-3xl font-bold text-blue-900">2 450$</div>
+                      <div className="text-3xl font-bold text-blue-900">{fullData.billing.total.toFixed(2)}$</div>
                     </div>
                     <div className="bg-green-50 border border-green-200 rounded-xl p-6">
                       <div className="text-sm text-green-700 mb-2">Payé</div>
-                      <div className="text-3xl font-bold text-green-900">2 000$</div>
+                      <div className="text-3xl font-bold text-green-900">{fullData.billing.paid.toFixed(2)}$</div>
                     </div>
                     <div className="bg-orange-50 border border-orange-200 rounded-xl p-6">
                       <div className="text-sm text-orange-700 mb-2">Impayé</div>
-                      <div className="text-3xl font-bold text-orange-900">450$</div>
+                      <div className="text-3xl font-bold text-orange-900">{fullData.billing.unpaid.toFixed(2)}$</div>
                     </div>
                   </div>
                   <div className="bg-white rounded-xl p-6 border border-gray-200">
@@ -797,10 +835,44 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
                         onClick={() => setShowBillingModal(true)}
                         className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-semibold transition-all"
                       >
-                        Voir tout
+                        Créer facture
                       </button>
                     </div>
-                    <div className="text-sm text-gray-600">Cliquez pour voir les détails complets</div>
+                    {fullData.loading ? (
+                      <div className="text-center py-4 text-gray-500">Chargement...</div>
+                    ) : fullData.billing.invoices.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500">
+                        <Receipt className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                        <div>Aucune facture</div>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {fullData.billing.invoices.slice(0, 5).map((invoice) => (
+                          <div
+                            key={invoice.id}
+                            onClick={() => toast.info(`Facture ${invoice.invoice_number}`)}
+                            className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:border-blue-400 hover:shadow-md transition-all"
+                          >
+                            <div className="flex-1">
+                              <div className="font-semibold text-gray-900">{invoice.invoice_number}</div>
+                              <div className="text-sm text-gray-600">
+                                {new Date(invoice.created_at).toLocaleDateString('fr-FR')}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-bold text-lg">{invoice.amount.toFixed(2)}$</div>
+                              <div className={`text-xs font-semibold ${
+                                invoice.status === 'paid' ? 'text-green-600' :
+                                invoice.status === 'partial' ? 'text-orange-600' : 'text-red-600'
+                              }`}>
+                                {invoice.status === 'paid' ? '✓ Payée' :
+                                 invoice.status === 'partial' ? `Partiel ${invoice.amount_paid.toFixed(2)}$` : 'Impayée'}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               )}
@@ -839,27 +911,41 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
                         </button>
                       </div>
                     </div>
-                    <div className="space-y-3">
-                      {['Consentement signé', 'Formulaire d\'admission', 'Rapport d\'assurance'].map((doc, i) => (
-                        <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                              <FileText className="w-5 h-5 text-blue-600" />
+                    {fullData.loading ? (
+                      <div className="text-center py-4 text-gray-500">Chargement...</div>
+                    ) : fullData.documents.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500">
+                        <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                        <div>Aucun document</div>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {fullData.documents.map((doc) => (
+                          <div key={doc.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <FileText className="w-5 h-5 text-blue-600" />
+                              </div>
+                              <div>
+                                <div className="font-semibold text-gray-900">{doc.name}</div>
+                                <div className="text-xs text-gray-600">
+                                  {new Date(doc.created_at).toLocaleDateString('fr-FR')}
+                                </div>
+                              </div>
                             </div>
-                            <div>
-                              <div className="font-semibold text-gray-900">{doc}</div>
-                              <div className="text-xs text-gray-600">Ajouté il y a {i + 1} jours</div>
-                            </div>
+                            <button
+                              onClick={() => {
+                                window.open(doc.url, '_blank');
+                                toast.success(`Ouverture de "${doc.name}"...`);
+                              }}
+                              className="p-2 hover:bg-gray-200 rounded-lg transition-all"
+                            >
+                              <Download className="w-4 h-4 text-gray-600" />
+                            </button>
                           </div>
-                          <button
-                            onClick={() => toast.success(`Téléchargement de "${doc}"...`)}
-                            className="p-2 hover:bg-gray-200 rounded-lg transition-all"
-                          >
-                            <Download className="w-4 h-4 text-gray-600" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               )}
@@ -880,27 +966,39 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
                         Nouveau message
                       </button>
                     </div>
-                    <div className="space-y-3">
-                      {[
-                        { type: 'email', subject: 'Rappel de rendez-vous', date: 'Il y a 2 jours', status: 'envoyé' },
-                        { type: 'sms', subject: 'Confirmation de RDV', date: 'Il y a 5 jours', status: 'livré' },
-                        { type: 'email', subject: 'Facture mensuelle', date: 'Il y a 1 semaine', status: 'lu' }
-                      ].map((msg, i) => (
-                        <div
-                          key={i}
-                          onClick={() => toast.info(`Détails du message: ${msg.subject}`)}
-                          className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:border-blue-400 hover:shadow-md transition-all"
-                        >
-                          <div className={`w-10 h-10 ${msg.type === 'email' ? 'bg-blue-100' : 'bg-green-100'} rounded-lg flex items-center justify-center`}>
-                            {msg.type === 'email' ? <Mail className="w-5 h-5 text-blue-600" /> : <MessageSquare className="w-5 h-5 text-green-600" />}
+                    {fullData.loading ? (
+                      <div className="text-center py-4 text-gray-500">Chargement...</div>
+                    ) : fullData.communications.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500">
+                        <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                        <div>Aucune communication</div>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {fullData.communications.map((msg) => (
+                          <div
+                            key={msg.id}
+                            onClick={() => toast.info(`Détails du message: ${msg.subject}`)}
+                            className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:border-blue-400 hover:shadow-md transition-all"
+                          >
+                            <div className={`w-10 h-10 ${msg.type === 'email' ? 'bg-blue-100' : 'bg-green-100'} rounded-lg flex items-center justify-center`}>
+                              {msg.type === 'email' ? <Mail className="w-5 h-5 text-blue-600" /> : <MessageSquare className="w-5 h-5 text-green-600" />}
+                            </div>
+                            <div className="flex-1">
+                              <div className="font-semibold text-gray-900">{msg.subject}</div>
+                              <div className="text-xs text-gray-600">
+                                {new Date(msg.sent_at).toLocaleDateString('fr-FR', {
+                                  day: 'numeric',
+                                  month: 'short',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })} • {msg.status}
+                              </div>
+                            </div>
                           </div>
-                          <div className="flex-1">
-                            <div className="font-semibold text-gray-900">{msg.subject}</div>
-                            <div className="text-xs text-gray-600">{msg.date} • {msg.status}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               )}
@@ -926,34 +1024,39 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
                         Ajouter un objectif
                       </button>
                     </div>
-                    <div className="space-y-4">
-                      {[
-                        { goal: 'Réduire la douleur de 8/10 à 3/10', progress: 75, status: 'en cours' },
-                        { goal: 'Améliorer la flexion lombaire à 80°', progress: 60, status: 'en cours' },
-                        { goal: 'Reprendre les activités sportives', progress: 30, status: 'planifié' }
-                      ].map((item, i) => (
-                        <div
-                          key={i}
-                          onClick={() => toast.info(`Édition de l'objectif: ${item.goal}`)}
-                          className="p-4 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:border-blue-400 hover:shadow-md transition-all"
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="font-semibold text-gray-900">{item.goal}</div>
-                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                              item.status === 'en cours' ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-700'
-                            }`}>
-                              {item.status}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                              <div className="h-full bg-blue-500" style={{ width: `${item.progress}%` }} />
+                    {fullData.loading ? (
+                      <div className="text-center py-4 text-gray-500">Chargement...</div>
+                    ) : fullData.goals.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500">
+                        <Target className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                        <div>Aucun objectif défini</div>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {fullData.goals.map((item) => (
+                          <div
+                            key={item.id}
+                            onClick={() => toast.info(`Édition de l'objectif: ${item.goal}`)}
+                            className="p-4 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:border-blue-400 hover:shadow-md transition-all"
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="font-semibold text-gray-900">{item.goal}</div>
+                              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                item.status === 'en cours' ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-700'
+                              }`}>
+                                {item.status}
+                              </span>
                             </div>
-                            <div className="text-sm font-semibold text-gray-700">{item.progress}%</div>
+                            <div className="flex items-center gap-3">
+                              <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <div className="h-full bg-blue-500" style={{ width: `${item.progress}%` }} />
+                              </div>
+                              <div className="text-sm font-semibold text-gray-700">{item.progress}%</div>
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               )}
@@ -988,21 +1091,43 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
                         </button>
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      {['Radiographie - Colonne lombaire', 'Radiographie - Colonne cervicale', 'IRM - L4-L5'].map((img, i) => (
-                        <div
-                          key={i}
-                          onClick={() => toast.info(`Visualisation de "${img}"`)}
-                          className="bg-gray-50 rounded-lg border border-gray-200 p-4 cursor-pointer hover:border-blue-400 hover:shadow-md transition-all"
-                        >
-                          <div className="w-full h-40 bg-gray-300 rounded-lg mb-3 flex items-center justify-center">
-                            <Activity className="w-12 h-12 text-gray-500" />
+                    {fullData.loading ? (
+                      <div className="text-center py-4 text-gray-500">Chargement...</div>
+                    ) : fullData.documents.filter(d => d.type.startsWith('image/')).length === 0 ? (
+                      <div className="text-center py-8 text-gray-500">
+                        <Activity className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                        <div>Aucune imagerie médicale</div>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-4">
+                        {fullData.documents.filter(d => d.type.startsWith('image/')).map((img) => (
+                          <div
+                            key={img.id}
+                            onClick={() => {
+                              window.open(img.url, '_blank');
+                              toast.info(`Visualisation de "${img.name}"`);
+                            }}
+                            className="bg-gray-50 rounded-lg border border-gray-200 p-4 cursor-pointer hover:border-blue-400 hover:shadow-md transition-all"
+                          >
+                            <div className="w-full h-40 bg-gray-300 rounded-lg mb-3 overflow-hidden">
+                              <img
+                                src={img.url}
+                                alt={img.name}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                  (e.target as HTMLImageElement).parentElement!.innerHTML = '<div class="flex items-center justify-center w-full h-full"><svg class="w-12 h-12 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>';
+                                }}
+                              />
+                            </div>
+                            <div className="font-semibold text-gray-900 text-sm mb-1">{img.name}</div>
+                            <div className="text-xs text-gray-600">
+                              Date: {new Date(img.created_at).toLocaleDateString('fr-FR')}
+                            </div>
                           </div>
-                          <div className="font-semibold text-gray-900 text-sm mb-1">{img}</div>
-                          <div className="text-xs text-gray-600">Date: {new Date(Date.now() - i * 86400000 * 30).toLocaleDateString('fr-FR')}</div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               )}
