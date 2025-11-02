@@ -2,6 +2,11 @@ import { useState, useEffect } from 'react';
 import { Activity, Mail, Calendar, Users, CheckCircle, Clock, AlertCircle, TrendingUp, Zap } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useToastContext } from '../../contexts/ToastContext';
+import { motion } from 'framer-motion';
+import { Tooltip } from '../common/Tooltip';
+import { CardSkeleton } from '../common/LoadingSkeleton';
+import { EmptyState } from '../common/EmptyState';
+import { buttonHover, buttonTap } from '../../lib/animations';
 
 interface AutomationStats {
   totalBookings: number;
@@ -257,33 +262,50 @@ export default function AutomationDashboard() {
 
         <div className="flex gap-2">
           {(['today', 'week', 'month'] as const).map((p) => (
-            <button
+            <Tooltip
               key={p}
-              onClick={() => setPeriod(p)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                period === p
-                  ? 'bg-amber-600 text-white'
-                  : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-              }`}
+              content={`Statistiques des ${p === 'today' ? 'dernières 24h' : p === 'week' ? '7 derniers jours' : '30 derniers jours'}`}
+              placement="bottom"
             >
-              {p === 'today' ? 'Aujourd\'hui' : p === 'week' ? '7 jours' : '30 jours'}
-            </button>
+              <motion.button
+                onClick={() => setPeriod(p)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  period === p
+                    ? 'bg-amber-600 text-white'
+                    : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
+                whileHover={buttonHover}
+                whileTap={buttonTap}
+              >
+                {p === 'today' ? 'Aujourd\'hui' : p === 'week' ? '7 jours' : '30 jours'}
+              </motion.button>
+            </Tooltip>
           ))}
         </div>
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-amber-600 border-t-transparent"></div>
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <CardSkeleton />
+            <CardSkeleton />
+            <CardSkeleton />
+            <CardSkeleton />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <CardSkeleton />
+            <CardSkeleton />
+          </div>
         </div>
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {statCards.map((card, index) => (
-              <div
-                key={index}
-                className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow"
-              >
+              <Tooltip key={index} content={card.subtitle} placement="top">
+                <motion.div
+                  className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow cursor-help"
+                  whileHover={{ scale: 1.02 }}
+                >
                 <div
                   className={`w-12 h-12 rounded-lg bg-gradient-to-br ${
                     colorClasses[card.color as keyof typeof colorClasses]
@@ -294,7 +316,8 @@ export default function AutomationDashboard() {
                 <div className="text-3xl font-bold text-slate-900 mb-1">{card.value}</div>
                 <div className="text-sm font-medium text-slate-700 mb-1">{card.label}</div>
                 <div className="text-xs text-slate-500">{card.subtitle}</div>
-              </div>
+              </motion.div>
+              </Tooltip>
             ))}
           </div>
 
