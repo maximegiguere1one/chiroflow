@@ -1,9 +1,15 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import {
   FlaskConical, TrendingUp, Mail, Eye, MousePointer,
   CheckCircle, Plus, Copy, Edit, Trash2, BarChart3
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { useToastContext } from '../../contexts/ToastContext';
+import { Tooltip } from '../common/Tooltip';
+import { EmptyState } from '../common/EmptyState';
+import { CardSkeleton, TableSkeleton } from '../common/LoadingSkeleton';
+import { buttonHover, buttonTap } from '../../lib/animations';
 
 interface Template {
   id: string;
@@ -30,6 +36,7 @@ interface TemplatePerformance {
 }
 
 export function ABTestingManager() {
+  const toast = useToastContext();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [performance, setPerformance] = useState<TemplatePerformance[]>([]);
   const [loading, setLoading] = useState(true);
@@ -98,8 +105,14 @@ export function ABTestingManager() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+      <div className="space-y-6">
+        <div className="h-20 bg-neutral-200 rounded animate-pulse" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
+        </div>
+        <TableSkeleton rows={5} />
       </div>
     );
   }
@@ -118,13 +131,17 @@ export function ABTestingManager() {
             Optimisez vos emails avec des tests A/B scientifiques
           </p>
         </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Nouveau Variant
-        </button>
+        <Tooltip content="Créer un nouveau variant pour tester" placement="bottom">
+          <motion.button
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+            whileHover={buttonHover}
+            whileTap={buttonTap}
+          >
+            <Plus className="w-4 h-4" />
+            Nouveau Variant
+          </motion.button>
+        </Tooltip>
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-2">
@@ -297,18 +314,16 @@ export function ABTestingManager() {
           })}
 
           {templates.length === 0 && (
-            <div className="p-12 text-center">
-              <Mail className="w-12 h-12 text-neutral-300 mx-auto mb-4" />
-              <p className="text-neutral-600">
-                Aucun variant pour ce type d'email
-              </p>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="mt-4 text-emerald-600 hover:text-emerald-700 font-medium"
-              >
-                Créer le premier variant
-              </button>
-            </div>
+            <EmptyState
+              icon={<Mail size={48} />}
+              title="Aucun variant"
+              description={`Créez votre premier variant pour optimiser vos emails ${selectedType}`}
+              primaryAction={{
+                label: 'Créer un variant',
+                icon: <Plus />,
+                onClick: () => setShowCreateModal(true)
+              }}
+            />
           )}
         </div>
       </div>
