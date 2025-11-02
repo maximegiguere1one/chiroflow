@@ -98,9 +98,11 @@ export const HeroSectionPremium: React.FC = () => {
                   ...motionConfig.spring.medium,
                   delay: prefersReducedMotion ? 0 : (ANIMATION_DELAYS.section + index * ANIMATION_DELAYS.stagger),
                 }}
-                style={GPU_OPTIMIZED_STYLES}
+                style={{
+                  ...GPU_OPTIMIZED_STYLES,
+                  transformOrigin: 'bottom'
+                }}
                 className="inline-block mr-4"
-                style={{ transformOrigin: 'bottom' }}
               >
                 {word === '50 000$' || word === '10h/semaine' ? (
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600">
