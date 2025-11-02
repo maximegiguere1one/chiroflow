@@ -11,6 +11,7 @@ import { AdminSidebar, type AdminView } from '../components/navigation/AdminSide
 import { Breadcrumbs } from '../components/navigation/Breadcrumbs';
 import { GlobalSearch } from '../components/common/GlobalSearch';
 import { TodayDashboard } from '../components/dashboard/TodayDashboard';
+import { TodayDashboard10X } from '../components/dashboard/TodayDashboard10X';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { router } from '../lib/router';
 
@@ -64,6 +65,7 @@ export default function AdminDashboard() {
   const [showQuickSoap, setShowQuickSoap] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showGlobalSearch, setShowGlobalSearch] = useState(false);
+  const [use10XDashboard, setUse10XDashboard] = useState(true);
 
   useEffect(() => {
     loadDashboardData();
@@ -414,7 +416,9 @@ export default function AdminDashboard() {
             </div>
           ) : (
             <Suspense fallback={<LoadingSpinner />}>
-              {currentView === 'dashboard' && <TodayDashboard />}
+              {currentView === 'dashboard' && (
+                use10XDashboard ? <TodayDashboard10X /> : <TodayDashboard />
+              )}
               {currentView === 'quick-actions' && (
                 <QuickActions
                   onNewPatient={() => setCurrentView('patients')}
