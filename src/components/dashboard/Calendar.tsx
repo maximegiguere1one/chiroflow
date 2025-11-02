@@ -1,7 +1,11 @@
 import { motion } from 'framer-motion';
-import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon } from 'lucide-react';
 import type { Appointment } from '../../types/database';
+import { Tooltip } from '../common/Tooltip';
+import { EmptyState } from '../common/EmptyState';
+import { buttonHover, buttonTap } from '../../lib/animations';
+import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 
 interface CalendarProps {
   appointments: Appointment[];
@@ -18,6 +22,14 @@ interface CalendarDay {
 export function Calendar({ appointments, onDateSelect, onAddAppointment }: CalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<'month' | 'week' | 'day'>('month');
+
+  const shortcuts = [
+    { key: 'ArrowLeft', ctrl: true, description: 'Mois précédent', action: () => navigateMonth('prev') },
+    { key: 'ArrowRight', ctrl: true, description: 'Mois suivant', action: () => navigateMonth('next') },
+    { key: 't', description: 'Aujourd\'hui', action: goToToday },
+  ];
+
+  useKeyboardShortcuts(shortcuts);
 
   const monthNames = [
     'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
@@ -85,41 +97,60 @@ export function Calendar({ appointments, onDateSelect, onAddAppointment }: Calen
               {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
             </h2>
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => navigateMonth('prev')}
-                className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <button
-                onClick={goToToday}
-                className="px-4 py-2 text-sm border border-neutral-300 hover:border-gold-400 hover:bg-neutral-50 transition-all"
-              >
-                Aujourd'hui
-              </button>
-              <button
-                onClick={() => navigateMonth('next')}
-                className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
+              <Tooltip content="Mois précédent" shortcut="Ctrl+←" placement="bottom">
+                <motion.button
+                  onClick={() => navigateMonth('prev')}
+                  className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+                  whileHover={buttonHover}
+                  whileTap={buttonTap}
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </motion.button>
+              </Tooltip>
+              <Tooltip content="Revenir à aujourd'hui" shortcut="T" placement="bottom">
+                <motion.button
+                  onClick={goToToday}
+                  className="px-4 py-2 text-sm border border-neutral-300 hover:border-gold-400 hover:bg-neutral-50 transition-all"
+                  whileHover={buttonHover}
+                  whileTap={buttonTap}
+                >
+                  Aujourd'hui
+                </motion.button>
+              </Tooltip>
+              <Tooltip content="Mois suivant" shortcut="Ctrl+→" placement="bottom">
+                <motion.button
+                  onClick={() => navigateMonth('next')}
+                  className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+                  whileHover={buttonHover}
+                  whileTap={buttonTap}
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </motion.button>
+              </Tooltip>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             <div className="flex border border-neutral-300 overflow-hidden">
               {(['month', 'week', 'day'] as const).map((v) => (
-                <button
+                <Tooltip
                   key={v}
-                  onClick={() => setView(v)}
-                  className={`px-4 py-2 text-sm transition-colors ${
-                    view === v
-                      ? 'bg-gradient-to-r from-gold-500 to-gold-600 text-white'
-                      : 'bg-white text-foreground hover:bg-neutral-50'
-                  }`}
+                  content={`Vue ${v === 'month' ? 'mensuelle' : v === 'week' ? 'hebdomadaire' : 'quotidienne'}`}
+                  placement="bottom"
                 >
-                  {v === 'month' ? 'Mois' : v === 'week' ? 'Semaine' : 'Jour'}
-                </button>
+                  <motion.button
+                    onClick={() => setView(v)}
+                    className={`px-4 py-2 text-sm transition-colors ${
+                      view === v
+                        ? 'bg-gradient-to-r from-gold-500 to-gold-600 text-white'
+                        : 'bg-white text-foreground hover:bg-neutral-50'
+                    }`}
+                    whileHover={buttonHover}
+                    whileTap={buttonTap}
+                  >
+                    {v === 'month' ? 'Mois' : v === 'week' ? 'Semaine' : 'Jour'}
+                  </motion.button>
+                </Tooltip>
               ))}
             </div>
           </div>
@@ -138,6 +169,13 @@ export function Calendar({ appointments, onDateSelect, onAddAppointment }: Calen
       </div>
 
       <div className="p-6">
+        {appointments.length === 0 ? (
+          <EmptyState
+            icon={<CalendarIcon size={48} />}
+            title="Aucun rendez-vous planifié"
+            description="Cliquez sur une date pour créer votre premier rendez-vous"
+          />
+        ) : (
         <div className="grid grid-cols-7 gap-2">
           {days.map((day, index) => {
             const dateStr = day.date.toISOString().split('T')[0];
@@ -174,20 +212,23 @@ export function Calendar({ appointments, onDateSelect, onAddAppointment }: Calen
                 )}
 
                 {day.isCurrentMonth && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onAddAppointment(day.date, '09:00');
-                    }}
-                    className="absolute top-1 right-1 p-1 bg-white/80 backdrop-blur-sm border border-neutral-200 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <Plus className="w-3 h-3" />
-                  </button>
+                  <Tooltip content="Ajouter un RDV" placement="top">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAddAppointment(day.date, '09:00');
+                      }}
+                      className="absolute top-1 right-1 p-1 bg-white/80 backdrop-blur-sm border border-neutral-200 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gold-50 hover:border-gold-300"
+                    >
+                      <Plus className="w-3 h-3" />
+                    </button>
+                  </Tooltip>
                 )}
               </motion.button>
             );
           })}
         </div>
+        )}
       </div>
 
       <div className="p-6 border-t border-neutral-200 bg-neutral-50">

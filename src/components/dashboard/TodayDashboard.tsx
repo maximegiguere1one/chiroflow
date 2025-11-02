@@ -7,6 +7,11 @@ import {
 } from 'lucide-react';
 import type { Appointment, Patient } from '../../types/database';
 import { useToastContext } from '../../contexts/ToastContext';
+import { Tooltip } from '../common/Tooltip';
+import { EmptyState } from '../common/EmptyState';
+import { CardSkeleton } from '../common/LoadingSkeleton';
+import { buttonHover, buttonTap } from '../../lib/animations';
+import { Confetti, useConfetti } from '../common/Confetti';
 
 interface TodayStats {
   completed: number;
@@ -20,6 +25,7 @@ export function TodayDashboard() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const toast = useToastContext();
+  const { showConfetti, triggerConfetti } = useConfetti();
 
   useEffect(() => {
     loadTodayData();
@@ -170,8 +176,15 @@ export function TodayDashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="w-8 h-8 border-4 border-gold-400 border-t-transparent rounded-full animate-spin" />
+      <div className="space-y-6">
+        <div className="h-24 bg-neutral-200 rounded animate-pulse" />
+        <div className="grid grid-cols-4 gap-4">
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
+        </div>
+        <CardSkeleton />
       </div>
     );
   }
@@ -335,27 +348,31 @@ export function TodayDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-4 gap-4">
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl p-6 shadow-lg"
-        >
-          <div className="flex items-center justify-between mb-3">
-            <Calendar className="w-8 h-8 opacity-80" />
-            <div className="text-3xl font-bold">{stats.total}</div>
-          </div>
-          <div className="text-sm font-medium opacity-90">Aujourd'hui</div>
-        </motion.div>
+        <Tooltip content="Nombre total de RDV aujourd'hui" placement="top">
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl p-6 shadow-lg cursor-help"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <Calendar className="w-8 h-8 opacity-80" />
+              <div className="text-3xl font-bold">{stats.total}</div>
+            </div>
+            <div className="text-sm font-medium opacity-90">Aujourd'hui</div>
+          </motion.div>
+        </Tooltip>
 
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          className="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl p-6 shadow-lg"
-        >
-          <div className="flex items-center justify-between mb-3">
-            <CheckCircle className="w-8 h-8 opacity-80" />
-            <div className="text-3xl font-bold">{stats.completed}</div>
-          </div>
-          <div className="text-sm font-medium opacity-90">Complétés</div>
-        </motion.div>
+        <Tooltip content="RDV déjà complétés aujourd'hui" placement="top">
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            className="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl p-6 shadow-lg cursor-help"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <CheckCircle className="w-8 h-8 opacity-80" />
+              <div className="text-3xl font-bold">{stats.completed}</div>
+            </div>
+            <div className="text-sm font-medium opacity-90">Complétés</div>
+          </motion.div>
+        </Tooltip>
 
         {stats.late > 0 && (
           <motion.div
@@ -370,16 +387,18 @@ export function TodayDashboard() {
           </motion.div>
         )}
 
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          className="bg-gradient-to-br from-gold-500 to-gold-600 text-white rounded-xl p-6 shadow-lg"
-        >
-          <div className="flex items-center justify-between mb-3">
-            <DollarSign className="w-8 h-8 opacity-80" />
-            <div className="text-3xl font-bold">${stats.revenue}</div>
-          </div>
-          <div className="text-sm font-medium opacity-90">Facturé</div>
-        </motion.div>
+        <Tooltip content="Revenus facturés aujourd'hui" placement="top">
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            className="bg-gradient-to-br from-gold-500 to-gold-600 text-white rounded-xl p-6 shadow-lg cursor-help"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <DollarSign className="w-8 h-8 opacity-80" />
+              <div className="text-3xl font-bold">${stats.revenue}</div>
+            </div>
+            <div className="text-sm font-medium opacity-90">Facturé</div>
+          </motion.div>
+        </Tooltip>
       </div>
 
       {/* Upcoming Appointments */}
@@ -436,16 +455,14 @@ export function TodayDashboard() {
 
       {/* Empty State */}
       {!currentAppointment && !nextAppointment && stats.total === 0 && (
-        <div className="text-center py-12">
-          <div className="text-6xl mb-4">☀️</div>
-          <h3 className="text-2xl font-bold text-foreground mb-2">
-            Journée libre aujourd'hui!
-          </h3>
-          <p className="text-foreground/60">
-            Aucun rendez-vous prévu
-          </p>
-        </div>
+        <EmptyState
+          icon={<span className="text-6xl">🌅</span>}
+          title="Journée calme aujourd'hui!"
+          description="Aucun rendez-vous prévu - Profitez-en pour vous reposer ou faire de l'administratif"
+        />
       )}
+
+      <Confetti trigger={showConfetti} />
     </div>
   );
 }
