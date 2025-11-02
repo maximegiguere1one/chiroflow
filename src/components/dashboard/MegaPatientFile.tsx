@@ -14,6 +14,7 @@ import { SmartSchedulingModal } from './SmartSchedulingModal';
 import { QuickSoapNote } from './QuickSoapNote';
 import { PatientBillingModal } from './PatientBillingModal';
 import { SendMessageModal } from './SendMessageModal';
+import { PatientFormsHistory } from './PatientFormsHistory';
 
 interface Patient {
   id: string;
@@ -807,10 +808,14 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
               {activeTab === 'documents' && (
                 <motion.div key="documents" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
                   <div className="bg-white rounded-xl p-6 border border-gray-200">
+                    <PatientFormsHistory contactId={patient.id} />
+                  </div>
+
+                  <div className="bg-white rounded-xl p-6 border border-gray-200">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-lg font-bold flex items-center gap-2">
                         <FileText className="w-5 h-5 text-blue-600" />
-                        Documents du patient
+                        Autres Documents
                       </h3>
                       <div>
                         <input
