@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion';
-import { X, User, Mail, Phone, Calendar, MapPin, Edit, Save, FileText } from 'lucide-react';
+import { X, User, Mail, Phone, Calendar, MapPin, Edit, Save, FileText, Eye, FolderOpen } from 'lucide-react';
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useToastContext } from '../../contexts/ToastContext';
+import { MegaPatientFile } from './MegaPatientFile';
 
 interface Contact {
   id: string;
@@ -29,6 +30,7 @@ export function ContactDetailsModal({ contact, onClose, onUpdate }: ContactDetai
   const [isEditing, setIsEditing] = useState(isNewContact);
   const [formData, setFormData] = useState(contact);
   const [saving, setSaving] = useState(false);
+  const [showFullFile, setShowFullFile] = useState(false);
 
   async function handleSave() {
     setSaving(true);
@@ -101,6 +103,21 @@ export function ContactDetailsModal({ contact, onClose, onUpdate }: ContactDetai
     return badges[formData.status as keyof typeof badges] || badges.active;
   };
 
+  if (showFullFile) {
+    return (
+      <MegaPatientFile
+        patient={{
+          ...contact,
+          first_name: contact.full_name.split(' ')[0] || '',
+          last_name: contact.full_name.split(' ').slice(1).join(' ') || '',
+          total_visits: 0,
+          status: contact.status || 'active'
+        } as any}
+        onClose={() => setShowFullFile(false)}
+      />
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -139,6 +156,22 @@ export function ContactDetailsModal({ contact, onClose, onUpdate }: ContactDetai
         </div>
 
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+          {!isNewContact && (
+            <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-200 rounded-xl">
+              <button
+                onClick={() => setShowFullFile(true)}
+                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                <FolderOpen className="w-6 h-6" />
+                <div className="text-left">
+                  <div className="font-bold text-lg">Voir le Dossier Complet</div>
+                  <div className="text-sm text-blue-100">Historique, formulaires, facturation, documents...</div>
+                </div>
+                <Eye className="w-6 h-6 ml-auto" />
+              </button>
+            </div>
+          )}
+
           <div className="flex items-center justify-between mb-6">
             <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusBadge()}`}>
               {formData.status === 'active' && 'Actif'}
