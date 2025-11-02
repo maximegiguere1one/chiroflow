@@ -4,13 +4,14 @@ import { supabase } from '../../lib/supabase';
 import {
   Plus, Search, Filter, MoreVertical, Calendar, Phone, Mail,
   Clock, AlertCircle, ChevronDown, User, Activity, FileText,
-  TrendingUp, Edit, Eye, MessageSquare, DollarSign, X,
+  TrendingUp, Edit, Eye, MessageSquare, DollarSign, X, Zap,
   Download, Upload, RefreshCw, Users, CheckCircle
 } from 'lucide-react';
 import { useToastContext } from '../../contexts/ToastContext';
 import { ContactDetailsModal } from './ContactDetailsModal';
 import { AppointmentSchedulingModal } from './AppointmentSchedulingModal';
 import { PatientBillingModal } from './PatientBillingModal';
+import { QuickBillingModal } from './QuickBillingModal';
 import { CSVImportModal } from './CSVImportModal';
 
 interface Patient {
@@ -37,7 +38,7 @@ export default function PatientListUltraClean() {
   const [viewMode, setViewMode] = useState<ViewMode>('all');
   const [sortField, setSortField] = useState<SortField>('last_visit');
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
-  const [activeModal, setActiveModal] = useState<'none' | 'details' | 'appointment' | 'billing' | 'import'>('none');
+  const [activeModal, setActiveModal] = useState<'none' | 'details' | 'appointment' | 'billing' | 'quickBilling' | 'import'>('none');
   const [contextMenu, setContextMenu] = useState<{ patientId: string; x: number; y: number } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -486,12 +487,12 @@ export default function PatientListUltraClean() {
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedPatient(patient);
-                                setActiveModal('billing');
+                                setActiveModal('quickBilling');
                               }}
-                              className="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all"
-                              title="Facturation"
+                              className="p-2 text-gray-600 hover:text-gold-600 hover:bg-gold-50 rounded-lg transition-all group"
+                              title="Facturation Express ⚡"
                             >
-                              <DollarSign className="w-4 h-4" />
+                              <Zap className="w-4 h-4 group-hover:fill-gold-400" />
                             </button>
                           </div>
                         </td>
@@ -534,6 +535,19 @@ export default function PatientListUltraClean() {
           onClose={() => {
             setActiveModal('none');
             setSelectedPatient(null);
+            loadPatients();
+          }}
+        />
+      )}
+
+      {activeModal === 'quickBilling' && selectedPatient && (
+        <QuickBillingModal
+          patient={selectedPatient}
+          onClose={() => {
+            setActiveModal('none');
+            setSelectedPatient(null);
+          }}
+          onSuccess={() => {
             loadPatients();
           }}
         />
