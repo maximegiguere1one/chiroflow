@@ -7,8 +7,7 @@ import { AnamneseForm } from '../forms/AnamneseForm';
 
 interface Contact {
   id: string;
-  first_name: string;
-  last_name: string;
+  full_name: string;
   email: string;
 }
 
@@ -92,10 +91,10 @@ export function ProfessionalFormsManager() {
       const [contactsRes, formsRes] = await Promise.all([
         supabase
           .from('contacts')
-          .select('id, first_name, last_name, email')
+          .select('id, full_name, email')
           .eq('owner_id', user.user.id)
-          .eq('type', 'patient')
-          .order('last_name'),
+          .eq('status', 'active')
+          .order('full_name'),
 
         supabase
           .from('anamnese_forms')
@@ -106,8 +105,7 @@ export function ProfessionalFormsManager() {
             completed,
             contacts (
               id,
-              first_name,
-              last_name,
+              full_name,
               email
             )
           `)
@@ -155,8 +153,7 @@ export function ProfessionalFormsManager() {
 
   const filteredForms = forms.filter(form => {
     const matchesSearch =
-      form.contact?.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      form.contact?.last_name?.toLowerCase().includes(searchQuery.toLowerCase());
+      form.contact?.full_name?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = filterType === 'all' || form.form_type === filterType;
     return matchesSearch && matchesFilter;
   });
@@ -297,7 +294,7 @@ export function ProfessionalFormsManager() {
                     <td className="px-6 py-4">
                       <div>
                         <div className="font-medium text-neutral-900">
-                          {form.contact?.first_name} {form.contact?.last_name}
+                          {form.contact?.full_name}
                         </div>
                         <div className="text-sm text-neutral-500">{form.contact?.email}</div>
                       </div>
@@ -355,7 +352,7 @@ export function ProfessionalFormsManager() {
                   className="w-full p-4 border-2 border-neutral-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all text-left"
                 >
                   <div className="font-medium text-neutral-900">
-                    {contact.first_name} {contact.last_name}
+                    {contact.full_name}
                   </div>
                   <div className="text-sm text-neutral-500">{contact.email}</div>
                 </button>
