@@ -3,6 +3,9 @@ import { useState } from 'react';
 import { X, Save, FileText } from 'lucide-react';
 import type { SoapNote, Patient } from '../../types/database';
 import { supabase } from '../../lib/supabase';
+import { useToastContext } from '../../contexts/ToastContext';
+import { Tooltip } from '../common/Tooltip';
+import { buttonHover, buttonTap } from '../../lib/animations';
 
 interface SoapNoteEditorProps {
   patient: Patient;
@@ -12,6 +15,7 @@ interface SoapNoteEditorProps {
 }
 
 export function SoapNoteEditor({ patient, existingNote, onClose, onSave }: SoapNoteEditorProps) {
+  const toast = useToastContext();
   const [formData, setFormData] = useState({
     visit_date: existingNote?.visit_date || new Date().toISOString().split('T')[0],
     subjective: existingNote?.subjective || '',
@@ -59,10 +63,13 @@ export function SoapNoteEditor({ patient, existingNote, onClose, onSave }: SoapN
         if (insertError) throw insertError;
       }
 
+      toast.success(existingNote ? 'Note SOAP mise à jour' : 'Note SOAP créée');
       onSave();
       onClose();
     } catch (err: any) {
-      setError(err.message || 'Erreur lors de l\'enregistrement');
+      const errorMsg = err.message || 'Erreur lors de l\'enregistrement';
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setSaving(false);
     }
@@ -194,21 +201,29 @@ export function SoapNoteEditor({ patient, existingNote, onClose, onSave }: SoapN
           </div>
 
           <div className="flex items-center justify-end gap-4 pt-6 border-t border-neutral-200">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-3 border border-neutral-300 text-foreground hover:bg-neutral-50 transition-all"
-            >
-              Annuler
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-gold-500 to-gold-600 text-white hover:from-gold-600 hover:to-gold-700 disabled:opacity-50 transition-all duration-300 shadow-soft hover:shadow-gold"
-            >
-              <Save className="w-4 h-4" />
-              <span>{saving ? 'Enregistrement...' : 'Enregistrer'}</span>
-            </button>
+            <Tooltip content="Fermer sans enregistrer" placement="top">
+              <motion.button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-3 border border-neutral-300 text-foreground hover:bg-neutral-50 transition-all"
+                whileHover={buttonHover}
+                whileTap={buttonTap}
+              >
+                Annuler
+              </motion.button>
+            </Tooltip>
+            <Tooltip content={existingNote ? "Mettre à jour la note" : "Créer la note SOAP"} placement="top">
+              <motion.button
+                type="submit"
+                disabled={saving}
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-gold-500 to-gold-600 text-white hover:from-gold-600 hover:to-gold-700 disabled:opacity-50 transition-all duration-300 shadow-soft hover:shadow-gold"
+                whileHover={!saving ? buttonHover : undefined}
+                whileTap={!saving ? buttonTap : undefined}
+              >
+                <Save className="w-4 h-4" />
+                <span>{saving ? 'Enregistrement...' : 'Enregistrer'}</span>
+              </motion.button>
+            </Tooltip>
           </div>
         </form>
       </motion.div>

@@ -3,6 +3,11 @@ import { useState, useEffect } from 'react';
 import { X, DollarSign, Plus, Eye, Download, CheckCircle, Clock, XCircle, CreditCard } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useToastContext } from '../../contexts/ToastContext';
+import { Tooltip } from '../common/Tooltip';
+import { EmptyState } from '../common/EmptyState';
+import { CardSkeleton, TableSkeleton } from '../common/LoadingSkeleton';
+import { ConfirmModal } from '../common/ConfirmModal';
+import { buttonHover, buttonTap } from '../../lib/animations';
 
 interface Invoice {
   id: string;
@@ -131,27 +136,40 @@ export function PatientBillingModal({ patient, onClose }: PatientBillingModalPro
           </div>
           <div className="flex items-center gap-2">
             {!showNewInvoiceForm && (
-              <button
-                onClick={() => setShowNewInvoiceForm(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 transition-all duration-300 shadow-soft"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Nouvelle facture</span>
-              </button>
+              <Tooltip content="Créer une nouvelle facture pour ce patient" placement="bottom">
+                <motion.button
+                  onClick={() => setShowNewInvoiceForm(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 transition-all duration-300 shadow-soft"
+                  whileHover={buttonHover}
+                  whileTap={buttonTap}
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Nouvelle facture</span>
+                </motion.button>
+              </Tooltip>
             )}
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
-            >
-              <X className="w-6 h-6" />
-            </button>
+            <Tooltip content="Fermer" placement="bottom">
+              <motion.button
+                onClick={onClose}
+                className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+                whileHover={buttonHover}
+                whileTap={buttonTap}
+              >
+                <X className="w-6 h-6" />
+              </motion.button>
+            </Tooltip>
           </div>
         </div>
 
         <div className="p-6">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="w-8 h-8 border-4 border-green-400 border-t-transparent rounded-full animate-spin" />
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <CardSkeleton />
+                <CardSkeleton />
+                <CardSkeleton />
+              </div>
+              <TableSkeleton rows={5} />
             </div>
           ) : (
             <div className="space-y-6">
@@ -246,10 +264,11 @@ export function PatientBillingModal({ patient, onClose }: PatientBillingModalPro
                   Factures ({invoices.length})
                 </h4>
                 {invoices.length === 0 ? (
-                  <div className="text-center py-8 bg-neutral-50 border border-neutral-200 rounded-lg">
-                    <DollarSign className="w-12 h-12 text-foreground/20 mx-auto mb-3" />
-                    <p className="text-foreground/60">Aucune facture pour ce patient</p>
-                  </div>
+                  <EmptyState
+                    icon={<DollarSign size={48} />}
+                    title="Aucune facture"
+                    description="Les factures pour ce patient apparaîtront ici"
+                  />
                 ) : (
                   <div className="space-y-3">
                     {invoices.map((invoice) => (
