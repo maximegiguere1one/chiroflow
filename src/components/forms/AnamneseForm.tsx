@@ -265,7 +265,7 @@ export function AnamneseForm({ contactId, existingFormId, onSave, onCancel }: An
       </div>
 
       <div className="bg-white p-6 space-y-6">
-        <FormSection title="Identification" icon={<User />} color="blue" required>
+        <FormSection title="Identification" icon={User} color="blue" required>
           <div className="grid grid-cols-3 gap-4">
             <SmartInput
               label="No de permis DC"
@@ -289,7 +289,7 @@ export function AnamneseForm({ contactId, existingFormId, onSave, onCancel }: An
           </div>
         </FormSection>
 
-        <FormSection title="Histoire Médicale Familiale" icon={<Heart />} color="red">
+        <FormSection title="Histoire Médicale Familiale" icon={Heart} color="red">
           <div className="space-y-4">
             <SmartInput
               label="Parent 1"
@@ -322,7 +322,7 @@ export function AnamneseForm({ contactId, existingFormId, onSave, onCancel }: An
           </div>
         </FormSection>
 
-        <FormSection title="Professionnels de la Santé Consultés" icon={<Activity />} color="green">
+        <FormSection title="Professionnels de la Santé Consultés" icon={Activity} color="green">
           <CheckboxGroup
             options={[
               { id: 'medecin', label: 'Médecin' },
@@ -353,7 +353,7 @@ export function AnamneseForm({ contactId, existingFormId, onSave, onCancel }: An
           />
         </FormSection>
 
-        <FormSection title="Motif de la Consultation" icon={<AlertTriangle />} color="amber" required>
+        <FormSection title="Motif de la Consultation" icon={AlertTriangle} color="amber" required>
           <CheckboxGroup
             label="Localisation de la douleur"
             options={[
@@ -427,7 +427,7 @@ export function AnamneseForm({ contactId, existingFormId, onSave, onCancel }: An
           </div>
         </FormSection>
 
-        <FormSection title="Circonstance de Survenue" icon={<AlertTriangle />} color="amber" required>
+        <FormSection title="Circonstance de Survenue" icon={AlertTriangle} color="amber" required>
           <CheckboxGroup
             label="Comment est apparue la douleur?"
             options={[
@@ -468,7 +468,7 @@ export function AnamneseForm({ contactId, existingFormId, onSave, onCancel }: An
           </div>
         </FormSection>
 
-        <FormSection title="Durée / Fréquence" icon={<Clock />} color="blue">
+        <FormSection title="Durée / Fréquence" icon={Clock} color="blue">
           <CheckboxGroup
             label="Type de problème"
             options={[
@@ -517,7 +517,7 @@ export function AnamneseForm({ contactId, existingFormId, onSave, onCancel }: An
           )}
         </FormSection>
 
-        <FormSection title="Progression" icon={<Activity />} color="green">
+        <FormSection title="Progression" icon={Activity} color="green">
           <RadioGroup
             label="Évolution du problème"
             options={[
@@ -566,7 +566,7 @@ export function AnamneseForm({ contactId, existingFormId, onSave, onCancel }: An
           </div>
         </FormSection>
 
-        <FormSection title="Caractère / Intensité de la Douleur" icon={<AlertTriangle />} color="red">
+        <FormSection title="Caractère / Intensité de la Douleur" icon={AlertTriangle} color="red">
           <CheckboxGroup
             label="Type de douleur (plusieurs choix possibles)"
             options={[
@@ -608,7 +608,7 @@ export function AnamneseForm({ contactId, existingFormId, onSave, onCancel }: An
           />
         </FormSection>
 
-        <FormSection title="Facteurs Aggravants (+) et Atténuants (-)" icon={<Activity />} color="blue">
+        <FormSection title="Facteurs Aggravants (+) et Atténuants (-)" icon={Activity} color="blue">
           <div className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-neutral-700 mb-3">
@@ -736,7 +736,7 @@ export function AnamneseForm({ contactId, existingFormId, onSave, onCancel }: An
           </div>
         </FormSection>
 
-        <FormSection title="Médication et Suppléments" icon={<Pill />} color="purple">
+        <FormSection title="Médication et Suppléments" icon={Pill} color="purple">
           <CheckboxGroup
             label="Médication actuelle"
             options={[
@@ -811,7 +811,7 @@ export function AnamneseForm({ contactId, existingFormId, onSave, onCancel }: An
           </div>
         </FormSection>
 
-        <FormSection title="Habitudes de Vie" icon={<Activity />} color="green">
+        <FormSection title="Habitudes de Vie" icon={Activity} color="green">
           <div className="space-y-6">
             <div>
               <RadioGroup
@@ -966,7 +966,7 @@ export function AnamneseForm({ contactId, existingFormId, onSave, onCancel }: An
           </div>
         </FormSection>
 
-        <FormSection title="🚨 Drapeaux Rouges NMS" icon={<AlertTriangle />} color="red" required>
+        <FormSection title="🚨 Drapeaux Rouges NMS" icon={AlertTriangle} color="red" required>
           <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 mb-6">
             <p className="text-sm text-red-800 font-medium">
               ⚠️ IMPORTANT: Cochez UNIQUEMENT si le patient présente ces symptômes.
@@ -1049,7 +1049,7 @@ export function AnamneseForm({ contactId, existingFormId, onSave, onCancel }: An
           </div>
         </FormSection>
 
-        <FormSection title="Commentaires Additionnels" icon={<FileText />} color="neutral">
+        <FormSection title="Commentaires Additionnels" icon={FileText} color="neutral">
           <SmartTextarea
             label="Autres informations pertinentes"
             value={(formData as any).other_comments || ''}
