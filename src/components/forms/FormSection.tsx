@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, LucideIcon } from 'lucide-react';
 import { useState, ReactNode } from 'react';
+import React from 'react';
 
 interface FormSectionProps {
   title: string;
-  icon?: ReactNode;
+  icon?: LucideIcon;
   children: ReactNode;
   defaultExpanded?: boolean;
   required?: boolean;
@@ -42,7 +43,7 @@ export function FormSection({
         } hover:opacity-80 transition-all flex items-center justify-between`}
       >
         <div className="flex items-center gap-3">
-          {icon && <span className="text-xl">{icon}</span>}
+          {icon && React.createElement(icon, { className: 'w-5 h-5' })}
           <h3 className="font-semibold text-lg">{title}</h3>
           {required && (
             <span className="px-2 py-0.5 bg-red-500 text-white text-xs rounded-full">
