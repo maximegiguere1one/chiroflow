@@ -14,6 +14,11 @@
 - H1 trop long sans truncate
 - Affichage cassé sur petits écrans
 
+### **4. Contenu passe sous la sidebar** 🆕
+- Le contenu principal ne respecte pas la largeur de la sidebar
+- Titre "Tableau de bord" partiellement caché sous le menu
+- Mauvais calcul de margin-left avec style inline
+
 ---
 
 ## ✅ **CORRECTIONS APPLIQUÉES**
@@ -305,9 +310,66 @@ max-w-full       /* Limite largeur parent */
 ## 🚀 **BUILD STATUS**
 
 ```bash
-✓ built in 16.67s
+✓ built in 15.86s
 0 erreurs
 100% fonctionnel
+4 bugs corrigés! 🎉
+```
+
+---
+
+## 🆕 **FIX 4: Layout Sidebar (AdminDashboard.tsx)**
+
+### **Problème:**
+Le contenu principal utilisait un style inline avec `window.innerWidth` qui n'est pas réactif:
+
+```tsx
+// ❌ Avant
+<div
+  className="flex-1 overflow-y-auto ..."
+  style={{
+    marginLeft: window.innerWidth >= 1024 ? (sidebarOpen ? '280px' : '80px') : '0',
+    width: window.innerWidth >= 1024 ? (sidebarOpen ? 'calc(100% - 280px)' : 'calc(100% - 80px)') : '100%'
+  }}
+>
+```
+
+**Problèmes:**
+- ❌ `window.innerWidth` évalué une seule fois (pas réactif)
+- ❌ Style inline complexe et peu maintenable
+- ❌ Pas de transition smooth
+- ❌ Calculs de width inutiles (flex gère déjà)
+
+### **Solution:**
+Utiliser des classes Tailwind avec margin-left conditionnel:
+
+```tsx
+// ✅ Après
+<div
+  className={`flex-1 overflow-y-auto transition-all duration-300 ${
+    sidebarOpen ? 'lg:ml-[280px]' : 'lg:ml-[80px]'
+  }`}
+>
+```
+
+**Avantages:**
+- ✅ Réactif aux changements de `sidebarOpen`
+- ✅ Classes Tailwind (consistant avec le reste)
+- ✅ Transition smooth avec `transition-all duration-300`
+- ✅ Flexbox gère width automatiquement
+- ✅ Responsive (lg: prefix pour desktop seulement)
+
+**Résultat:**
+```
+┌─────────────┬────────────────────────────────┐
+│             │                                │
+│  SIDEBAR    │   ← CONTENU PRINCIPAL         │
+│  (280px)    │      (flex-1, ml-[280px])     │
+│             │                                │
+│  [Menu]     │   Tableau de bord ✓           │
+│  [Items]    │   Visible complètement!       │
+│             │                                │
+└─────────────┴────────────────────────────────┘
 ```
 
 ---
@@ -317,7 +379,7 @@ max-w-full       /* Limite largeur parent */
 ```
 ✅ src/components/navigation/AdminSidebar.tsx
 ✅ src/components/navigation/Breadcrumbs.tsx
-✅ src/pages/AdminDashboard.tsx
+✅ src/pages/AdminDashboard.tsx (header + layout)
 ```
 
 ---

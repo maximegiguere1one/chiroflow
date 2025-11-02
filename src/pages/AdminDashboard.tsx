@@ -325,11 +325,9 @@ export default function AdminDashboard() {
 
       {/* Main Content */}
       <div
-        className="flex-1 overflow-y-auto transition-all duration-300 w-full lg:w-auto"
-        style={{
-          marginLeft: window.innerWidth >= 1024 ? (sidebarOpen ? '280px' : '80px') : '0',
-          width: window.innerWidth >= 1024 ? (sidebarOpen ? 'calc(100% - 280px)' : 'calc(100% - 80px)') : '100%'
-        }}
+        className={`flex-1 overflow-y-auto transition-all duration-300 ${
+          sidebarOpen ? 'lg:ml-[280px]' : 'lg:ml-[80px]'
+        }`}
       >
         {/* Organization Banner */}
         {organization && organization.subscription_status === 'trialing' && (() => {
