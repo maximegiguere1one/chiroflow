@@ -2,14 +2,14 @@ import { useState } from 'react';
 import {
   LayoutDashboard, Users, Calendar, DollarSign, Settings, LogOut,
   ChevronRight, ChevronLeft, Clock, BarChart3, Shield, CreditCard,
-  List, Bell, Zap, Menu, Home
+  List, Bell, Zap, Menu, Home, FileText
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export type AdminView = 'dashboard' | 'patients' | 'appointments' | 'billing' | 'settings' |
   'batch' | 'quick-actions' | 'calendar' | 'progress' | 'analytics' | 'insurance' |
   'waitlist' | 'rebooking' | 'payments' | 'monitoring' | 'advanced-settings' | 'automation' |
-  'actionable-analytics' | 'one-click-batch' | 'cancellation-automation' | 'automation-health';
+  'actionable-analytics' | 'one-click-batch' | 'cancellation-automation' | 'automation-health' | 'forms';
 
 interface NavItem {
   id: AdminView;
@@ -54,6 +54,7 @@ export function AdminSidebar({
       items: [
         { id: 'patients', label: 'Patients', icon: Users },
         { id: 'appointments', label: 'Rendez-vous', icon: Clock },
+        { id: 'forms', label: '📋 Formulaires OCQ', icon: FileText },
         { id: 'waitlist', label: 'Liste d\'attente', icon: List },
         { id: 'rebooking', label: 'Re-réservations', icon: Calendar },
       ]

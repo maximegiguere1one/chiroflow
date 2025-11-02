@@ -34,6 +34,7 @@ const ActionableAnalytics = lazy(() => import('../components/dashboard/Actionabl
 const OneClickBatchOps = lazy(() => import('../components/dashboard/OneClickBatchOps').then(m => ({ default: m.OneClickBatchOps })));
 const CancellationAutomationMonitor = lazy(() => import('../components/dashboard/CancellationAutomationMonitor').then(m => ({ default: m.CancellationAutomationMonitor })));
 const AutomationHealthDashboard = lazy(() => import('../components/dashboard/AutomationHealthDashboard').then(m => ({ default: m.AutomationHealthDashboard })));
+const ProfessionalFormsManager = lazy(() => import('../components/dashboard/ProfessionalFormsManager').then(m => ({ default: m.ProfessionalFormsManager })));
 
 interface DashboardStats {
   totalPatients: number;
@@ -444,6 +445,7 @@ export default function AdminDashboard() {
               {currentView === 'one-click-batch' && <OneClickBatchOps />}
               {currentView === 'cancellation-automation' && <CancellationAutomationMonitor />}
               {currentView === 'automation-health' && <AutomationHealthDashboard />}
+              {currentView === 'forms' && <ProfessionalFormsManager />}
               {currentView === 'settings' && <SettingsPage />}
             </Suspense>
           )}
