@@ -1,14 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
-import { ImprovedHeader } from './components/navigation/ImprovedHeader';
 import { Breadcrumbs } from './components/navigation/Breadcrumbs';
-import Hero from './components/Hero';
-import Services from './components/Services';
-import About from './components/About';
-import Testimonials from './components/Testimonials';
-import Contact from './components/Contact';
-import Footer from './components/Footer';
-import AppointmentModal from './components/AppointmentModal';
-import StickyCTA from './components/StickyCTA';
 import { supabase } from './lib/supabase';
 import { router, getBreadcrumbs } from './lib/router';
 import { OrganizationProvider } from './contexts/OrganizationContext';
@@ -42,14 +33,8 @@ function LoadingFallback() {
 }
 
 function App() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPath, setCurrentPath] = useState(router.getCurrentPath());
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const isAgendaFull = true;
-
-  const handleOpenModal = () => {
-    setIsModalOpen(true);
-  };
 
   useEffect(() => {
     const unsubscribeRouter = router.subscribe((path) => {
@@ -109,30 +94,8 @@ function App() {
     if (currentPath === '/organization/settings') return suspenseWrapper(OrganizationSettings);
     if (currentPath === '/saas/admin') return suspenseWrapper(SaaSAdminDashboard);
 
-    return (
-      <>
-        <Hero onOpenModal={handleOpenModal} isAgendaFull={isAgendaFull} />
-        <Services />
-        <About />
-        <Testimonials />
-        <Contact />
-      </>
-    );
+    return suspenseWrapper(SaaSLandingPage);
   };
-
-  const showHeaderAndFooter = ![
-    '/',
-    '/admin',
-    '/admin/dashboard',
-    '/admin/signup',
-    '/admin/diagnostic',
-    '/admin/test-signup',
-    '/patient/login',
-    '/patient/portal',
-    '/onboarding',
-    '/organization/settings',
-    '/saas/admin',
-  ].includes(currentPath);
 
   const showBreadcrumbs = [
     '/admin/dashboard',
@@ -144,12 +107,8 @@ function App() {
   return (
     <OrganizationProvider>
       <div className="min-h-screen bg-white">
-        {showHeaderAndFooter && <ImprovedHeader onOpenModal={handleOpenModal} isAgendaFull={isAgendaFull} />}
         {showBreadcrumbs && <Breadcrumbs items={getBreadcrumbs(currentPath)} />}
         <main>{renderPage()}</main>
-        {showHeaderAndFooter && <Footer />}
-        {showHeaderAndFooter && <StickyCTA onOpenModal={handleOpenModal} isAgendaFull={isAgendaFull} />}
-        <AppointmentModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       </div>
     </OrganizationProvider>
   );
