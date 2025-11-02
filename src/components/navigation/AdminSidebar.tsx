@@ -120,15 +120,15 @@ export function AdminSidebar({
         <div className="h-20 border-b border-neutral-200 flex items-center justify-between px-6">
           {isOpen ? (
             <>
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center text-white font-bold">
+              <div className="flex items-center space-x-3 min-w-0 flex-1">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center text-white font-bold flex-shrink-0">
                   {userProfile?.email?.[0]?.toUpperCase() || 'A'}
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 overflow-hidden">
                   <div className="text-sm font-semibold text-neutral-900 truncate">
                     {userProfile?.email || 'Admin'}
                   </div>
-                  <div className="text-xs text-neutral-500">
+                  <div className="text-xs text-neutral-500 truncate">
                     Administrateur
                   </div>
                 </div>

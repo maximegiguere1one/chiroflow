@@ -365,24 +365,26 @@ export default function AdminDashboard() {
         {/* Header with Breadcrumbs */}
         <div className="bg-white/80 backdrop-blur-xl border-b border-neutral-200/50 sticky top-0 z-30">
           <div className="px-4 lg:px-8 py-6">
-            <div className="flex items-center gap-4 mb-4">
+            <div className="flex items-center gap-4 mb-4 min-w-0">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="lg:hidden p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+                className="lg:hidden p-2 hover:bg-neutral-100 rounded-lg transition-colors flex-shrink-0"
               >
                 <Menu className="w-6 h-6" />
               </button>
-              <Breadcrumbs items={viewBreadcrumbs[currentView] || []} className="flex-1" />
+              <div className="flex-1 min-w-0 overflow-hidden">
+                <Breadcrumbs items={viewBreadcrumbs[currentView] || []} />
+              </div>
 
               {/* Global Search Button */}
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setShowGlobalSearch(true)}
-                className="flex items-center gap-3 px-4 py-2 bg-white border-2 border-neutral-200 hover:border-gold-400 rounded-xl transition-all shadow-sm hover:shadow-md group"
+                className="flex items-center gap-3 px-4 py-2 bg-white border-2 border-neutral-200 hover:border-gold-400 rounded-xl transition-all shadow-sm hover:shadow-md group flex-shrink-0"
               >
                 <Search className="w-4 h-4 text-neutral-400 group-hover:text-gold-600 transition-colors" />
-                <span className="text-sm text-neutral-500 group-hover:text-foreground transition-colors hidden sm:inline">
+                <span className="text-sm text-neutral-500 group-hover:text-foreground transition-colors hidden sm:inline whitespace-nowrap">
                   Rechercher...
                 </span>
                 <div className="hidden md:flex items-center gap-1 ml-2">
@@ -391,7 +393,7 @@ export default function AdminDashboard() {
                 </div>
               </motion.button>
             </div>
-            <h1 className="text-2xl font-heading text-foreground">
+            <h1 className="text-2xl font-heading text-foreground truncate">
               {viewBreadcrumbs[currentView]?.[viewBreadcrumbs[currentView].length - 1]?.name || 'Admin'}
             </h1>
             <p className="text-sm text-foreground/60 mt-1">
