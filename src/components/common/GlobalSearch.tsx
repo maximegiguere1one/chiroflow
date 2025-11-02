@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { Search, X, User, Calendar, Clock } from 'lucide-react';
+import { Search, X, User, Calendar, Clock, FileText } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import type { Patient, Appointment } from '../../types/database';
 
@@ -10,9 +10,21 @@ interface GlobalSearchProps {
   onNavigate?: (view: string, id?: string) => void;
 }
 
+interface SoapNote {
+  id: string;
+  patient_id: string;
+  patient_name?: string;
+  subjective: string;
+  objective: string;
+  assessment: string;
+  plan: string;
+  created_at: string;
+}
+
 interface SearchResults {
   patients: Patient[];
   appointments: Appointment[];
+  soapNotes: SoapNote[];
   recentSearches: string[];
 }
 
@@ -21,6 +33,7 @@ export function GlobalSearch({ isOpen, onClose, onNavigate }: GlobalSearchProps)
   const [results, setResults] = useState<SearchResults>({
     patients: [],
     appointments: [],
+    soapNotes: [],
     recentSearches: []
   });
   const [loading, setLoading] = useState(false);
@@ -41,7 +54,7 @@ export function GlobalSearch({ isOpen, onClose, onNavigate }: GlobalSearchProps)
       }, 300);
       return () => clearTimeout(debounce);
     } else {
-      setResults(prev => ({ ...prev, patients: [], appointments: [] }));
+      setResults(prev => ({ ...prev, patients: [], appointments: [], soapNotes: [] }));
     }
   }, [query]);
 
@@ -72,7 +85,7 @@ export function GlobalSearch({ isOpen, onClose, onNavigate }: GlobalSearchProps)
     try {
       const term = searchQuery.toLowerCase();
 
-      const [patientsResult, appointmentsResult] = await Promise.all([
+      const [patientsResult, appointmentsResult, soapNotesResult] = await Promise.all([
         supabase
           .from('patients')
           .select('*')
@@ -86,12 +99,40 @@ export function GlobalSearch({ isOpen, onClose, onNavigate }: GlobalSearchProps)
           .or(`name.ilike.%${term}%,reason.ilike.%${term}%`)
           .gte('scheduled_date', new Date().toISOString().split('T')[0])
           .order('scheduled_date', { ascending: true })
+          .limit(5),
+
+        supabase
+          .from('soap_notes')
+          .select(`
+            id,
+            patient_id,
+            subjective,
+            objective,
+            assessment,
+            plan,
+            created_at,
+            contacts!inner(first_name, last_name)
+          `)
+          .or(`subjective.ilike.%${term}%,objective.ilike.%${term}%,assessment.ilike.%${term}%,plan.ilike.%${term}%`)
+          .order('created_at', { ascending: false })
           .limit(5)
       ]);
+
+      const soapNotes = (soapNotesResult.data || []).map((note: any) => ({
+        id: note.id,
+        patient_id: note.patient_id,
+        patient_name: note.contacts ? `${note.contacts.first_name} ${note.contacts.last_name}` : 'Patient inconnu',
+        subjective: note.subjective,
+        objective: note.objective,
+        assessment: note.assessment,
+        plan: note.plan,
+        created_at: note.created_at
+      }));
 
       setResults({
         patients: patientsResult.data || [],
         appointments: appointmentsResult.data || [],
+        soapNotes: soapNotes,
         recentSearches: []
       });
 
@@ -117,16 +158,21 @@ export function GlobalSearch({ isOpen, onClose, onNavigate }: GlobalSearchProps)
     localStorage.setItem('recentSearches', JSON.stringify(updated));
   }
 
-  const totalResults = results.patients.length + results.appointments.length;
+  const totalResults = results.patients.length + results.appointments.length + results.soapNotes.length;
 
   function handleSelectResult(index: number) {
     if (index < results.patients.length) {
       const patient = results.patients[index];
       onNavigate?.('patients', patient.id);
       onClose();
-    } else if (index < totalResults) {
+    } else if (index < results.patients.length + results.appointments.length) {
       const apt = results.appointments[index - results.patients.length];
       onNavigate?.('appointments', apt.id);
+      onClose();
+    } else if (index < totalResults) {
+      const soapIndex = index - results.patients.length - results.appointments.length;
+      const soap = results.soapNotes[soapIndex];
+      onNavigate?.('patients', soap.patient_id);
       onClose();
     }
   }
@@ -322,6 +368,71 @@ export function GlobalSearch({ isOpen, onClose, onNavigate }: GlobalSearchProps)
                                   {apt.status === 'cancelled' && 'Annulé'}
                                 </span>
                               </div>
+                            </div>
+                          </div>
+                          <kbd className="px-2 py-1 bg-neutral-100 border border-neutral-300 rounded text-xs">
+                            ↵
+                          </kbd>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* SOAP Notes Results */}
+            {results.soapNotes.length > 0 && (
+              <div>
+                <div className="text-xs font-medium text-neutral-500 uppercase tracking-wide px-6 py-3 bg-neutral-50">
+                  <FileText className="w-3 h-3 inline mr-2" />
+                  Notes SOAP ({results.soapNotes.length})
+                </div>
+                <div>
+                  {results.soapNotes.map((soap, index) => {
+                    const resultIndex = results.patients.length + results.appointments.length + index;
+                    const highlightText = (text: string) => {
+                      const maxLength = 80;
+                      return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+                    };
+                    return (
+                      <button
+                        key={soap.id}
+                        onClick={() => handleSelectResult(resultIndex)}
+                        className={`w-full text-left px-6 py-4 border-b border-neutral-50 last:border-0 transition-colors ${
+                          selectedIndex === resultIndex
+                            ? 'bg-gold-50 border-gold-100'
+                            : 'hover:bg-neutral-50'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-medium text-foreground">{soap.patient_name}</span>
+                              <span className="text-xs text-foreground/50">
+                                {new Date(soap.created_at).toLocaleDateString('fr-CA', {
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric'
+                                })}
+                              </span>
+                            </div>
+                            <div className="text-sm text-foreground/70 space-y-1">
+                              {soap.subjective && (
+                                <div>
+                                  <span className="font-medium text-foreground/80">S:</span> {highlightText(soap.subjective)}
+                                </div>
+                              )}
+                              {soap.assessment && (
+                                <div>
+                                  <span className="font-medium text-foreground/80">A:</span> {highlightText(soap.assessment)}
+                                </div>
+                              )}
+                            </div>
+                            <div className="mt-2">
+                              <span className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded">
+                                Note SOAP
+                              </span>
                             </div>
                           </div>
                           <kbd className="px-2 py-1 bg-neutral-100 border border-neutral-300 rounded text-xs">

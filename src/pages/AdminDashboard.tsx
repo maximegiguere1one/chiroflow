@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import {
-  Users, Calendar, DollarSign, TrendingUp, Clock, Activity, Menu, Building2, AlertCircle
+  Users, Calendar, DollarSign, TrendingUp, Clock, Activity, Menu, Building2, AlertCircle, Search
 } from 'lucide-react';
 import { useEffect, useState, lazy, Suspense } from 'react';
 import { supabase } from '../lib/supabase';
@@ -370,6 +370,23 @@ export default function AdminDashboard() {
                 <Menu className="w-6 h-6" />
               </button>
               <Breadcrumbs items={viewBreadcrumbs[currentView] || []} className="flex-1" />
+
+              {/* Global Search Button */}
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setShowGlobalSearch(true)}
+                className="flex items-center gap-3 px-4 py-2 bg-white border-2 border-neutral-200 hover:border-gold-400 rounded-xl transition-all shadow-sm hover:shadow-md group"
+              >
+                <Search className="w-4 h-4 text-neutral-400 group-hover:text-gold-600 transition-colors" />
+                <span className="text-sm text-neutral-500 group-hover:text-foreground transition-colors hidden sm:inline">
+                  Rechercher...
+                </span>
+                <div className="hidden md:flex items-center gap-1 ml-2">
+                  <kbd className="px-1.5 py-0.5 text-xs bg-neutral-100 border border-neutral-300 rounded">⌘</kbd>
+                  <kbd className="px-1.5 py-0.5 text-xs bg-neutral-100 border border-neutral-300 rounded">K</kbd>
+                </div>
+              </motion.button>
             </div>
             <h1 className="text-2xl font-heading text-foreground">
               {viewBreadcrumbs[currentView]?.[viewBreadcrumbs[currentView].length - 1]?.name || 'Admin'}
