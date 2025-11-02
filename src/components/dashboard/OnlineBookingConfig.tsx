@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Calendar, Clock, DollarSign, Globe, Save, ToggleLeft, ToggleRight } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useToastContext } from '../../contexts/ToastContext';
+import { buttonHover, buttonTap } from '../../lib/animations';
 
 interface BookingSettings {
   id?: string;

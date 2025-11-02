@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Plus, Trash2, Save, FileText, Eye, ChevronDown, ChevronUp } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useToastContext } from '../../contexts/ToastContext';
+import { buttonHover, buttonTap } from '../../lib/animations';
 
 interface Question {
   id: string;

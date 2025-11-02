@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 import { useToastContext } from '../../contexts/ToastContext';
+import { buttonHover, buttonTap } from '../../lib/animations';
 import {
   Bell,
   Save,

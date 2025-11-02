@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { X, Shield, FileText, CheckCircle, AlertTriangle, Lock, Eye, Download, Trash2 } from 'lucide-react';
+import { useToastContext } from '../../contexts/ToastContext';
 
 interface LegalComplianceModalProps {
   patientId: string;

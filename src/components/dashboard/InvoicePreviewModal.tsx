@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { X, Download, Printer } from 'lucide-react';
 import { useRef } from 'react';
+import { useToastContext } from '../../contexts/ToastContext';
 import { generateInvoiceHTML } from '../../lib/invoiceHtmlGenerator';
 
 interface InvoiceData {

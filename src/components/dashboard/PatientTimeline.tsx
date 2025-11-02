@@ -3,6 +3,7 @@ import {
   Calendar, FileText, DollarSign, Phone, Mail,
   CheckCircle, Clock, AlertCircle, MessageSquare
 } from 'lucide-react';
+import { useToastContext } from '../../contexts/ToastContext';
 
 interface TimelineEvent {
   id: string;
