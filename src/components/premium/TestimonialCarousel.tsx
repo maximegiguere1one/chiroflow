@@ -19,7 +19,7 @@ const testimonials: Testimonial[] = [
     location: 'Laval, QC',
     rating: 5,
     quote:
-      "Avant ChiroFlow, je finissais à 19h30 chaque soir pour la paperasse. Maintenant je ferme à 17h pile et je passe mes soirées avec mes enfants. Ça a littéralement changé ma vie.",
+      "Avant ChiroFlow, je finissais à 19h30 chaque soir pour la paperasse. Maintenant? Je ferme à 17h et profite de mes soirées avec mes enfants. Cette liberté a transformé ma vie de mère et de chiropraticienne.",
     result: '3 heures gagnées par jour • 75% moins d\'absences • 0 appel de rappel',
   },
   {

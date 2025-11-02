@@ -110,9 +110,9 @@ export const HeroSectionPremium: React.FC = () => {
           transition={{ ...motionConfig.spring.smooth, delay: 1.2 }}
           className="text-xl md:text-2xl text-slate-600 mb-12 max-w-3xl mx-auto leading-relaxed"
         >
-          Éliminez votre assistante et automatisez 100% de votre administratif.{' '}
-          <span className="font-semibold text-emerald-700">Réservations 24/7, rappels automatiques, facturation instantanée.</span>{' '}
-          Plus de 500 cliniques ont éliminé leur poste d'assistante et économisent en moyenne 47 052$/an.
+          Automatisez votre clinique chiropratique et éliminez les coûts d'assistante.{' '}
+          <span className="font-semibold text-emerald-700">Notre logiciel gère vos réservations 24/7, envoie les rappels et facture instantanément.</span>{' '}
+          Plus de 500 cliniques québécoises économisent 47 052$/an avec ChiroFlow.
         </motion.p>
 
         <motion.div

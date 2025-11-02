@@ -90,19 +90,19 @@ export const ScrollStorySection: React.FC = () => {
       icon: Calendar,
       title: "Réservation en ligne 24/7",
       description:
-        "Vos patients prennent leurs rendez-vous en ligne, jour et nuit. Plus besoin de passer 2-3 heures par jour au téléphone. Votre agenda se remplit automatiquement pendant que vous vous occupez de vos patients.",
+        "Vos patients réservent en ligne 24/7 sans vous déranger. Économisez 2-3 heures par jour de réponse téléphonique. Votre agenda se remplit seul pendant que vous soignez vos patients.",
     },
     {
       icon: Zap,
       title: 'Rappels automatiques intelligents',
       description:
-        "ChiroFlow envoie automatiquement des rappels par courriel, texto et appel vocal. Vos patients reçoivent 3 rappels avant leur rendez-vous. Résultat : 85% moins d'absences et zéro temps perdu à faire des rappels manuels.",
+        "Le système envoie 3 rappels automatiques : courriel, SMS et appel vocal. Résultat immédiat : 85% moins d'absences sans aucun effort de votre part. Vous éliminez complètement les rappels manuels.",
     },
     {
       icon: DollarSign,
       title: 'Facturation & Paiements automatisés',
       description:
-        "La facturation se fait automatiquement après chaque visite. Paiements en ligne sécurisés, rappels de paiement automatiques, rapports financiers instantanés. Vous récupérez 10+ heures par semaine sur la comptabilité.",
+        "ChiroFlow facture automatiquement chaque visite et encaisse les paiements en ligne. Le système envoie les rappels de paiement et génère vos rapports financiers. Vous récupérez 10+ heures/semaine de travail comptable.",
     },
   ];
 

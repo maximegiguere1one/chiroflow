@@ -11,9 +11,9 @@ interface FAQItem {
 
 const faqs: FAQItem[] = [
   {
-    question: "Est-ce vraiment possible de remplacer une assistante à temps plein?",
-    answer: "Oui, absolument. ChiroFlow automatise 100% des tâches qu'une assistante fait: réservations, rappels, facturation, gestion d'agenda. Plus de 500 cliniques au Québec ont éliminé leur poste d'assistante et économisent 40-50K$/an.",
-    highlight: "500+ cliniques l'ont fait avec succès"
+    question: "Peut-on vraiment éliminer le poste d'assistante?",
+    answer: "Absolument. ChiroFlow automatise 100% des tâches administratives: réservations, rappels, facturation et agenda. Plus de 500 cliniques québécoises l'utilisent aujourd'hui et économisent en moyenne 47 000$/an.",
+    highlight: "500+ cliniques l'utilisent aujourd'hui"
   },
   {
     question: "Combien de temps prend la configuration initiale?",
@@ -21,8 +21,8 @@ const faqs: FAQItem[] = [
     highlight: "Opérationnel en 5 minutes"
   },
   {
-    question: "Mes patients âgés vont-ils réussir à réserver en ligne?",
-    answer: "Oui! 92% des patients de 60+ réservent sans problème. L'interface est ultra-simple (plus facile que Facebook). Et s'ils préfèrent appeler, vous gardez votre numéro - l'appel est redirigé vers vous directement.",
+    question: "Les patients âgés peuvent-ils réserver en ligne?",
+    answer: "Oui! 92% des patients de 60+ réservent sans aide. L'interface surpasse Facebook en simplicité. Les patients qui préfèrent téléphoner vous rejoignent directement — vous gardez votre numéro habituel.",
     highlight: "92% succès chez 60+ ans"
   },
   {
@@ -31,8 +31,8 @@ const faqs: FAQItem[] = [
     highlight: "Gestion d'urgence en 2 clics"
   },
   {
-    question: "Est-ce que mes données sont sécurisées et conformes?",
-    answer: "100%. Nous sommes certifiés HIPAA et conformes aux lois canadiennes sur la santé (LPRPDE). Vos données sont hébergées au Canada sur des serveurs ultra-sécurisés. Cryptage bout-en-bout. Sauvegardes quotidiennes automatiques.",
+    question: "Mes données restent-elles sécurisées et conformes?",
+    answer: "Garantie absolue. Nous détenons la certification HIPAA et respectons les lois canadiennes (LPRPDE). Vos données restent au Canada sur nos serveurs ultra-sécurisés avec cryptage complet et sauvegardes automatiques quotidiennes.",
     highlight: "Certifié HIPAA • Données au Canada"
   },
   {
