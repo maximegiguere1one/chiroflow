@@ -27,6 +27,9 @@ Deno.serve(async (req: Request) => {
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     const resendDomain = Deno.env.get("RESEND_DOMAIN");
     const appDomain = Deno.env.get("APP_DOMAIN");
+    const twilioAccountSid = Deno.env.get("TWILIO_ACCOUNT_SID");
+    const twilioAuthToken = Deno.env.get("TWILIO_AUTH_TOKEN");
+    const twilioPhoneNumber = Deno.env.get("TWILIO_PHONE_NUMBER");
 
     checks.push({
       name: "RESEND_API_KEY",
@@ -72,6 +75,50 @@ Deno.serve(async (req: Request) => {
       valid: appDomain ? !appDomain.includes("http") : false,
       issue: !appDomain ? "Secret manquant (optionnel mais recommandé)" : undefined,
       recommendation: !appDomain ? "Ajoutez APP_DOMAIN=janiechiro.com pour les URLs d'invitation" : undefined,
+    });
+
+    checks.push({
+      name: "TWILIO_ACCOUNT_SID",
+      exists: !!twilioAccountSid,
+      valid: twilioAccountSid ? twilioAccountSid.startsWith("AC") && twilioAccountSid.length === 34 : false,
+      issue: !twilioAccountSid
+        ? "Secret manquant"
+        : !twilioAccountSid.startsWith("AC")
+        ? "Format incorrect (devrait commencer par 'AC')"
+        : twilioAccountSid.length !== 34
+        ? "Longueur incorrecte (devrait être 34 caractères)"
+        : undefined,
+      recommendation: !twilioAccountSid
+        ? "Ajoutez TWILIO_ACCOUNT_SID depuis console.twilio.com"
+        : undefined,
+    });
+
+    checks.push({
+      name: "TWILIO_AUTH_TOKEN",
+      exists: !!twilioAuthToken,
+      valid: twilioAuthToken ? twilioAuthToken.length === 32 : false,
+      issue: !twilioAuthToken
+        ? "Secret manquant"
+        : twilioAuthToken.length !== 32
+        ? "Longueur incorrecte (devrait être 32 caractères)"
+        : undefined,
+      recommendation: !twilioAuthToken
+        ? "Ajoutez TWILIO_AUTH_TOKEN depuis console.twilio.com"
+        : undefined,
+    });
+
+    checks.push({
+      name: "TWILIO_PHONE_NUMBER",
+      exists: !!twilioPhoneNumber,
+      valid: twilioPhoneNumber ? twilioPhoneNumber.startsWith("+") : false,
+      issue: !twilioPhoneNumber
+        ? "Secret manquant"
+        : !twilioPhoneNumber.startsWith("+")
+        ? "Format incorrect (devrait commencer par '+' ex: +15551234567)"
+        : undefined,
+      recommendation: !twilioPhoneNumber
+        ? "Ajoutez TWILIO_PHONE_NUMBER au format E.164 (+15551234567)"
+        : undefined,
     });
 
     for (const check of checks) {
