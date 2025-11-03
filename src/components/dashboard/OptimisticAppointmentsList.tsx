@@ -26,7 +26,7 @@ interface Appointment {
   error?: string;
 }
 
-export default function OptimisticAppointmentsList() {
+export function OptimisticAppointmentsList() {
   const {
     items: appointments,
     addOptimistic,
