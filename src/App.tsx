@@ -3,8 +3,6 @@ import { Breadcrumbs } from './components/navigation/Breadcrumbs';
 import { supabase } from './lib/supabase';
 import { router, getBreadcrumbs } from './lib/router';
 import { OrganizationProvider } from './contexts/OrganizationContext';
-import { ErrorBoundaryWithRecovery } from './components/common/ErrorBoundaryWithRecovery';
-import { PerformanceMonitor } from './components/common/PerformanceMonitor';
 
 const AdminLogin = lazy(() => import('./pages/AdminLogin'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
@@ -103,7 +101,7 @@ function App() {
   };
 
   const renderPage = () => {
-    const suspenseWrapper = (Component: React.ComponentType<any>, props?: any) => (
+    const suspenseWrapper = (Component: React.ComponentType, props?: any) => (
       <Suspense fallback={<LoadingFallback />}>
         <Component {...props} />
       </Suspense>
@@ -162,15 +160,12 @@ function App() {
   ].includes(currentPath);
 
   return (
-    <ErrorBoundaryWithRecovery>
-      <OrganizationProvider>
-        <div className="min-h-screen bg-white">
-          <PerformanceMonitor />
-          {showBreadcrumbs && <Breadcrumbs items={getBreadcrumbs(currentPath)} />}
-          <main>{renderPage()}</main>
-        </div>
-      </OrganizationProvider>
-    </ErrorBoundaryWithRecovery>
+    <OrganizationProvider>
+      <div className="min-h-screen bg-white">
+        {showBreadcrumbs && <Breadcrumbs items={getBreadcrumbs(currentPath)} />}
+        <main>{renderPage()}</main>
+      </div>
+    </OrganizationProvider>
   );
 }
 
