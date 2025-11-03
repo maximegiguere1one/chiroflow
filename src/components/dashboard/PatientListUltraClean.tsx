@@ -566,7 +566,7 @@ export default function PatientListUltraClean() {
 
       {activeModal === 'message' && selectedPatient && (
         <SendMessageModal
-          contact={selectedPatient}
+          patient={selectedPatient}
           onClose={() => {
             setActiveModal('none');
             setSelectedPatient(null);

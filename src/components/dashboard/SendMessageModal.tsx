@@ -62,6 +62,9 @@ export function SendMessageModal({ patient, onClose }: SendMessageModalProps) {
         return;
       }
 
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const { data: { session } } = await supabase.auth.getSession();
+
       if (messageType === 'email') {
         const trackingRecord = {
           contact_id: patient.id,
@@ -83,9 +86,6 @@ export function SendMessageModal({ patient, onClose }: SendMessageModalProps) {
           .single();
 
         if (trackingError) throw trackingError;
-
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        const { data: { session } } = await supabase.auth.getSession();
 
         try {
           const response = await fetch(`${supabaseUrl}/functions/v1/send-custom-email`, {
