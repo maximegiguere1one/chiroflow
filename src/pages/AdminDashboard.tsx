@@ -31,10 +31,6 @@ const AdminPaymentManagement = lazy(() => import('../components/dashboard/AdminP
 const SystemMonitoring = lazy(() => import('../components/dashboard/SystemMonitoring'));
 const AdvancedSettings = lazy(() => import('../components/dashboard/AdvancedSettings').then(m => ({ default: m.AdvancedSettings })));
 const AutomationDashboard = lazy(() => import('../components/dashboard/AutomationDashboard'));
-const ActionableAnalytics = lazy(() => import('../components/dashboard/ActionableAnalytics').then(m => ({ default: m.ActionableAnalytics })));
-const OneClickBatchOps = lazy(() => import('../components/dashboard/OneClickBatchOps').then(m => ({ default: m.OneClickBatchOps })));
-const CancellationAutomationMonitor = lazy(() => import('../components/dashboard/CancellationAutomationMonitor').then(m => ({ default: m.CancellationAutomationMonitor })));
-const AutomationHealthDashboard = lazy(() => import('../components/dashboard/AutomationHealthDashboard').then(m => ({ default: m.AutomationHealthDashboard })));
 const ProfessionalFormsManager = lazy(() => import('../components/dashboard/ProfessionalFormsManager').then(m => ({ default: m.ProfessionalFormsManager })));
 
 interface DashboardStats {
@@ -445,10 +441,6 @@ export default function AdminDashboard() {
               {currentView === 'monitoring' && <SystemMonitoring />}
               {currentView === 'advanced-settings' && <AdvancedSettings />}
               {currentView === 'automation' && <AutomationDashboard />}
-              {currentView === 'actionable-analytics' && <ActionableAnalytics />}
-              {currentView === 'one-click-batch' && <OneClickBatchOps />}
-              {currentView === 'cancellation-automation' && <CancellationAutomationMonitor />}
-              {currentView === 'automation-health' && <AutomationHealthDashboard />}
               {currentView === 'forms' && <ProfessionalFormsManager />}
               {currentView === 'settings' && <SettingsPage />}
             </Suspense>

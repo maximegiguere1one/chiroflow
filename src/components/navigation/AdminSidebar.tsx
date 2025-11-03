@@ -8,8 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export type AdminView = 'dashboard' | 'patients' | 'appointments' | 'billing' | 'settings' |
   'batch' | 'quick-actions' | 'calendar' | 'progress' | 'analytics' | 'insurance' |
-  'waitlist' | 'rebooking' | 'payments' | 'monitoring' | 'advanced-settings' | 'automation' |
-  'actionable-analytics' | 'one-click-batch' | 'cancellation-automation' | 'automation-health' | 'forms';
+  'waitlist' | 'rebooking' | 'payments' | 'monitoring' | 'advanced-settings' | 'automation' | 'forms';
 
 interface NavItem {
   id: AdminView;
@@ -43,7 +42,6 @@ export function AdminSidebar({
       section: 'Principal',
       items: [
         { id: 'dashboard', label: '🌅 Ma Journée', icon: Home },
-        { id: 'automation-health', label: '🤖 Santé Automatisations', icon: Zap },
         { id: 'automation', label: 'Automatisation 100%', icon: Zap },
         { id: 'calendar', label: 'Calendrier', icon: Calendar },
         { id: 'quick-actions', label: 'Actions rapides', icon: Menu },
@@ -70,17 +68,14 @@ export function AdminSidebar({
     {
       section: 'Analyses',
       items: [
-        { id: 'actionable-analytics', label: '⚡ Analytics Actionables', icon: Zap },
         { id: 'analytics', label: 'Analytiques', icon: BarChart3 },
         { id: 'progress', label: 'Progrès patients', icon: Users },
         { id: 'monitoring', label: 'Surveillance système', icon: Bell },
-        { id: 'cancellation-automation', label: '📧 Automation Annulations', icon: Zap },
       ]
     },
     {
       section: 'Configuration',
       items: [
-        { id: 'one-click-batch', label: '⚡ Batch 1-Clic', icon: Zap },
         { id: 'settings', label: 'Paramètres', icon: Settings },
         { id: 'advanced-settings', label: 'Paramètres avancés', icon: Settings },
         { id: 'batch', label: 'Opérations groupées', icon: List },
