@@ -13,6 +13,7 @@ import { AppointmentSchedulingModal } from './AppointmentSchedulingModal';
 import { PatientBillingModal } from './PatientBillingModal';
 import { QuickBillingModal } from './QuickBillingModal';
 import { CSVImportModal } from './CSVImportModal';
+import { SendMessageModal } from './SendMessageModal';
 
 interface Patient {
   id: string;
@@ -38,7 +39,7 @@ export default function PatientListUltraClean() {
   const [viewMode, setViewMode] = useState<ViewMode>('all');
   const [sortField, setSortField] = useState<SortField>('last_visit');
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
-  const [activeModal, setActiveModal] = useState<'none' | 'details' | 'appointment' | 'billing' | 'quickBilling' | 'import'>('none');
+  const [activeModal, setActiveModal] = useState<'none' | 'details' | 'appointment' | 'billing' | 'quickBilling' | 'import' | 'message'>('none');
   const [contextMenu, setContextMenu] = useState<{ patientId: string; x: number; y: number } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -476,7 +477,8 @@ export default function PatientListUltraClean() {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                toast.info('Envoi de message...');
+                                setSelectedPatient(patient);
+                                setActiveModal('message');
                               }}
                               className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all"
                               title="Envoyer un message"
@@ -558,6 +560,16 @@ export default function PatientListUltraClean() {
           onClose={() => {
             setActiveModal('none');
             loadPatients();
+          }}
+        />
+      )}
+
+      {activeModal === 'message' && selectedPatient && (
+        <SendMessageModal
+          contact={selectedPatient}
+          onClose={() => {
+            setActiveModal('none');
+            setSelectedPatient(null);
           }}
         />
       )}
