@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { getOrganizationBranding, getSMSMessage } from '../_shared/branding.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -55,6 +56,9 @@ Deno.serve(async (req: Request) => {
           continue;
         }
 
+        const branding = await getOrganizationBranding(apt.owner_id);
+        const clinicName = branding.clinic_name;
+
         const appointmentTime = new Date(apt.scheduled_at);
         const timeStr = appointmentTime.toLocaleTimeString('fr-FR', {
           hour: '2-digit',
@@ -62,9 +66,8 @@ Deno.serve(async (req: Request) => {
         });
 
         const appDomain = Deno.env.get('APP_DOMAIN') || Deno.env.get('SUPABASE_URL');
-        const message = `🩺 Clinique Janie: Rappel de RDV dans 2h à ${timeStr}. ` +
-          `Confirmez en 1 clic: ${appDomain}/confirm/${apt.confirmation_token}. ` +
-          `Annuler/Modifier: ${appDomain}/manage/${apt.confirmation_token}`;
+        const messageBody = `Rappel de RDV dans 2h à ${timeStr}. Confirmez: ${appDomain}/confirm/${apt.confirmation_token}`;
+        const message = getSMSMessage(clinicName, messageBody);
 
         const authHeader = 'Basic ' + btoa(`${twilioAccountSid}:${twilioAuthToken}`);
 

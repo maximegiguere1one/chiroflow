@@ -1,4 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from 'npm:@supabase/supabase-js@2';
+import { getOrganizationBranding, getFromEmail, getEmailFooter } from '../_shared/branding.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,6 +14,7 @@ interface EmailRequest {
   message: string;
   patient_name: string;
   tracking_id?: string;
+  owner_id?: string;
 }
 
 Deno.serve(async (req: Request) => {
@@ -23,7 +26,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { to, subject, message, patient_name, tracking_id }: EmailRequest = await req.json();
+    const { to, subject, message, patient_name, tracking_id, owner_id }: EmailRequest = await req.json();
 
     if (!to || !subject || !message) {
       return new Response(
@@ -47,6 +50,30 @@ Deno.serve(async (req: Request) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
+    }
+
+    let branding;
+    let clinicName = "Votre Clinique";
+
+    if (owner_id) {
+      branding = await getOrganizationBranding(owner_id);
+      clinicName = branding.clinic_name;
+    } else {
+      const authHeader = req.headers.get('Authorization');
+      if (authHeader) {
+        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        const { data: { user } } = await supabase.auth.getUser(
+          authHeader.replace('Bearer ', '')
+        );
+
+        if (user) {
+          branding = await getOrganizationBranding(user.id);
+          clinicName = branding.clinic_name;
+        }
+      }
     }
 
     const htmlBody = `
@@ -87,20 +114,12 @@ Deno.serve(async (req: Request) => {
       white-space: pre-wrap;
       line-height: 1.8;
     }
-    .footer {
-      margin-top: 40px;
-      padding-top: 20px;
-      border-top: 1px solid #e5e7eb;
-      text-align: center;
-      font-size: 14px;
-      color: #6b7280;
-    }
   </style>
 </head>
 <body>
   <div class="email-container">
     <div class="header">
-      <h1>Message de votre chiropraticien</h1>
+      <h1>Message de ${clinicName}</h1>
     </div>
 
     <div class="content">
@@ -108,10 +127,7 @@ Deno.serve(async (req: Request) => {
       <p>${message}</p>
     </div>
 
-    <div class="footer">
-      <p>Ceci est un message automatisé de votre clinique chiropratique.</p>
-      <p>Veuillez ne pas répondre directement à cet email.</p>
-    </div>
+    ${getEmailFooter(clinicName, branding?.email, branding?.phone)}
   </div>
 </body>
 </html>
@@ -124,7 +140,7 @@ Deno.serve(async (req: Request) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: `Clinique Janie <noreply@${RESEND_DOMAIN}>`,
+        from: getFromEmail(clinicName, RESEND_DOMAIN),
         to: [to],
         subject: subject,
         html: htmlBody,
@@ -147,6 +163,7 @@ Deno.serve(async (req: Request) => {
         to,
         subject,
         tracking_id,
+        clinic_name: clinicName,
         resend_id: resendData.id,
       },
     }));
