@@ -36,6 +36,8 @@ Deno.serve(async (req: Request) => {
     }
 
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+    const RESEND_DOMAIN = Deno.env.get("RESEND_DOMAIN") || "janiechiro.com";
+
     if (!RESEND_API_KEY) {
       console.error("RESEND_API_KEY not configured");
       return new Response(
@@ -122,7 +124,7 @@ Deno.serve(async (req: Request) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "ChiroFlow <noreply@chiroflow.app>",
+        from: `Clinique Janie <noreply@${RESEND_DOMAIN}>`,
         to: [to],
         subject: subject,
         html: htmlBody,
