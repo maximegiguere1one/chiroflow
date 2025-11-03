@@ -1,12 +1,21 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { AllSettings } from '../../hooks/useSettings';
 import { useToastContext } from '../../contexts/ToastContext';
 import { Palette, Save, Eye, Upload, Sparkles } from 'lucide-react';
 import { buttonHover, buttonTap } from '../../lib/animations';
 
+interface BrandingSettings {
+  primary_color: string;
+  secondary_color: string;
+  accent_color: string;
+  text_color: string;
+  background_color: string;
+  heading_font: string;
+  body_font: string;
+}
+
 interface BrandingConfigProps {
-  settings: AllSettings;
+  settings: BrandingSettings | null;
   updateBrandingSettings: (updates: any) => Promise<any>;
 }
 
@@ -26,18 +35,18 @@ export function BrandingConfig({ settings, updateBrandingSettings }: BrandingCon
   });
 
   useEffect(() => {
-    if (settings.branding) {
+    if (settings) {
       setBrandingData({
-        primary_color: settings.branding.primary_color,
-        secondary_color: settings.branding.secondary_color,
-        accent_color: settings.branding.accent_color,
-        text_color: settings.branding.text_color,
-        background_color: settings.branding.background_color,
-        heading_font: settings.branding.heading_font,
-        body_font: settings.branding.body_font,
+        primary_color: settings.primary_color,
+        secondary_color: settings.secondary_color,
+        accent_color: settings.accent_color,
+        text_color: settings.text_color,
+        background_color: settings.background_color,
+        heading_font: settings.heading_font,
+        body_font: settings.body_font,
       });
     }
-  }, [settings.branding]);
+  }, [settings]);
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();

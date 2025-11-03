@@ -4,10 +4,25 @@ import { supabase } from '../../lib/supabase';
 import { useToastContext } from '../../contexts/ToastContext';
 import { DollarSign, Save, FileText, CreditCard } from 'lucide-react';
 import { buttonHover, buttonTap } from '../../lib/animations';
-import { AllSettings } from '../../hooks/useSettings';
+
+interface BillingSettings {
+  tax_rate?: number;
+  tax_name?: string;
+  include_tax_in_price?: boolean;
+  invoice_prefix?: string;
+  next_invoice_number?: number;
+  accept_cash?: boolean;
+  accept_credit_card?: boolean;
+  accept_debit?: boolean;
+  accept_insurance?: boolean;
+  payment_terms_days?: number;
+  late_fee_percentage?: number;
+  invoice_notes?: string;
+  receipt_footer?: string;
+}
 
 interface BillingConfigProps {
-  settings: AllSettings;
+  settings: BillingSettings | null;
 }
 
 export function BillingConfig({ settings }: BillingConfigProps) {
@@ -30,24 +45,24 @@ export function BillingConfig({ settings }: BillingConfigProps) {
   });
 
   useEffect(() => {
-    if (settings.billing) {
+    if (settings) {
       setBillingData({
-        tax_rate: settings.billing.tax_rate,
-        tax_name: settings.billing.tax_name,
-        include_tax_in_price: settings.billing.include_tax_in_price,
-        invoice_prefix: settings.billing.invoice_prefix,
-        next_invoice_number: settings.billing.next_invoice_number,
-        accept_cash: settings.billing.accept_cash,
-        accept_credit_card: settings.billing.accept_credit_card,
-        accept_debit: settings.billing.accept_debit,
-        accept_insurance: settings.billing.accept_insurance,
-        payment_terms_days: settings.billing.payment_terms_days,
-        late_fee_percentage: settings.billing.late_fee_percentage,
-        invoice_notes: settings.billing.invoice_notes,
-        receipt_footer: settings.billing.receipt_footer,
+        tax_rate: settings.tax_rate ?? 14.975,
+        tax_name: settings.tax_name ?? 'TPS/TVQ',
+        include_tax_in_price: settings.include_tax_in_price ?? false,
+        invoice_prefix: settings.invoice_prefix ?? 'INV-',
+        next_invoice_number: settings.next_invoice_number ?? 1001,
+        accept_cash: settings.accept_cash ?? true,
+        accept_credit_card: settings.accept_credit_card ?? true,
+        accept_debit: settings.accept_debit ?? true,
+        accept_insurance: settings.accept_insurance ?? true,
+        payment_terms_days: settings.payment_terms_days ?? 30,
+        late_fee_percentage: settings.late_fee_percentage ?? 0,
+        invoice_notes: settings.invoice_notes ?? 'Merci de votre confiance. Pour toute question, contactez-nous.',
+        receipt_footer: settings.receipt_footer ?? 'Cette facture a été générée électroniquement et est valide sans signature.',
       });
     }
-  }, [settings.billing]);
+  }, [settings]);
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
