@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,6 +28,10 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
     const data: BookingConfirmationData = await req.json();
 
     const {
@@ -63,7 +68,6 @@ Deno.serve(async (req: Request) => {
           <tr>
             <td align="center" style="padding: 40px 0;">
               <table role="presentation" style="width: 600px; border-collapse: collapse; background-color: #ffffff; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                <!-- Header -->
                 <tr>
                   <td style="padding: 40px 30px; text-align: center; background: linear-gradient(135deg, #D4AF37 0%, #C9A55C 100%);">
                     <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">
@@ -71,8 +75,6 @@ Deno.serve(async (req: Request) => {
                     </h1>
                   </td>
                 </tr>
-
-                <!-- Body -->
                 <tr>
                   <td style="padding: 40px 30px;">
                     <h2 style="margin: 0 0 20px 0; color: #333333; font-size: 24px;">
@@ -81,8 +83,6 @@ Deno.serve(async (req: Request) => {
                     <p style="margin: 0 0 20px 0; color: #666666; font-size: 16px; line-height: 1.6;">
                       Votre rendez-vous a été confirmé avec succès! Voici les détails:
                     </p>
-
-                    <!-- Appointment Details -->
                     <table role="presentation" style="width: 100%; border-collapse: collapse; margin: 30px 0; background-color: #f9f9f9; border-radius: 8px;">
                       <tr>
                         <td style="padding: 20px;">
@@ -121,16 +121,12 @@ Deno.serve(async (req: Request) => {
                         </td>
                       </tr>
                     </table>
-
-                    <!-- Important Info -->
                     <div style="margin: 30px 0; padding: 20px; background-color: #fff9e6; border-left: 4px solid #D4AF37; border-radius: 4px;">
                       <p style="margin: 0; color: #856404; font-size: 14px; line-height: 1.6;">
                         <strong>📍 Instructions importantes:</strong><br>
                         Veuillez arriver 10 minutes avant votre rendez-vous. Si vous devez annuler, veuillez le faire au moins 24 heures à l'avance.
                       </p>
                     </div>
-
-                    <!-- Action Buttons -->
                     <table role="presentation" style="width: 100%; border-collapse: collapse; margin: 30px 0;">
                       <tr>
                         <td align="center" style="padding: 10px;">
@@ -147,14 +143,11 @@ Deno.serve(async (req: Request) => {
                         </td>
                       </tr>
                     </table>
-
                     <p style="margin: 30px 0 0 0; color: #999999; font-size: 14px; line-height: 1.6;">
                       Vous recevrez un rappel par email 24 heures avant votre rendez-vous.
                     </p>
                   </td>
                 </tr>
-
-                <!-- Footer -->
                 <tr>
                   <td style="padding: 30px; text-align: center; background-color: #f9f9f9; border-top: 1px solid #eeeeee;">
                     <p style="margin: 0 0 10px 0; color: #999999; font-size: 12px;">
@@ -199,6 +192,32 @@ Deno.serve(async (req: Request) => {
     }
 
     const resendData = await resendResponse.json();
+
+    const { data: contact } = await supabase
+      .from('contacts')
+      .select('phone, owner_id')
+      .eq('email', patientEmail)
+      .single();
+
+    if (contact?.phone) {
+      const smsMessage = `Confirmation de RDV - ${patientName}\n\n📅 ${formattedDate} à ${appointmentTime}\n⏱️ ${duration} min\n💰 ${price}$\n\nClinique Dre Janie Leblanc\nMerci!`;
+
+      try {
+        const smsResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/test-sms-direct`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: contact.phone,
+            message: smsMessage,
+          }),
+        });
+
+        const smsData = await smsResponse.json();
+        console.log('SMS sent:', smsData);
+      } catch (smsError) {
+        console.error('SMS error (non-blocking):', smsError);
+      }
+    }
 
     return new Response(
       JSON.stringify({
