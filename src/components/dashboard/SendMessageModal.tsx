@@ -23,8 +23,10 @@ export function SendMessageModal({ patient, onClose }: SendMessageModalProps) {
   const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
+    console.log('📨 SendMessageModal monté', { patient });
     document.body.style.overflow = 'hidden';
     return () => {
+      console.log('📨 SendMessageModal démonté');
       document.body.style.overflow = 'unset';
     };
   }, []);

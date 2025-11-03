@@ -299,6 +299,7 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
   };
 
   const handleSendMessage = () => {
+    console.log('📧 Bouton message cliqué, ouverture du modal...', { patient });
     setShowMessageModal(true);
     toast.info('Ouverture de la messagerie...');
   };
