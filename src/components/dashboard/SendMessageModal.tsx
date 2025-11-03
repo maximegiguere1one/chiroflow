@@ -7,8 +7,9 @@ import { supabase } from '../../lib/supabase';
 interface SendMessageModalProps {
   patient: {
     id: string;
-    first_name: string;
-    last_name: string;
+    first_name?: string;
+    last_name?: string;
+    full_name?: string;
     email: string;
     phone: string;
   };
@@ -97,7 +98,7 @@ export function SendMessageModal({ patient, onClose }: SendMessageModalProps) {
               to: patient.email,
               subject: subject,
               message: message,
-              patient_name: `${patient.first_name} ${patient.last_name}`,
+              patient_name: patient.full_name || `${patient.first_name} ${patient.last_name}`,
               tracking_id: tracking.id
             })
           });
@@ -160,7 +161,7 @@ export function SendMessageModal({ patient, onClose }: SendMessageModalProps) {
             body: JSON.stringify({
               to: patient.phone,
               message: message,
-              patient_name: `${patient.first_name} ${patient.last_name}`,
+              patient_name: patient.full_name || `${patient.first_name} ${patient.last_name}`,
               tracking_id: tracking.id
             })
           });
@@ -226,7 +227,7 @@ export function SendMessageModal({ patient, onClose }: SendMessageModalProps) {
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Envoyer un Message</h2>
             <p className="text-sm text-gray-600 mt-1">
-              À: {patient.first_name} {patient.last_name}
+              À: {patient.full_name || `${patient.first_name} ${patient.last_name}`}
             </p>
           </div>
           <button
