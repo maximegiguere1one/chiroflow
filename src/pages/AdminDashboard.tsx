@@ -32,6 +32,7 @@ const SystemMonitoring = lazy(() => import('../components/dashboard/SystemMonito
 const AdvancedSettings = lazy(() => import('../components/dashboard/AdvancedSettings').then(m => ({ default: m.AdvancedSettings })));
 const AutomationDashboard = lazy(() => import('../components/dashboard/AutomationDashboard'));
 const ProfessionalFormsManager = lazy(() => import('../components/dashboard/ProfessionalFormsManager').then(m => ({ default: m.ProfessionalFormsManager })));
+const EmailSMSTester = lazy(() => import('../components/dashboard/EmailSMSTester').then(m => ({ default: m.EmailSMSTester })));
 
 interface DashboardStats {
   totalPatients: number;
@@ -441,6 +442,7 @@ export default function AdminDashboard() {
               {currentView === 'monitoring' && <SystemMonitoring />}
               {currentView === 'advanced-settings' && <AdvancedSettings />}
               {currentView === 'automation' && <AutomationDashboard />}
+              {currentView === 'email-sms-tester' && <EmailSMSTester />}
               {currentView === 'forms' && <ProfessionalFormsManager />}
               {currentView === 'settings' && <SettingsPage />}
             </Suspense>

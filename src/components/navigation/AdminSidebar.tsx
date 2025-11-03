@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export type AdminView = 'dashboard' | 'patients' | 'appointments' | 'billing' | 'settings' |
   'batch' | 'quick-actions' | 'calendar' | 'progress' | 'analytics' | 'insurance' |
-  'waitlist' | 'rebooking' | 'payments' | 'monitoring' | 'advanced-settings' | 'automation' | 'forms';
+  'waitlist' | 'rebooking' | 'payments' | 'monitoring' | 'advanced-settings' | 'automation' | 'forms' | 'email-sms-tester';
 
 interface NavItem {
   id: AdminView;
@@ -76,6 +76,7 @@ export function AdminSidebar({
     {
       section: 'Configuration',
       items: [
+        { id: 'email-sms-tester', label: '📧 Test Emails/SMS', icon: Bell },
         { id: 'settings', label: 'Paramètres', icon: Settings },
         { id: 'advanced-settings', label: 'Paramètres avancés', icon: Settings },
         { id: 'batch', label: 'Opérations groupées', icon: List },
