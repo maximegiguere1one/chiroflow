@@ -37,7 +37,7 @@ interface NotificationSettings {
   enable_followup_reminders: boolean;
   followup_days_after: number;
   enable_birthday_wishes: boolean;
-  enable_sms_notifications: boolean;
+  sms_notifications_enabled: boolean;
   sms_provider: string;
   notification_sound: boolean;
   desktop_notifications: boolean;
@@ -135,7 +135,7 @@ export function NotificationsConfig() {
     enable_followup_reminders: false,
     followup_days_after: 7,
     enable_birthday_wishes: false,
-    enable_sms_notifications: false,
+    sms_notifications_enabled: false,
     sms_provider: 'none',
     notification_sound: true,
     desktop_notifications: false,
@@ -246,7 +246,7 @@ export function NotificationsConfig() {
         enable_followup_reminders: settings.enable_followup_reminders,
         followup_days_after: settings.followup_days_after,
         enable_birthday_wishes: settings.enable_birthday_wishes,
-        enable_sms_notifications: settings.enable_sms_notifications,
+        sms_notifications_enabled: settings.sms_notifications_enabled,
         sms_provider: settings.sms_provider,
         notification_sound: settings.notification_sound,
         desktop_notifications: settings.desktop_notifications,
@@ -525,8 +525,8 @@ export function NotificationsConfig() {
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
-              checked={settings.enable_sms_notifications}
-              onChange={(e) => updateSetting('enable_sms_notifications', e.target.checked)}
+              checked={settings.sms_notifications_enabled}
+              onChange={(e) => updateSetting('sms_notifications_enabled', e.target.checked)}
               className="w-4 h-4 rounded border-neutral-300 text-gold-500 focus:ring-gold-500"
             />
             <span className="text-sm font-medium text-neutral-700">
@@ -534,7 +534,7 @@ export function NotificationsConfig() {
             </span>
           </label>
 
-          {settings.enable_sms_notifications && (
+          {settings.sms_notifications_enabled && (
             <div className="ml-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm text-blue-800 mb-2">
                 📱 Configuration SMS requise
