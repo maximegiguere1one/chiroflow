@@ -28,7 +28,14 @@ export function ContactDetailsModal({ contact, onClose, onUpdate }: ContactDetai
   const toast = useToastContext();
   const isNewContact = !contact.id || contact.id === '';
   const [isEditing, setIsEditing] = useState(isNewContact);
-  const [formData, setFormData] = useState(contact);
+  const [formData, setFormData] = useState({
+    ...contact,
+    email: contact.email || '',
+    phone: contact.phone || '',
+    date_of_birth: contact.date_of_birth || '',
+    address: contact.address || '',
+    notes: contact.notes || ''
+  });
   const [saving, setSaving] = useState(false);
   const [showFullFile, setShowFullFile] = useState(false);
 
@@ -47,12 +54,12 @@ export function ContactDetailsModal({ contact, onClose, onUpdate }: ContactDetai
           .from('contacts')
           .insert({
             full_name: formData.full_name,
-            email: formData.email,
-            phone: formData.phone,
-            date_of_birth: formData.date_of_birth,
+            email: formData.email || null,
+            phone: formData.phone || null,
+            date_of_birth: formData.date_of_birth || null,
             status: formData.status || 'active',
-            address: formData.address,
-            notes: formData.notes,
+            address: formData.address || null,
+            notes: formData.notes || null,
             owner_id: user.id,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
@@ -65,12 +72,12 @@ export function ContactDetailsModal({ contact, onClose, onUpdate }: ContactDetai
           .from('contacts')
           .update({
             full_name: formData.full_name,
-            email: formData.email,
-            phone: formData.phone,
-            date_of_birth: formData.date_of_birth,
+            email: formData.email || null,
+            phone: formData.phone || null,
+            date_of_birth: formData.date_of_birth || null,
             status: formData.status,
-            address: formData.address,
-            notes: formData.notes,
+            address: formData.address || null,
+            notes: formData.notes || null,
             updated_at: new Date().toISOString()
           })
           .eq('id', contact.id);
@@ -81,6 +88,7 @@ export function ContactDetailsModal({ contact, onClose, onUpdate }: ContactDetai
 
       setIsEditing(false);
       if (onUpdate) onUpdate();
+      onClose();
     } catch (error) {
       console.error('Error updating contact:', error);
       toast.error('Erreur lors de la mise à jour');
