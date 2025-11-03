@@ -91,8 +91,8 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
       .from('appointments_api')
       .select('*')
       .eq('contact_id', patient.id)
-      .gte('scheduled_time', new Date().toISOString())
-      .order('scheduled_time', { ascending: true })
+      .gte('scheduled_at', new Date().toISOString())
+      .order('scheduled_at', { ascending: true })
       .limit(10);
 
     if (appts) setAppointments(appts);
