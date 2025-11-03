@@ -23,7 +23,13 @@ import { ServiceTypesManager } from './ServiceTypesManager';
 import { NotificationsConfig } from './NotificationsConfig';
 
 export function AdvancedSettings() {
-  const { settings, loading, updateClinicSettings, updateBrandingSettings } = useSettings();
+  const {
+    clinicSettings,
+    brandingSettings,
+    loading,
+    updateClinicSettings,
+    updateBrandingSettings
+  } = useSettings();
   const toast = useToastContext();
   const [activeTab, setActiveTab] = useState<'clinic' | 'branding' | 'hours' | 'emails' | 'services' | 'billing' | 'notifications'>('clinic');
   const [saving, setSaving] = useState(false);
@@ -74,6 +80,22 @@ export function AdvancedSettings() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold-500"></div>
+      </div>
+    );
+  }
+
+  if (!clinicSettings) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <p className="text-gray-600 mb-4">Aucun paramètre trouvé</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-gold-500 text-white rounded-lg hover:bg-gold-600"
+          >
+            Recharger
+          </button>
+        </div>
       </div>
     );
   }
@@ -130,7 +152,7 @@ export function AdvancedSettings() {
                   <input
                     type="text"
                     name="clinic_name"
-                    defaultValue={settings.clinic?.clinic_name}
+                    defaultValue={clinicSettings?.clinic_name}
                     className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
                   />
                 </div>
@@ -141,7 +163,7 @@ export function AdvancedSettings() {
                   <input
                     type="text"
                     name="clinic_tagline"
-                    defaultValue={settings.clinic?.clinic_tagline}
+                    defaultValue={clinicSettings?.clinic_tagline}
                     className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
                   />
                 </div>
@@ -152,7 +174,7 @@ export function AdvancedSettings() {
                   <input
                     type="text"
                     name="owner_name"
-                    defaultValue={settings.clinic?.owner_name}
+                    defaultValue={clinicSettings?.owner_name}
                     className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
                   />
                 </div>
@@ -163,7 +185,7 @@ export function AdvancedSettings() {
                   <input
                     type="text"
                     name="owner_title"
-                    defaultValue={settings.clinic?.owner_title}
+                    defaultValue={clinicSettings?.owner_title}
                     className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
                   />
                 </div>
@@ -183,7 +205,7 @@ export function AdvancedSettings() {
                   <input
                     type="tel"
                     name="phone"
-                    defaultValue={settings.clinic?.phone}
+                    defaultValue={clinicSettings?.phone}
                     className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
                   />
                 </div>
@@ -194,7 +216,7 @@ export function AdvancedSettings() {
                   <input
                     type="email"
                     name="email"
-                    defaultValue={settings.clinic?.email}
+                    defaultValue={clinicSettings?.email}
                     className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
                   />
                 </div>
@@ -205,7 +227,7 @@ export function AdvancedSettings() {
                   <input
                     type="url"
                     name="website"
-                    defaultValue={settings.clinic?.website}
+                    defaultValue={clinicSettings?.website}
                     className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
                   />
                 </div>
@@ -225,7 +247,7 @@ export function AdvancedSettings() {
                   <input
                     type="text"
                     name="street_address"
-                    defaultValue={settings.clinic?.street_address}
+                    defaultValue={clinicSettings?.street_address}
                     className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
                   />
                 </div>
@@ -236,7 +258,7 @@ export function AdvancedSettings() {
                   <input
                     type="text"
                     name="suite_number"
-                    defaultValue={settings.clinic?.suite_number}
+                    defaultValue={clinicSettings?.suite_number}
                     className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
                   />
                 </div>
@@ -247,7 +269,7 @@ export function AdvancedSettings() {
                   <input
                     type="text"
                     name="city"
-                    defaultValue={settings.clinic?.city}
+                    defaultValue={clinicSettings?.city}
                     className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
                   />
                 </div>
@@ -258,7 +280,7 @@ export function AdvancedSettings() {
                   <input
                     type="text"
                     name="province"
-                    defaultValue={settings.clinic?.province}
+                    defaultValue={clinicSettings?.province}
                     className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
                   />
                 </div>
@@ -269,7 +291,7 @@ export function AdvancedSettings() {
                   <input
                     type="text"
                     name="postal_code"
-                    defaultValue={settings.clinic?.postal_code}
+                    defaultValue={clinicSettings?.postal_code}
                     className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
                   />
                 </div>
@@ -289,7 +311,7 @@ export function AdvancedSettings() {
                   <input
                     type="url"
                     name="facebook_url"
-                    defaultValue={settings.clinic?.facebook_url}
+                    defaultValue={clinicSettings?.facebook_url}
                     placeholder="https://facebook.com/..."
                     className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
                   />
@@ -301,7 +323,7 @@ export function AdvancedSettings() {
                   <input
                     type="url"
                     name="instagram_url"
-                    defaultValue={settings.clinic?.instagram_url}
+                    defaultValue={clinicSettings?.instagram_url}
                     placeholder="https://instagram.com/..."
                     className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
                   />
@@ -313,7 +335,7 @@ export function AdvancedSettings() {
                   <input
                     type="url"
                     name="linkedin_url"
-                    defaultValue={settings.clinic?.linkedin_url}
+                    defaultValue={clinicSettings?.linkedin_url}
                     placeholder="https://linkedin.com/..."
                     className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
                   />
@@ -335,7 +357,7 @@ export function AdvancedSettings() {
         )}
 
         {activeTab === 'branding' && (
-          <BrandingConfig settings={settings} updateBrandingSettings={updateBrandingSettings} />
+          <BrandingConfig settings={brandingSettings} updateBrandingSettings={updateBrandingSettings} />
         )}
 
         {activeTab === 'hours' && (
@@ -352,7 +374,7 @@ export function AdvancedSettings() {
         )}
 
         {activeTab === 'billing' && (
-          <BillingConfig settings={settings} />
+          <BillingConfig settings={clinicSettings} />
         )}
 
         {activeTab === 'notifications' && (
