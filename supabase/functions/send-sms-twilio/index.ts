@@ -42,13 +42,20 @@ Deno.serve(async (req: Request) => {
       throw new Error('Missing required fields: to, body, contactId');
     }
 
-    const { data: settings, error: settingsError } = await supabase
+    console.log('Looking for settings for user:', user.id);
+
+    const { data: settingsArray, error: settingsError } = await supabase
       .from('clinic_settings')
       .select('twilio_account_sid, twilio_auth_token, twilio_phone_number, sms_enabled')
-      .single();
+      .eq('owner_id', user.id)
+      .limit(1);
 
-    if (settingsError || !settings) {
-      throw new Error('Twilio settings not configured');
+    console.log('Settings query result:', { settingsArray, settingsError });
+
+    const settings = settingsArray?.[0];
+
+    if (!settings) {
+      throw new Error(`Twilio settings not configured for user ${user.id}. Please configure Twilio in Settings.`);
     }
 
     if (!settings.sms_enabled) {
@@ -97,7 +104,8 @@ Deno.serve(async (req: Request) => {
         .eq('contact_id', contactId)
         .eq('owner_id', user.id)
         .eq('status', 'active')
-        .single();
+        .eq('channel', 'sms')
+        .maybeSingle();
 
       if (existingConv) {
         finalConversationId = existingConv.id;
