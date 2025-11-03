@@ -163,7 +163,7 @@ export function SendMessageModal({ patient, onClose }: SendMessageModalProps) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center p-4 overflow-y-auto"
+      className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[200] flex items-center justify-center p-4 overflow-y-auto"
       onClick={onClose}
     >
       <motion.div
