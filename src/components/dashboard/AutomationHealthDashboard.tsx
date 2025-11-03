@@ -243,7 +243,7 @@ export function AutomationHealthDashboard() {
   }
 
   const overallStatus = (() => {
-    if (!cronHealth || cronHealth.length === 0) return 'unknown';
+    if (!cronHealth || !Array.isArray(cronHealth) || cronHealth.length === 0) return 'unknown';
     if (cronHealth.some(j => j.status === 'critical')) return 'critical';
     if (cronHealth.some(j => j.status === 'warning')) return 'warning';
     return 'healthy';
