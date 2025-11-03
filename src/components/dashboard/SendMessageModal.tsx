@@ -150,6 +150,7 @@ export function SendMessageModal({ patient, onClose }: SendMessageModalProps) {
         if (trackingError) throw trackingError;
 
         try {
+          console.log('📱 Envoi SMS à:', patient.phone);
           const response = await fetch(`${supabaseUrl}/functions/v1/send-custom-sms`, {
             method: 'POST',
             headers: {
@@ -163,6 +164,8 @@ export function SendMessageModal({ patient, onClose }: SendMessageModalProps) {
               tracking_id: tracking.id
             })
           });
+
+          console.log('📱 SMS Response status:', response.status);
 
           if (response.ok) {
             await supabase
