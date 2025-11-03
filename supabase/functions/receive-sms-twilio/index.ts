@@ -26,15 +26,18 @@ Deno.serve(async (req: Request) => {
     console.log('Received SMS from Twilio:', { from, to, body, messageSid });
 
     const phoneNumber = from.replace(/\D/g, '');
+    console.log('Looking for contact with phone:', phoneNumber);
 
-    const { data: contact, error: contactError } = await supabase
+    const { data: contacts, error: contactError } = await supabase
       .from('contacts')
       .select('id, owner_id, full_name')
       .ilike('phone', `%${phoneNumber}%`)
-      .single();
+      .limit(1);
+
+    const contact = contacts?.[0];
 
     if (contactError || !contact) {
-      console.error('Contact not found for phone:', phoneNumber);
+      console.error('Contact not found for phone:', phoneNumber, contactError);
       return new Response(
         '<?xml version="1.0" encoding="UTF-8"?><Response></Response>',
         {
@@ -44,17 +47,20 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    console.log('Contact found:', contact.id, contact.full_name);
+
     const { data: existingConv } = await supabase
       .from('conversations')
-      .select('id')
+      .select('id, unread_count')
       .eq('contact_id', contact.id)
       .eq('status', 'active')
       .eq('channel', 'sms')
-      .single();
+      .maybeSingle();
 
     let conversationId = existingConv?.id;
 
     if (!conversationId) {
+      console.log('Creating new SMS conversation for contact:', contact.id);
       const { data: newConv, error: convError } = await supabase
         .from('conversations')
         .insert({
@@ -76,16 +82,22 @@ Deno.serve(async (req: Request) => {
       }
 
       conversationId = newConv.id;
+      console.log('New conversation created:', conversationId);
     } else {
+      console.log('Updating existing conversation:', conversationId);
+      const currentUnread = existingConv.unread_count || 0;
       await supabase
         .from('conversations')
         .update({
           last_message_at: new Date().toISOString(),
           last_message_preview: body.substring(0, 100),
-          unread_count: supabase.rpc('increment', { conversation_id: conversationId }),
+          unread_count: currentUnread + 1,
+          updated_at: new Date().toISOString(),
         })
         .eq('id', conversationId);
     }
+
+    console.log('Saving message to conversation:', conversationId);
 
     const { error: messageError } = await supabase
       .from('conversation_messages')
@@ -97,7 +109,7 @@ Deno.serve(async (req: Request) => {
         from_address: from,
         to_address: to,
         body: body,
-        status: 'received',
+        status: 'delivered',
         owner_id: contact.owner_id,
         metadata: {
           twilio_sid: messageSid,
@@ -107,7 +119,10 @@ Deno.serve(async (req: Request) => {
 
     if (messageError) {
       console.error('Error saving message:', messageError);
+      throw new Error('Failed to save message');
     }
+
+    console.log('Message saved successfully. Twilio SID:', messageSid);
 
     return new Response(
       '<?xml version="1.0" encoding="UTF-8"?><Response></Response>',
