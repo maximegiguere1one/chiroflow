@@ -55,6 +55,10 @@ export function SettingsPage() {
   const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
   const toast = useToastContext();
 
+  function handleSave() {
+    setSaveConfirmOpen(true);
+  }
+
   const shortcuts = [
     { ...COMMON_SHORTCUTS.SAVE, action: handleSave },
   ];
