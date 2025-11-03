@@ -154,6 +154,17 @@ Deno.serve(async (req: Request) => {
       console.error('Error saving message:', messageError);
     }
 
+    if (finalConversationId) {
+      await supabase
+        .from('conversations')
+        .update({
+          last_message_at: new Date().toISOString(),
+          last_message_preview: body.substring(0, 100),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', finalConversationId);
+    }
+
     return new Response(
       JSON.stringify({
         success: true,

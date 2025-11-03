@@ -203,17 +203,98 @@ Deno.serve(async (req: Request) => {
       const smsMessage = `Confirmation de RDV - ${patientName}\n\n📅 ${formattedDate} à ${appointmentTime}\n⏱️ ${duration} min\n💰 ${price}$\n\nClinique Dre Janie Leblanc\nMerci!`;
 
       try {
-        const smsResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/test-sms-direct`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            to: contact.phone,
-            message: smsMessage,
-          }),
-        });
+        const { data: twilioSettingsArray } = await supabase
+          .from('clinic_settings')
+          .select('twilio_account_sid, twilio_auth_token, twilio_phone_number')
+          .eq('owner_id', contact.owner_id)
+          .limit(1);
 
-        const smsData = await smsResponse.json();
-        console.log('SMS sent:', smsData);
+        const twilioSettings = twilioSettingsArray?.[0];
+
+        if (twilioSettings?.twilio_account_sid && twilioSettings?.twilio_auth_token && twilioSettings?.twilio_phone_number) {
+          const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${twilioSettings.twilio_account_sid}/Messages.json`;
+          const auth = btoa(`${twilioSettings.twilio_account_sid}:${twilioSettings.twilio_auth_token}`);
+
+          const formattedPhone = contact.phone.replace(/\D/g, '').startsWith('1') ? `+${contact.phone.replace(/\D/g, '')}` : `+1${contact.phone.replace(/\D/g, '')}`;
+
+          const formData = new URLSearchParams();
+          formData.append('To', formattedPhone);
+          formData.append('From', twilioSettings.twilio_phone_number);
+          formData.append('Body', smsMessage);
+
+          const twilioResponse = await fetch(twilioUrl, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Basic ${auth}`,
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: formData,
+          });
+
+          const twilioData = await twilioResponse.json();
+
+          if (twilioResponse.ok) {
+            const { data: existingConv } = await supabase
+              .from('conversations')
+              .select('id')
+              .eq('contact_id', contact.id)
+              .eq('owner_id', contact.owner_id)
+              .eq('status', 'active')
+              .eq('channel', 'sms')
+              .single();
+
+            let conversationId = existingConv?.id;
+
+            if (!conversationId) {
+              const { data: newConv } = await supabase
+                .from('conversations')
+                .insert({
+                  contact_id: contact.id,
+                  owner_id: contact.owner_id,
+                  subject: `SMS avec ${patientName}`,
+                  status: 'active',
+                  channel: 'sms',
+                  last_message_at: new Date().toISOString(),
+                  last_message_preview: smsMessage.substring(0, 100),
+                })
+                .select()
+                .single();
+
+              conversationId = newConv?.id;
+            }
+
+            if (conversationId) {
+              await supabase
+                .from('conversation_messages')
+                .insert({
+                  conversation_id: conversationId,
+                  contact_id: contact.id,
+                  channel: 'sms',
+                  direction: 'outbound',
+                  from_address: twilioSettings.twilio_phone_number,
+                  to_address: formattedPhone,
+                  body: smsMessage,
+                  status: twilioData.status,
+                  owner_id: contact.owner_id,
+                  metadata: {
+                    twilio_sid: twilioData.sid,
+                    twilio_status: twilioData.status,
+                    type: 'booking_confirmation',
+                  },
+                });
+
+              await supabase
+                .from('conversations')
+                .update({
+                  last_message_at: new Date().toISOString(),
+                  last_message_preview: smsMessage.substring(0, 100),
+                })
+                .eq('id', conversationId);
+            }
+
+            console.log('SMS sent and saved to history:', twilioData.sid);
+          }
+        }
       } catch (smsError) {
         console.error('SMS error (non-blocking):', smsError);
       }
