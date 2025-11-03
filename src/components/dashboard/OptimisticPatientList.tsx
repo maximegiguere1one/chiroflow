@@ -19,7 +19,7 @@ interface Patient {
   error?: string;
 }
 
-export function OptimisticPatientList() {
+export default function OptimisticPatientList() {
   const {
     items: patients,
     addOptimistic,

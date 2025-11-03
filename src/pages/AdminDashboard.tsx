@@ -15,8 +15,8 @@ import { TodayDashboard10X } from '../components/dashboard/TodayDashboard10X';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { router } from '../lib/router';
 
-const PatientManager = lazy(() => import('../components/dashboard/OptimisticPatientList').then(m => ({ default: m.OptimisticPatientList })));
-const AppointmentsPage = lazy(() => import('../components/dashboard/OptimisticAppointmentsList').then(m => ({ default: m.OptimisticAppointmentsList })));
+const PatientManager = lazy(() => import('../components/dashboard/OptimisticPatientList'));
+const AppointmentsPage = lazy(() => import('../components/dashboard/OptimisticAppointmentsList'));
 const BillingPage = lazy(() => import('../components/dashboard/BillingPage').then(m => ({ default: m.BillingPage })));
 const SettingsPage = lazy(() => import('../components/dashboard/SettingsPage').then(m => ({ default: m.SettingsPage })));
 const QuickActions = lazy(() => import('../components/dashboard/QuickActions').then(m => ({ default: m.QuickActions })));
