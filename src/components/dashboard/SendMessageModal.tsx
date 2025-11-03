@@ -63,6 +63,7 @@ export function SendMessageModal({ patient, onClose }: SendMessageModalProps) {
         const trackingRecord = {
           contact_id: patient.id,
           recipient_email: patient.email,
+          email_type: 'custom',
           subject: subject,
           body: message,
           template_name: 'custom_message',
@@ -128,6 +129,8 @@ export function SendMessageModal({ patient, onClose }: SendMessageModalProps) {
         const trackingRecord = {
           contact_id: patient.id,
           recipient_phone: patient.phone,
+          recipient_email: patient.email || `sms-${patient.id}@placeholder.com`,
+          email_type: 'sms',
           body: message,
           template_name: 'custom_sms',
           channel: 'sms',

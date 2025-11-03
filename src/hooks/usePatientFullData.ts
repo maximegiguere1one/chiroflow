@@ -113,15 +113,7 @@ export function usePatientFullData(contactId: string): PatientFullData {
   async function loadSOAPNotes(): Promise<SOAPNote[]> {
     const { data, error } = await supabase
       .from('soap_notes')
-      .select(`
-        id,
-        subjective,
-        objective,
-        assessment,
-        plan,
-        created_at,
-        created_by_name:profiles(first_name, last_name)
-      `)
+      .select('id, subjective, objective, assessment, plan, created_at, created_by')
       .eq('contact_id', contactId)
       .order('created_at', { ascending: false })
       .limit(10);
@@ -131,19 +123,36 @@ export function usePatientFullData(contactId: string): PatientFullData {
       return [];
     }
 
-    return (data || []).map(note => ({
-      ...note,
-      created_by_name: note.created_by_name
-        ? `${note.created_by_name.first_name} ${note.created_by_name.last_name}`
-        : 'Inconnu'
-    }));
+    const notes = data || [];
+
+    const notesWithNames = await Promise.all(
+      notes.map(async (note) => {
+        if (note.created_by) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('first_name, last_name')
+            .eq('id', note.created_by)
+            .maybeSingle();
+
+          return {
+            ...note,
+            created_by_name: profile
+              ? `${profile.first_name} ${profile.last_name}`
+              : 'Inconnu'
+          };
+        }
+        return { ...note, created_by_name: 'Inconnu' };
+      })
+    );
+
+    return notesWithNames;
   }
 
   async function loadBilling() {
     const { data, error } = await supabase
       .from('billing')
       .select('*')
-      .eq('contact_id', contactId)
+      .eq('patient_id', contactId)
       .order('created_at', { ascending: false });
 
     if (error) {

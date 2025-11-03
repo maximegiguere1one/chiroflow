@@ -91,8 +91,8 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
       .from('appointments_api')
       .select('*')
       .eq('contact_id', patient.id)
-      .gte('appointment_time', new Date().toISOString())
-      .order('appointment_time', { ascending: true })
+      .gte('scheduled_time', new Date().toISOString())
+      .order('scheduled_time', { ascending: true })
       .limit(10);
 
     if (appts) setAppointments(appts);
@@ -138,8 +138,8 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            cancelled_appointment_date: appointment.appointment_time,
-            cancelled_appointment_time: new Date(appointment.appointment_time).toLocaleTimeString('fr-CA', {
+            cancelled_appointment_date: appointment.scheduled_time,
+            cancelled_appointment_time: new Date(appointment.scheduled_time).toLocaleTimeString('fr-CA', {
               hour: '2-digit',
               minute: '2-digit'
             }),
@@ -733,12 +733,12 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
                             className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-blue-400 hover:shadow-md transition-all"
                           >
                             <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold">
-                              {new Date(appt.appointment_time).getDate()}
+                              {new Date(appt.scheduled_time).getDate()}
                             </div>
                             <div className="flex-1">
                               <div className="font-semibold text-gray-900">{appt.service_type || 'Rendez-vous'}</div>
                               <div className="text-sm text-gray-600">
-                                {new Date(appt.appointment_time).toLocaleDateString('fr-CA', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
+                                {new Date(appt.scheduled_time).toLocaleDateString('fr-CA', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
                               </div>
                               <div className="text-xs text-gray-500 mt-1">
                                 {appt.status === 'scheduled' ? '✓ Confirmé' : appt.status}
