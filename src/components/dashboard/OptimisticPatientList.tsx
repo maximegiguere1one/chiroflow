@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Phone, Mail, CheckCircle, Loader } from 'lucide-react';
+import { Phone, Mail, CheckCircle, Loader, Eye } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useOptimisticUI } from '../../hooks/useOptimisticUI';
 import { useToastContext } from '../../contexts/ToastContext';
 import { celebrate } from '../../lib/celebration';
 import { ProgressiveContent, TableSkeleton } from '../common/ProgressiveLoader';
 import { InlineErrorRecovery, useErrorRecovery } from '../common/InlineErrorRecovery';
+import { PatientFileModal } from './PatientFileModal';
 
 interface Patient {
   id: string;
@@ -27,6 +28,7 @@ export default function OptimisticPatientList() {
     deleteOptimistic,
     reset
   } = useOptimisticUI<Patient>([]);
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
 
   const { error, executeWithRecovery, clearError } = useErrorRecovery();
   const toast = useToastContext();
@@ -186,10 +188,29 @@ export default function OptimisticPatientList() {
               patient={patient}
               onUpdate={(updates) => handleUpdatePatient(patient.id, updates)}
               onDelete={() => handleDeletePatient(patient.id, patient.full_name)}
+              onView={() => setSelectedPatient(patient)}
             />
           )}
         />
       </div>
+
+      {selectedPatient && (
+        <PatientFileModal
+          patient={{
+            ...selectedPatient,
+            first_name: selectedPatient.full_name.split(' ')[0] || '',
+            last_name: selectedPatient.full_name.split(' ').slice(1).join(' ') || '',
+            date_of_birth: '',
+            last_visit: '',
+            total_visits: 0
+          }}
+          onClose={() => setSelectedPatient(null)}
+          onUpdate={() => {
+            loadPatients();
+            setSelectedPatient(null);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -252,11 +273,13 @@ function QuickAddPatientOptimistic({
 function PatientRowOptimistic({
   patient,
   onUpdate,
-  onDelete
+  onDelete,
+  onView
 }: {
   patient: Patient;
   onUpdate: (updates: Partial<Patient>) => void;
   onDelete: () => void;
+  onView: () => void;
 }) {
   const isOptimistic = !patient.synced && patient.id.startsWith('temp_');
   const hasError = !!patient.error;
@@ -330,6 +353,15 @@ function PatientRowOptimistic({
         `}>
           {patient.status}
         </span>
+
+        <button
+          onClick={onView}
+          disabled={isOptimistic}
+          className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <Eye className="w-4 h-4" />
+          Voir
+        </button>
       </div>
     </motion.div>
   );
