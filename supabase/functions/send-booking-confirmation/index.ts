@@ -186,7 +186,7 @@ Deno.serve(async (req: Request) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "ChiroFlow <onboarding@resend.dev>",
+        from: "Clinique Janie <noreply@janiechiro.com>",
         to: [patientEmail],
         subject: `✓ Rendez-vous confirmé - ${formattedDate} à ${appointmentTime}`,
         html: htmlContent,

@@ -24,6 +24,7 @@ Deno.serve(async (req: Request) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const RESEND_DOMAIN = Deno.env.get("RESEND_DOMAIN") || "janiechiro.com";
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const body: WaitlistSubmission = await req.json();
@@ -138,7 +139,7 @@ Deno.serve(async (req: Request) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            from: 'noreply@votre-clinique.com',
+            from: `Clinique Janie <noreply@${RESEND_DOMAIN}>`,
             to: body.email,
             subject: 'Inscription à la liste d\'attente confirmée',
             html: `
@@ -176,7 +177,7 @@ Deno.serve(async (req: Request) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            from: 'notifications@votre-clinique.com',
+            from: `Clinique Janie <notifications@${RESEND_DOMAIN}>`,
             to: 'maxime@giguere-influence.com',
             subject: `Nouvelle inscription à la liste d'attente: ${body.full_name}`,
             html: `

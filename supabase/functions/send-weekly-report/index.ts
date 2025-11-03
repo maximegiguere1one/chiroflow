@@ -268,7 +268,7 @@ Deno.serve(async (req: Request) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'ChiroFlow <reports@resend.dev>',
+        from: 'Clinique Janie <noreply@janiechiro.com>',
         to: [adminEmail],
         subject,
         html: htmlContent,

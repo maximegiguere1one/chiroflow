@@ -176,7 +176,7 @@ Deno.serve(async (req: Request) => {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              from: 'ChiroFlow <notifications@resend.dev>',
+              from: 'Clinique Janie <noreply@janiechiro.com>',
               to: [patient.email],
               subject: '📅 Il est temps de reprendre RDV - Maintenez vos progrès!',
               html: htmlContent,
