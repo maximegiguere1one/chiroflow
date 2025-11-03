@@ -164,7 +164,6 @@ export function UnifiedCommunications() {
     switch (channel) {
       case 'sms': return <Phone className="w-4 h-4" />;
       case 'email': return <Mail className="w-4 h-4" />;
-      case 'whatsapp': return <MessageSquare className="w-4 h-4" />;
       default: return <MessageSquare className="w-4 h-4" />;
     }
   };
@@ -221,7 +220,7 @@ export function UnifiedCommunications() {
 
               {/* Channel Filters */}
               <div className="flex gap-2">
-                {['all', 'email', 'sms', 'whatsapp'].map((channel) => (
+                {['all', 'email', 'sms'].map((channel) => (
                   <button
                     key={channel}
                     onClick={() => setChannelFilter(channel)}
