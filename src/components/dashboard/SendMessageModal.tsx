@@ -136,13 +136,59 @@ export function SendMessageModal({ patient, onClose }: SendMessageModalProps) {
           body: message,
           template_name: 'custom_sms',
           channel: 'sms',
-          status: 'sent',
+          status: 'pending',
           sent_at: new Date().toISOString(),
           owner_id: user.id
         };
 
-        await supabase.from('email_tracking').insert(trackingRecord);
-        toast.success('SMS enregistré avec succès!');
+        const { data: tracking, error: trackingError } = await supabase
+          .from('email_tracking')
+          .insert(trackingRecord)
+          .select()
+          .single();
+
+        if (trackingError) throw trackingError;
+
+        try {
+          const response = await fetch(`${supabaseUrl}/functions/v1/send-custom-sms`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${session?.access_token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              to: patient.phone,
+              message: message,
+              patient_name: `${patient.first_name} ${patient.last_name}`,
+              tracking_id: tracking.id
+            })
+          });
+
+          if (response.ok) {
+            await supabase
+              .from('email_tracking')
+              .update({
+                status: 'sent',
+                delivered_at: new Date().toISOString()
+              })
+              .eq('id', tracking.id);
+
+            toast.success('SMS envoyé avec succès!');
+          } else {
+            const errorText = await response.text();
+            console.error('SMS send error:', errorText);
+
+            await supabase
+              .from('email_tracking')
+              .update({ status: 'failed' })
+              .eq('id', tracking.id);
+
+            toast.warning('SMS enregistré mais envoi différé');
+          }
+        } catch (smsError) {
+          console.error('SMS function error:', smsError);
+          toast.warning('SMS enregistré mais envoi différé');
+        }
       }
 
       onClose();
