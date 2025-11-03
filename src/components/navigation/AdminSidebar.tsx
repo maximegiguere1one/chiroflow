@@ -2,13 +2,13 @@ import { useState } from 'react';
 import {
   LayoutDashboard, Users, Calendar, DollarSign, Settings, LogOut,
   ChevronRight, ChevronLeft, Clock, BarChart3, Shield, CreditCard,
-  List, Bell, Zap, Menu, Home, FileText
+  List, Bell, Zap, Menu, Home, FileText, MessageSquare
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export type AdminView = 'dashboard' | 'patients' | 'appointments' | 'billing' | 'settings' |
   'batch' | 'quick-actions' | 'calendar' | 'progress' | 'analytics' | 'insurance' |
-  'waitlist' | 'rebooking' | 'payments' | 'monitoring' | 'advanced-settings' | 'automation' | 'forms' | 'email-sms-tester';
+  'waitlist' | 'rebooking' | 'payments' | 'monitoring' | 'advanced-settings' | 'automation' | 'forms' | 'email-sms-tester' | 'communications';
 
 interface NavItem {
   id: AdminView;
@@ -42,6 +42,7 @@ export function AdminSidebar({
       section: 'Principal',
       items: [
         { id: 'dashboard', label: '🌅 Ma Journée', icon: Home },
+        { id: 'communications', label: '💬 Communications', icon: MessageSquare },
         { id: 'automation', label: 'Automatisation 100%', icon: Zap },
         { id: 'calendar', label: 'Calendrier', icon: Calendar },
         { id: 'quick-actions', label: 'Actions rapides', icon: Menu },
