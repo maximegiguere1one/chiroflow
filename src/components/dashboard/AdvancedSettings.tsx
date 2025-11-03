@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSettings } from '../../hooks/useSettings';
 import { useToastContext } from '../../contexts/ToastContext';
 import {
@@ -33,6 +33,11 @@ export function AdvancedSettings() {
   const toast = useToastContext();
   const [activeTab, setActiveTab] = useState<'clinic' | 'branding' | 'hours' | 'emails' | 'services' | 'billing' | 'notifications'>('clinic');
   const [saving, setSaving] = useState(false);
+  const [previewClinicName, setPreviewClinicName] = useState(clinicSettings?.clinic_name || '');
+
+  useEffect(() => {
+    setPreviewClinicName(clinicSettings?.clinic_name || '');
+  }, [clinicSettings]);
 
   const tabs = [
     { id: 'clinic' as const, label: 'Clinique', icon: Building2 },
@@ -49,8 +54,10 @@ export function AdvancedSettings() {
     setSaving(true);
     try {
       const formData = new FormData(e.currentTarget);
+      const clinicName = formData.get('clinic_name') as string;
+
       await updateClinicSettings({
-        clinic_name: formData.get('clinic_name') as string,
+        clinic_name: clinicName,
         owner_name: formData.get('owner_name') as string,
         owner_title: formData.get('owner_title') as string,
         clinic_tagline: formData.get('clinic_tagline') as string,
@@ -66,7 +73,8 @@ export function AdvancedSettings() {
         instagram_url: formData.get('instagram_url') as string || undefined,
         linkedin_url: formData.get('linkedin_url') as string || undefined,
       });
-      toast.success('Paramètres de la clinique sauvegardés!');
+
+      toast.success(`✅ Paramètres sauvegardés! Tous vos emails seront maintenant envoyés au nom de "${clinicName}"`);
     } catch (error) {
       toast.error('Erreur lors de la sauvegarde');
       console.error(error);
@@ -145,16 +153,40 @@ export function AdvancedSettings() {
                 Informations de la Clinique
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-1">
-                    Nom de la clinique
-                  </label>
-                  <input
-                    type="text"
-                    name="clinic_name"
-                    defaultValue={clinicSettings?.clinic_name}
-                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-transparent"
-                  />
+                <div className="md:col-span-2">
+                  <div className="bg-gradient-to-r from-blue-50 to-gold-50 border-2 border-gold-400 rounded-xl p-4">
+                    <label className="block text-base font-semibold text-neutral-900 mb-2 flex items-center gap-2">
+                      <Mail className="w-5 h-5 text-gold-600" />
+                      Nom de la clinique (apparaît dans tous les emails)
+                    </label>
+                    <input
+                      type="text"
+                      name="clinic_name"
+                      defaultValue={clinicSettings?.clinic_name}
+                      placeholder="Ex: Clinique Maxime Giguère"
+                      className="w-full px-4 py-3 text-lg font-medium border-2 border-gold-300 rounded-lg focus:ring-2 focus:ring-gold-500 focus:border-gold-500 bg-white"
+                      required
+                      onChange={(e) => setPreviewClinicName(e.target.value)}
+                    />
+                    <div className="mt-3 space-y-2">
+                      <p className="text-sm text-neutral-600 flex items-start gap-2">
+                        <span className="text-gold-600 font-bold">📧</span>
+                        <span>
+                          Ce nom apparaîtra comme expéditeur dans tous vos emails automatiques
+                        </span>
+                      </p>
+                      {previewClinicName && (
+                        <div className="bg-white border border-gold-200 rounded-lg p-3">
+                          <p className="text-xs text-neutral-500 mb-1">Aperçu dans la boîte de réception:</p>
+                          <div className="flex items-center gap-2">
+                            <Mail className="w-4 h-4 text-gold-600" />
+                            <span className="font-semibold text-neutral-900">{previewClinicName}</span>
+                            <span className="text-neutral-500">&lt;noreply@janiechiro.com&gt;</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-1">
