@@ -13,14 +13,12 @@ interface Conversation {
   contact_id: string;
   subject: string;
   status: string;
-  channel: string;
+  channel?: string;
   last_message_at: string;
-  last_message_preview: string;
+  last_message_preview?: string;
   unread_count: number;
   contact: {
     full_name: string;
-    first_name: string;
-    last_name: string;
     email: string;
     phone: string;
   };
@@ -74,14 +72,12 @@ export function UnifiedCommunications() {
           *,
           contact:contacts!conversations_contact_id_fkey (
             full_name,
-            first_name,
-            last_name,
             email,
             phone
           )
         `)
         .eq('owner_id', user.id)
-        .order('last_message_at', { ascending: false });
+        .order('last_message_at', { ascending: false, nullsFirst: false });
 
       if (channelFilter !== 'all') {
         query = query.eq('channel', channelFilter);
@@ -182,8 +178,6 @@ export function UnifiedCommunications() {
     const searchLower = searchQuery.toLowerCase();
     return (
       conv.contact?.full_name?.toLowerCase().includes(searchLower) ||
-      conv.contact?.first_name?.toLowerCase().includes(searchLower) ||
-      conv.contact?.last_name?.toLowerCase().includes(searchLower) ||
       conv.contact?.email?.toLowerCase().includes(searchLower) ||
       conv.subject?.toLowerCase().includes(searchLower)
     );
@@ -258,12 +252,12 @@ export function UnifiedCommunications() {
                   >
                     <div className="flex items-start gap-3">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold flex-shrink-0">
-                        {conv.contact?.full_name?.[0] || conv.contact?.first_name?.[0] || 'P'}
+                        {conv.contact?.full_name?.[0] || 'P'}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
                           <span className="font-semibold text-gray-900 truncate">
-                            {conv.contact?.full_name || `${conv.contact?.first_name} ${conv.contact?.last_name}`}
+                            {conv.contact?.full_name || 'Patient'}
                           </span>
                           <div className="flex items-center gap-1">
                             {getChannelIcon(conv.channel)}
@@ -306,8 +300,7 @@ export function UnifiedCommunications() {
                     </div>
                     <div>
                       <h2 className="font-semibold text-gray-900">
-                        {selectedConversation.contact?.full_name ||
-                         `${selectedConversation.contact?.first_name} ${selectedConversation.contact?.last_name}`}
+                        {selectedConversation.contact?.full_name || 'Patient'}
                       </h2>
                       <p className="text-sm text-gray-600">
                         {selectedConversation.contact?.email}
