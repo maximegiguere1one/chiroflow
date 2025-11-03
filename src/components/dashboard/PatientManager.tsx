@@ -422,8 +422,8 @@ export default function PatientManager() {
               </motion.div>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Add Patient Modal */}
       {activeModal === 'add' && (

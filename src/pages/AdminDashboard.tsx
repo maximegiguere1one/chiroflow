@@ -15,8 +15,8 @@ import { TodayDashboard10X } from '../components/dashboard/TodayDashboard10X';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { router } from '../lib/router';
 
-const PatientManager = lazy(() => import('../components/dashboard/OptimisticPatientList').then(m => ({ default: m.OptimisticPatientList })));
-const AppointmentsPage = lazy(() => import('../components/dashboard/OptimisticAppointmentsList').then(m => ({ default: m.OptimisticAppointmentsList })));
+const PatientManager = lazy(() => import('../components/dashboard/PatientListUltraClean'));
+const AppointmentsPage = lazy(() => import('../components/dashboard/AppointmentsPageEnhanced').then(m => ({ default: m.AppointmentsPageEnhanced })));
 const BillingPage = lazy(() => import('../components/dashboard/BillingPage').then(m => ({ default: m.BillingPage })));
 const SettingsPage = lazy(() => import('../components/dashboard/SettingsPage').then(m => ({ default: m.SettingsPage })));
 const QuickActions = lazy(() => import('../components/dashboard/QuickActions').then(m => ({ default: m.QuickActions })));
@@ -24,7 +24,6 @@ const EnhancedCalendar = lazy(() => import('../components/dashboard/EnhancedCale
 const PatientProgressTracking = lazy(() => import('../components/dashboard/PatientProgressTracking').then(m => ({ default: m.PatientProgressTracking })));
 const BatchOperations = lazy(() => import('../components/dashboard/BatchOperations').then(m => ({ default: m.BatchOperations })));
 const AnalyticsDashboard = lazy(() => import('../components/dashboard/AnalyticsDashboard').then(m => ({ default: m.AnalyticsDashboard })));
-const BusinessMetricsDashboard = lazy(() => import('../components/dashboard/BusinessMetricsDashboard').then(m => ({ default: m.BusinessMetricsDashboard })));
 const InsuranceClaimsManager = lazy(() => import('../components/dashboard/InsuranceClaimsManager').then(m => ({ default: m.InsuranceClaimsManager })));
 const DualWaitlistManager = lazy(() => import('../components/dashboard/DualWaitlistManager').then(m => ({ default: m.DualWaitlistManager })));
 const RebookingManager = lazy(() => import('../components/dashboard/RebookingManager'));
@@ -433,7 +432,7 @@ export default function AdminDashboard() {
                 />
               )}
               {currentView === 'patients' && <PatientManager />}
-              {currentView === 'analytics' && <BusinessMetricsDashboard />}
+              {currentView === 'analytics' && <AnalyticsDashboard />}
               {currentView === 'calendar' && <EnhancedCalendar onAppointmentClick={(_id) => {}} />}
               {currentView === 'appointments' && <AppointmentsPage />}
               {currentView === 'progress' && <PatientProgressTracking />}
