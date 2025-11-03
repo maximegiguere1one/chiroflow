@@ -71,7 +71,7 @@ Deno.serve(async (req: Request) => {
       throw new Error('RESEND_API_KEY non configuré');
     }
 
-    const subject = `📊 Rapport hebdomadaire ChiroFlow - Semaine du ${new Date(oneWeekAgo).toLocaleDateString('fr-FR')}`;
+    const subject = `📊 Rapport hebdomadaire Clinique Janie - Semaine du ${new Date(oneWeekAgo).toLocaleDateString('fr-FR')}`;
 
     const htmlContent = `
 <!DOCTYPE html>
@@ -235,7 +235,7 @@ Deno.serve(async (req: Request) => {
       <div style="background: #ecfdf5; border: 2px solid #a7f3d0; border-radius: 12px; padding: 20px; margin: 30px 0;">
         <h3 style="color: #065f46; margin: 0 0 10px 0;">✨ Résumé</h3>
         <p style="color: #065f46; margin: 0; line-height: 1.6;">
-          Cette semaine, votre système ChiroFlow a géré automatiquement <strong>${totalAppointments} rendez-vous</strong>,
+          Cette semaine, votre système Clinique Janie a géré automatiquement <strong>${totalAppointments} rendez-vous</strong>,
           envoyé <strong>${reminders48h + reminders24h + reminders2h} rappels</strong>,
           et <strong>${followupsSent} suivis</strong> post-RDV.
           ${totalCronExecutions > 0 ? `Les automatisations ont été exécutées <strong>${totalCronExecutions} fois</strong> avec un taux de réussite de <strong>${Math.round((successfulCronExecutions / totalCronExecutions) * 100)}%</strong>.` : ''}
@@ -253,8 +253,8 @@ Deno.serve(async (req: Request) => {
     </div>
 
     <div class="footer">
-      <p style="margin: 0 0 10px 0;">Rapport généré automatiquement par ChiroFlow</p>
-      <p style="margin: 0;">© ${new Date().getFullYear()} ChiroFlow - Tous droits réservés</p>
+      <p style="margin: 0 0 10px 0;">Rapport généré automatiquement par Clinique Janie</p>
+      <p style="margin: 0;">© ${new Date().getFullYear()} Clinique Janie - Tous droits réservés</p>
     </div>
   </div>
 </body>

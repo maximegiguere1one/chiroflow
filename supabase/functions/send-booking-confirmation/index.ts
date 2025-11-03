@@ -161,7 +161,7 @@ Deno.serve(async (req: Request) => {
                       Cet email a été envoyé automatiquement, merci de ne pas y répondre.
                     </p>
                     <p style="margin: 0; color: #999999; font-size: 12px;">
-                      © ${new Date().getFullYear()} ChiroFlow. Tous droits réservés.
+                      © ${new Date().getFullYear()} Clinique Janie. Tous droits réservés.
                     </p>
                   </td>
                 </tr>

@@ -61,9 +61,10 @@ Deno.serve(async (req: Request) => {
           minute: '2-digit'
         });
 
-        const message = `🩺 ChiroFlow: Rappel de RDV dans 2h à ${timeStr}. ` +
-          `Confirmez en 1 clic: ${Deno.env.get('SUPABASE_URL')}/confirm/${apt.confirmation_token}. ` +
-          `Annuler/Modifier: ${Deno.env.get('SUPABASE_URL')}/manage/${apt.confirmation_token}`;
+        const appDomain = Deno.env.get('APP_DOMAIN') || Deno.env.get('SUPABASE_URL');
+        const message = `🩺 Clinique Janie: Rappel de RDV dans 2h à ${timeStr}. ` +
+          `Confirmez en 1 clic: ${appDomain}/confirm/${apt.confirmation_token}. ` +
+          `Annuler/Modifier: ${appDomain}/manage/${apt.confirmation_token}`;
 
         const authHeader = 'Basic ' + btoa(`${twilioAccountSid}:${twilioAuthToken}`);
 

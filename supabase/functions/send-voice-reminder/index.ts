@@ -164,11 +164,11 @@ function formatTime(date: Date): string {
 }
 
 function createTwiMLUrl(contactId: string, appointmentId: string, time: string, language: string): string {
-  const baseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+  const baseUrl = Deno.env.get('APP_DOMAIN') || Deno.env.get('SUPABASE_URL') || '';
 
   const message = language === 'en'
-    ? `Hello, this is ChiroFlow. You have an appointment today at ${time}. Press 1 to confirm, or 2 to cancel.`
-    : `Bonjour, c'est ChiroFlow. Vous avez un rendez-vous aujourd'hui à ${time}. Appuyez sur 1 pour confirmer, ou sur 2 pour annuler.`;
+    ? `Hello, this is Clinique Janie. You have an appointment today at ${time}. Press 1 to confirm, or 2 to cancel.`
+    : `Bonjour, c'est la Clinique Janie. Vous avez un rendez-vous aujourd'hui à ${time}. Appuyez sur 1 pour confirmer, ou sur 2 pour annuler.`;
 
   const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>

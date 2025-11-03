@@ -100,7 +100,7 @@ Deno.serve(async (req: Request) => {
     </div>
     <div class="footer">
       <p style="margin: 0 0 10px 0;">Cet email a été envoyé automatiquement</p>
-      <p style="margin: 0;">© ${new Date().getFullYear()} ChiroFlow - Tous droits réservés</p>
+      <p style="margin: 0;">© ${new Date().getFullYear()} Clinique Janie - Tous droits réservés</p>
     </div>
   </div>
 </body>
@@ -167,7 +167,7 @@ Deno.serve(async (req: Request) => {
     </div>
     <div class="footer">
       <p style="margin: 0 0 10px 0;">Cet email a été envoyé automatiquement</p>
-      <p style="margin: 0;">© ${new Date().getFullYear()} ChiroFlow - Tous droits réservés</p>
+      <p style="margin: 0;">© ${new Date().getFullYear()} Clinique Janie - Tous droits réservés</p>
     </div>
   </div>
 </body>

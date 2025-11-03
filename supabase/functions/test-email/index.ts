@@ -43,7 +43,7 @@ Deno.serve(async (req: Request) => {
 
     const { to, subject, name, html } = await req.json().catch(() => ({
       to: "test@example.com",
-      subject: "Test Email ChiroFlow",
+      subject: "Test Email Clinique Janie",
       name: "Test Patient",
       html: null,
     }));
@@ -99,7 +99,7 @@ Deno.serve(async (req: Request) => {
           <tr>
             <td style="background: linear-gradient(135deg, #d4af37 0%, #c5a028 100%); padding: 40px 30px; text-align: center; border-radius: 12px 12px 0 0;">
               <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600;">🧪 Test Email</h1>
-              <p style="margin: 10px 0 0 0; color: rgba(255,255,255,0.95); font-size: 16px;">ChiroFlow AI - Configuration Resend</p>
+              <p style="margin: 10px 0 0 0; color: rgba(255,255,255,0.95); font-size: 16px;">Clinique Janie - Configuration Resend</p>
             </td>
           </tr>
           <tr>
@@ -140,7 +140,7 @@ Deno.serve(async (req: Request) => {
           </tr>
           <tr>
             <td style="background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #dee2e6; border-radius: 0 0 12px 12px;">
-              <p style="margin: 0; color: #6c757d; font-size: 12px;">Clinique Chiropratique - ChiroFlow AI</p>
+              <p style="margin: 0; color: #6c757d; font-size: 12px;">Clinique Chiropratique Dre Janie Leblanc</p>
             </td>
           </tr>
         </table>
