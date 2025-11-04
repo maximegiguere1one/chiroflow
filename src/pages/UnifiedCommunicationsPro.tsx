@@ -293,7 +293,10 @@ export function UnifiedCommunicationsPro() {
           })
         });
 
-        if (!response.ok) throw new Error('Failed to send SMS');
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || 'Failed to send SMS');
+        }
       }
 
       toast.success('Message envoyé avec succès');
@@ -423,8 +426,12 @@ export function UnifiedCommunicationsPro() {
               })
             });
 
-            if (response.ok) successCount++;
-            else errorCount++;
+            if (response.ok) {
+              successCount++;
+            } else {
+              errorCount++;
+              console.error(`Failed to send to ${contact.full_name}`);
+            }
           } else {
             if (!contact.email || contact.email.trim() === '') {
               errorCount++;
