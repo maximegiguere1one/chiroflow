@@ -44,7 +44,21 @@ Deno.serve(async (req: Request) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Twilio purchase error:', errorText);
-      throw new Error(`Failed to purchase number: ${response.status} - ${errorText}`);
+
+      if (response.status === 401) {
+        throw new Error('Identifiants Twilio invalides. Impossible d\'acheter le numéro.');
+      }
+      if (response.status === 400) {
+        throw new Error('Ce numéro n\'est plus disponible. Recherchez un autre numéro.');
+      }
+      if (response.status === 402) {
+        throw new Error('Fonds insuffisants dans votre compte Twilio. Ajoutez du crédit dans la Console Twilio.');
+      }
+      if (response.status === 403) {
+        throw new Error('Votre compte Twilio n\'a pas la permission d\'acheter des numéros. Contactez le support Twilio.');
+      }
+
+      throw new Error(`Impossible d\'acheter le numéro (${response.status}). Vérifiez votre compte Twilio.`);
     }
 
     const data = await response.json();

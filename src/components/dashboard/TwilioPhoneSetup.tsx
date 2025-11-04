@@ -144,9 +144,12 @@ export function TwilioPhoneSetup() {
 
       if (updateError) throw updateError;
 
-      await configureWebhook(phoneNumber);
+      const webhookConfigured = await configureWebhook(phoneNumber);
 
-      toast.success('Numéro acheté et configuré avec succès!');
+      toast.info('Test de la configuration...');
+      await testNumberConfiguration(phoneNumber, webhookConfigured);
+
+      toast.success('✅ Numéro acheté et configuré avec succès!');
       setCurrentConfig({
         account_sid: manualConfig.account_sid,
         auth_token: manualConfig.auth_token,
@@ -167,7 +170,7 @@ export function TwilioPhoneSetup() {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const webhookUrl = `${supabaseUrl}/functions/v1/receive-sms-twilio`;
 
-      const { error } = await supabase.functions.invoke('configure-twilio-webhook', {
+      const { data, error } = await supabase.functions.invoke('configure-twilio-webhook', {
         body: {
           account_sid: manualConfig.account_sid,
           auth_token: manualConfig.auth_token,
@@ -177,21 +180,52 @@ export function TwilioPhoneSetup() {
       });
 
       if (error) throw error;
-      toast.success('Webhook configuré automatiquement!');
+      if (!data.success) throw new Error('Webhook configuration failed');
+
+      toast.success('✅ Webhook configuré automatiquement!');
+      return true;
     } catch (error: any) {
       console.error('Error configuring webhook:', error);
-      toast.warning('Numéro acheté mais webhook non configuré. Configurez-le manuellement.');
+      toast.warning('⚠️ Numéro acheté mais webhook non configuré. Configurez-le manuellement.');
+      return false;
     }
   };
 
-  const saveManualConfig = async () => {
+  const validateAndSaveConfig = async () => {
     if (!manualConfig.account_sid || !manualConfig.auth_token) {
       toast.error('Tous les champs sont requis');
       return;
     }
 
+    if (!manualConfig.account_sid.startsWith('AC')) {
+      toast.error('L\'Account SID doit commencer par "AC"');
+      return;
+    }
+
     try {
       setLoading(true);
+
+      toast.info('Étape 1/2: Validation des identifiants...');
+
+      const { data: testData, error: testError } = await supabase.functions.invoke('search-twilio-numbers', {
+        body: {
+          account_sid: manualConfig.account_sid,
+          auth_token: manualConfig.auth_token,
+          country: 'CA'
+        }
+      });
+
+      if (testError) {
+        throw new Error(testError.message || 'Identifiants invalides');
+      }
+
+      if (!testData.success) {
+        throw new Error('Impossible de valider les identifiants');
+      }
+
+      toast.success('✅ Identifiants validés!');
+      toast.info('Étape 2/2: Sauvegarde de la configuration...');
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Non authentifié');
 
@@ -206,12 +240,12 @@ export function TwilioPhoneSetup() {
 
       if (error) throw error;
 
-      toast.success('Configuration Twilio sauvegardée!');
+      toast.success('✅ Configuration Twilio sauvegardée et validée!');
       await loadCurrentConfig();
       setShowApiConfig(false);
     } catch (error: any) {
-      console.error('Error saving config:', error);
-      toast.error('Erreur lors de la sauvegarde');
+      console.error('Error validating/saving config:', error);
+      toast.error('❌ ' + (error.message || 'Erreur lors de la validation. Vérifiez vos identifiants Twilio.'));
     } finally {
       setLoading(false);
     }
@@ -222,6 +256,40 @@ export function TwilioPhoneSetup() {
     const webhookUrl = `${supabaseUrl}/functions/v1/receive-sms-twilio`;
     navigator.clipboard.writeText(webhookUrl);
     toast.success('URL du webhook copiée!');
+  };
+
+  const testNumberConfiguration = async (phoneNumber: string, webhookConfigured: boolean) => {
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const testResults = {
+        number_purchased: true,
+        webhook_configured: webhookConfigured,
+        database_updated: false
+      };
+
+      const { data: settings } = await supabase
+        .from('clinic_settings')
+        .select('twilio_phone_number')
+        .eq('owner_id', user.id)
+        .maybeSingle();
+
+      if (settings?.twilio_phone_number === phoneNumber) {
+        testResults.database_updated = true;
+      }
+
+      if (testResults.number_purchased && testResults.webhook_configured && testResults.database_updated) {
+        toast.success('✅ Tous les tests passés! Votre numéro est prêt à recevoir des SMS.');
+      } else if (!testResults.webhook_configured) {
+        toast.warning('⚠️ Tests partiels: Webhook à configurer manuellement.');
+      }
+
+      console.log('Configuration test results:', testResults);
+    } catch (error) {
+      console.error('Error testing configuration:', error);
+    }
   };
 
   const formatPhoneNumber = (phone: string) => {
@@ -345,11 +413,11 @@ export function TwilioPhoneSetup() {
                 />
               </div>
               <button
-                onClick={saveManualConfig}
+                onClick={validateAndSaveConfig}
                 disabled={loading}
                 className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
               >
-                {loading ? 'Sauvegarde...' : 'Sauvegarder les identifiants'}
+                {loading ? 'Validation en cours...' : 'Valider et Sauvegarder'}
               </button>
             </div>
           </div>

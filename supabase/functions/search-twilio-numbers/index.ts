@@ -47,7 +47,18 @@ Deno.serve(async (req: Request) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Twilio API error:', errorText);
-      throw new Error(`Twilio API error: ${response.status} - ${errorText}`);
+
+      if (response.status === 401) {
+        throw new Error('Identifiants Twilio invalides. Vérifiez votre Account SID et Auth Token dans la Console Twilio.');
+      }
+      if (response.status === 403) {
+        throw new Error('Accès refusé par Twilio. Vérifiez que votre compte est actif et que les permissions API sont activées.');
+      }
+      if (response.status === 404) {
+        throw new Error('Ressource non trouvée. Vérifiez que votre compte Twilio supporte ce pays.');
+      }
+
+      throw new Error(`Erreur Twilio (${response.status}): Vérifiez vos identifiants et votre compte.`);
     }
 
     const data = await response.json();

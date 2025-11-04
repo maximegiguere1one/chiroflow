@@ -38,7 +38,15 @@ Deno.serve(async (req: Request) => {
     if (!listResponse.ok) {
       const errorText = await listResponse.text();
       console.error('Error finding phone number:', errorText);
-      throw new Error(`Failed to find phone number: ${listResponse.status}`);
+
+      if (listResponse.status === 401) {
+        throw new Error('Identifiants Twilio invalides.');
+      }
+      if (listResponse.status === 404) {
+        throw new Error('Numéro non trouvé dans votre compte Twilio.');
+      }
+
+      throw new Error(`Impossible de trouver le numéro (${listResponse.status}).`);
     }
 
     const listData = await listResponse.json();
@@ -70,7 +78,15 @@ Deno.serve(async (req: Request) => {
     if (!updateResponse.ok) {
       const errorText = await updateResponse.text();
       console.error('Error configuring webhook:', errorText);
-      throw new Error(`Failed to configure webhook: ${updateResponse.status}`);
+
+      if (updateResponse.status === 401) {
+        throw new Error('Identifiants Twilio invalides.');
+      }
+      if (updateResponse.status === 400) {
+        throw new Error('URL du webhook invalide ou format incorrect.');
+      }
+
+      throw new Error(`Impossible de configurer le webhook (${updateResponse.status}).`);
     }
 
     const data = await updateResponse.json();
