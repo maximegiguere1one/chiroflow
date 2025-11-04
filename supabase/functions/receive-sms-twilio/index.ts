@@ -124,6 +124,30 @@ Deno.serve(async (req: Request) => {
 
     console.log('Message saved successfully. Twilio SID:', messageSid);
 
+    await supabase
+      .from('email_tracking')
+      .insert({
+        contact_id: contact.id,
+        recipient_phone: from,
+        recipient_email: `sms-${contact.id}@placeholder.com`,
+        email_type: 'sms_inbound',
+        subject: `SMS reçu de ${contact.full_name}`,
+        body: body,
+        template_name: 'inbound_sms',
+        channel: 'sms',
+        status: 'received',
+        direction: 'inbound',
+        sent_at: new Date().toISOString(),
+        delivered_at: new Date().toISOString(),
+        owner_id: contact.owner_id,
+        metadata: {
+          twilio_sid: messageSid,
+          conversation_id: conversationId,
+        },
+      });
+
+    console.log('Message also saved to email_tracking for unified view');
+
     return new Response(
       '<?xml version="1.0" encoding="UTF-8"?><Response></Response>',
       {

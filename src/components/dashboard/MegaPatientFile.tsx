@@ -76,6 +76,8 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
 
   const [editedPatient, setEditedPatient] = useState(patient);
   const [appointments, setAppointments] = useState<any[]>([]);
+  const [quickReply, setQuickReply] = useState('');
+  const [sendingQuickReply, setSendingQuickReply] = useState(false);
 
   const fullData = usePatientFullData(patient.id);
 
@@ -225,6 +227,143 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
     const link = `${window.location.origin}/patient/${patient.id}`;
     navigator.clipboard.writeText(link);
     toast.success('Lien copié dans le presse-papiers!');
+  };
+
+  const handleQuickReply = async () => {
+    if (!quickReply.trim()) {
+      toast.error('Veuillez entrer un message');
+      return;
+    }
+
+    const lastComm = fullData.communications[0];
+    const preferredChannel = lastComm?.channel || (patient.phone ? 'sms' : 'email');
+
+    if (preferredChannel === 'email' && !patient.email) {
+      toast.error('Aucune adresse email pour ce patient');
+      return;
+    }
+
+    if (preferredChannel === 'sms' && !patient.phone) {
+      toast.error('Aucun numéro de téléphone pour ce patient');
+      return;
+    }
+
+    setSendingQuickReply(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Utilisateur non authentifié');
+        return;
+      }
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (preferredChannel === 'email') {
+        const trackingRecord = {
+          contact_id: patient.id,
+          recipient_email: patient.email,
+          email_type: 'custom',
+          subject: `Re: ${lastComm?.subject || 'Message'}`,
+          body: quickReply,
+          template_name: 'quick_reply',
+          channel: 'email',
+          status: 'pending',
+          direction: 'outbound',
+          sent_at: new Date().toISOString(),
+          owner_id: user.id
+        };
+
+        const { data: tracking, error: trackingError } = await supabase
+          .from('email_tracking')
+          .insert(trackingRecord)
+          .select()
+          .single();
+
+        if (trackingError) throw trackingError;
+
+        const response = await fetch(`${supabaseUrl}/functions/v1/send-custom-email`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session?.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            to: patient.email,
+            subject: `Re: ${lastComm?.subject || 'Message'}`,
+            message: quickReply,
+            patient_name: patient.full_name || `${patient.first_name} ${patient.last_name}`,
+            tracking_id: tracking.id
+          })
+        });
+
+        if (response.ok) {
+          await supabase
+            .from('email_tracking')
+            .update({ status: 'sent', delivered_at: new Date().toISOString() })
+            .eq('id', tracking.id);
+          toast.success('Email envoyé!');
+        } else {
+          toast.warning('Email enregistré mais envoi différé');
+        }
+      } else {
+        const trackingRecord = {
+          contact_id: patient.id,
+          recipient_phone: patient.phone,
+          recipient_email: patient.email || `sms-${patient.id}@placeholder.com`,
+          email_type: 'sms',
+          body: quickReply,
+          template_name: 'quick_reply_sms',
+          channel: 'sms',
+          status: 'pending',
+          direction: 'outbound',
+          sent_at: new Date().toISOString(),
+          owner_id: user.id
+        };
+
+        const { data: tracking, error: trackingError } = await supabase
+          .from('email_tracking')
+          .insert(trackingRecord)
+          .select()
+          .single();
+
+        if (trackingError) throw trackingError;
+
+        const response = await fetch(`${supabaseUrl}/functions/v1/send-custom-sms`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session?.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            to: patient.phone,
+            message: quickReply,
+            patient_name: patient.full_name || `${patient.first_name} ${patient.last_name}`,
+            tracking_id: tracking.id
+          })
+        });
+
+        if (response.ok) {
+          await supabase
+            .from('email_tracking')
+            .update({ status: 'sent', delivered_at: new Date().toISOString() })
+            .eq('id', tracking.id);
+          toast.success('SMS envoyé!');
+        } else {
+          toast.warning('SMS enregistré mais envoi différé');
+        }
+      }
+
+      setQuickReply('');
+      setTimeout(() => {
+        loadPatientData();
+      }, 500);
+    } catch (error) {
+      console.error('Error sending quick reply:', error);
+      toast.error('Erreur lors de l\'envoi');
+    } finally {
+      setSendingQuickReply(false);
+    }
   };
 
   const handleDocumentUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -952,52 +1091,127 @@ export function MegaPatientFile({ patient, onClose, onUpdate }: MegaPatientFileP
               )}
 
               {activeTab === 'communication' && (
-                <motion.div key="communication" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                <motion.div key="communication" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
                   <div className="bg-white rounded-xl p-6 border border-gray-200">
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between mb-6">
                       <h3 className="text-lg font-bold flex items-center gap-2">
                         <MessageSquare className="w-5 h-5 text-blue-600" />
                         Messages et communications
                       </h3>
                       <button
                         onClick={() => setShowMessageModal(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-semibold transition-all"
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-semibold transition-all shadow-md hover:shadow-lg"
                       >
                         <Send className="w-4 h-4" />
                         Nouveau message
                       </button>
                     </div>
                     {fullData.loading ? (
-                      <div className="text-center py-4 text-gray-500">Chargement...</div>
+                      <div className="text-center py-8 text-gray-500">Chargement...</div>
                     ) : fullData.communications.length === 0 ? (
-                      <div className="text-center py-8 text-gray-500">
-                        <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                        <div>Aucune communication</div>
+                      <div className="text-center py-12 text-gray-500">
+                        <MessageSquare className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                        <div className="text-lg font-medium mb-1">Aucune communication</div>
+                        <div className="text-sm">Envoyez votre premier message à ce patient</div>
                       </div>
                     ) : (
-                      <div className="space-y-3">
-                        {fullData.communications.map((msg) => (
-                          <div
-                            key={msg.id}
-                            onClick={() => toast.info(`Détails du message: ${msg.subject}`)}
-                            className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:border-blue-400 hover:shadow-md transition-all"
-                          >
-                            <div className={`w-10 h-10 ${msg.type === 'email' ? 'bg-blue-100' : 'bg-green-100'} rounded-lg flex items-center justify-center`}>
-                              {msg.type === 'email' ? <Mail className="w-5 h-5 text-blue-600" /> : <MessageSquare className="w-5 h-5 text-green-600" />}
-                            </div>
-                            <div className="flex-1">
-                              <div className="font-semibold text-gray-900">{msg.subject}</div>
-                              <div className="text-xs text-gray-600">
-                                {new Date(msg.sent_at).toLocaleDateString('fr-FR', {
-                                  day: 'numeric',
-                                  month: 'short',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })} • {msg.status}
+                      <div className="space-y-2 max-h-[400px] overflow-y-auto mb-4">
+                        {fullData.communications.map((msg) => {
+                          const isInbound = msg.direction === 'inbound';
+                          const isEmail = msg.channel === 'email';
+
+                          return (
+                            <div
+                              key={msg.id}
+                              className={`flex items-start gap-3 p-4 rounded-lg border transition-all ${
+                                isInbound
+                                  ? 'bg-blue-50 border-blue-200 ml-0 mr-8'
+                                  : 'bg-gray-50 border-gray-200 ml-8 mr-0'
+                              }`}
+                            >
+                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                                isEmail ? 'bg-blue-500 text-white' : 'bg-green-500 text-white'
+                              }`}>
+                                {isEmail ? <Mail className="w-5 h-5" /> : <Phone className="w-5 h-5" />}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className={`text-xs font-bold px-2 py-0.5 rounded ${
+                                    isInbound ? 'bg-blue-600 text-white' : 'bg-gray-600 text-white'
+                                  }`}>
+                                    {isInbound ? '← REÇU' : '→ ENVOYÉ'}
+                                  </span>
+                                  <span className="text-xs text-gray-600">
+                                    {new Date(msg.sent_at).toLocaleDateString('fr-FR', {
+                                      day: 'numeric',
+                                      month: 'short',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}
+                                  </span>
+                                  {msg.status && (
+                                    <span className={`text-xs px-2 py-0.5 rounded ${
+                                      msg.status === 'sent' || msg.status === 'delivered' || msg.status === 'received'
+                                        ? 'bg-green-100 text-green-700'
+                                        : msg.status === 'failed'
+                                          ? 'bg-red-100 text-red-700'
+                                          : 'bg-yellow-100 text-yellow-700'
+                                    }`}>
+                                      {msg.status}
+                                    </span>
+                                  )}
+                                </div>
+                                {msg.subject && (
+                                  <div className="font-semibold text-gray-900 mb-1">{msg.subject}</div>
+                                )}
+                                <div className="text-sm text-gray-700 whitespace-pre-wrap break-words">
+                                  {msg.body?.substring(0, 200)}{msg.body?.length > 200 ? '...' : ''}
+                                </div>
                               </div>
                             </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {fullData.communications.length > 0 && (
+                      <div className="border-t border-gray-200 pt-4 mt-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className={`px-3 py-1 rounded-lg text-xs font-semibold ${
+                            (fullData.communications[0]?.channel || 'email') === 'email'
+                              ? 'bg-blue-100 text-blue-700'
+                              : 'bg-green-100 text-green-700'
+                          }`}>
+                            Répondre par {(fullData.communications[0]?.channel || 'email') === 'email' ? 'Email' : 'SMS'}
                           </div>
-                        ))}
+                        </div>
+                        <div className="flex gap-2">
+                          <textarea
+                            value={quickReply}
+                            onChange={(e) => setQuickReply(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && e.ctrlKey && !sendingQuickReply) {
+                                handleQuickReply();
+                              }
+                            }}
+                            placeholder="Réponse rapide... (Ctrl+Enter pour envoyer)"
+                            rows={3}
+                            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-sm"
+                            disabled={sendingQuickReply}
+                          />
+                          <button
+                            onClick={handleQuickReply}
+                            disabled={!quickReply.trim() || sendingQuickReply}
+                            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 h-fit"
+                          >
+                            <Send className="w-4 h-4" />
+                            {sendingQuickReply ? 'Envoi...' : 'Envoyer'}
+                          </button>
+                        </div>
+                        <div className="text-xs text-gray-500 mt-2">
+                          {quickReply.length} caractères
+                          {(fullData.communications[0]?.channel || 'email') === 'sms' && ` (${Math.ceil(quickReply.length / 160)} SMS)`}
+                        </div>
                       </div>
                     )}
                   </div>

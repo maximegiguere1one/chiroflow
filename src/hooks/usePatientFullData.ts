@@ -25,8 +25,11 @@ interface BillingItem {
 interface Communication {
   id: string;
   type: 'email' | 'sms';
+  channel: 'email' | 'sms';
   subject: string;
+  body: string;
   status: string;
+  direction: 'inbound' | 'outbound';
   sent_at: string;
   opened_at?: string;
 }
@@ -188,7 +191,7 @@ export function usePatientFullData(contactId: string): PatientFullData {
       .select('*')
       .eq('contact_id', contactId)
       .order('sent_at', { ascending: false })
-      .limit(20);
+      .limit(50);
 
     if (error) {
       console.error('Error loading communications:', error);
@@ -198,8 +201,11 @@ export function usePatientFullData(contactId: string): PatientFullData {
     return (data || []).map(comm => ({
       id: comm.id,
       type: comm.channel === 'sms' ? 'sms' : 'email',
+      channel: comm.channel === 'sms' ? 'sms' : 'email',
       subject: comm.subject || comm.template_name || 'Message',
-      status: comm.opened_at ? 'lu' : comm.delivered_at ? 'livré' : 'envoyé',
+      body: comm.body || '',
+      status: comm.status || (comm.opened_at ? 'lu' : comm.delivered_at ? 'livré' : 'envoyé'),
+      direction: comm.direction || 'outbound',
       sent_at: comm.sent_at,
       opened_at: comm.opened_at
     }));
