@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useToastContext } from '../contexts/ToastContext';
+import { env } from '../lib/env';
 
 interface Contact {
   id: string;
@@ -279,8 +280,7 @@ export function UnifiedCommunicationsPro() {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) throw new Error('No session');
 
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        const response = await fetch(`${supabaseUrl}/functions/v1/send-sms-twilio`, {
+        const response = await fetch(`${env.supabaseUrl}/functions/v1/send-sms-twilio`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${session.access_token}`,
@@ -410,8 +410,7 @@ export function UnifiedCommunicationsPro() {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) continue;
 
-            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-            const response = await fetch(`${supabaseUrl}/functions/v1/send-sms-twilio`, {
+            const response = await fetch(`${env.supabaseUrl}/functions/v1/send-sms-twilio`, {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${session.access_token}`,
