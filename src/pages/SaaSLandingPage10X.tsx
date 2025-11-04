@@ -126,18 +126,11 @@ const Testimonial: React.FC<{
 };
 
 export const SaaSLandingPage10X: React.FC = () => {
-  const [scrollY, setScrollY] = useState(0);
   const heroRef = useRef<HTMLElement>(null);
-  const { scrollYProgress } = useScroll();
+  const { scrollY, scrollYProgress } = useScroll();
 
   const headerOpacity = useTransform(scrollYProgress, [0, 0.1], [0, 1]);
-  const heroScale = useTransform(scrollY as any, [0, 300], [1, 0.95]);
-
-  useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  const heroScale = useTransform(scrollY, [0, 300], [1, 0.95]);
 
   const features = [
     {
@@ -237,7 +230,7 @@ export const SaaSLandingPage10X: React.FC = () => {
       <main>
         <motion.section
           ref={heroRef}
-          style={{ scale: heroScale as any }}
+          style={{ scale: heroScale }}
           className="relative min-h-screen flex items-center justify-center px-6 pt-32 pb-20"
         >
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
