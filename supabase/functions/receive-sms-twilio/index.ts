@@ -104,12 +104,15 @@ Deno.serve(async (req: Request) => {
       .insert({
         conversation_id: conversationId,
         contact_id: contact.id,
+        twilio_message_sid: messageSid,
         channel: 'sms',
         direction: 'inbound',
         from_address: from,
         to_address: to,
         body: body,
         status: 'delivered',
+        sent_at: new Date().toISOString(),
+        delivered_at: new Date().toISOString(),
         owner_id: contact.owner_id,
         metadata: {
           twilio_sid: messageSid,

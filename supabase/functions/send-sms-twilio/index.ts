@@ -58,8 +58,8 @@ Deno.serve(async (req: Request) => {
       throw new Error(`Twilio settings not configured for user ${user.id}. Please configure Twilio in Settings.`);
     }
 
-    if (!settings.sms_enabled) {
-      throw new Error('SMS is not enabled');
+    if (settings.sms_enabled === false) {
+      throw new Error('SMS n\'est pas activé. Activez-le dans Paramètres > Téléphonie SMS.');
     }
 
     if (!settings.twilio_account_sid || !settings.twilio_auth_token) {
@@ -143,16 +143,20 @@ Deno.serve(async (req: Request) => {
       .insert({
         conversation_id: finalConversationId,
         contact_id: contactId,
+        twilio_message_sid: twilioData.sid,
         channel: 'sms',
         direction: 'outbound',
         from_address: from,
         to_address: to,
         body: body,
-        status: twilioData.status,
+        status: twilioData.status === 'queued' || twilioData.status === 'sent' ? 'sent' : 'pending',
+        sent_at: new Date().toISOString(),
         owner_id: user.id,
         metadata: {
           twilio_sid: twilioData.sid,
           twilio_status: twilioData.status,
+          twilio_price: twilioData.price,
+          twilio_price_unit: twilioData.price_unit,
         },
       })
       .select()

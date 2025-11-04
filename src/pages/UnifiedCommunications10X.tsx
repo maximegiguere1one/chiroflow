@@ -192,13 +192,21 @@ export function UnifiedCommunications10X() {
       const channel = selectedConversation.channel;
 
       if (channel === 'sms') {
+        if (!selectedConversation.contact.phone) {
+          throw new Error('Ce contact n\'a pas de numéro de téléphone');
+        }
+
         const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          throw new Error('Session expirée. Reconnectez-vous.');
+        }
+
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
         const response = await fetch(`${supabaseUrl}/functions/v1/send-sms-twilio`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${session?.access_token}`,
+            'Authorization': `Bearer ${session.access_token}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
@@ -212,13 +220,21 @@ export function UnifiedCommunications10X() {
         const result = await response.json();
 
         if (!response.ok) {
-          throw new Error(result.error || 'Erreur lors de l\'envoi du SMS');
+          const errorMessage = result.error || 'Erreur lors de l\'envoi du SMS';
+          console.error('SMS send error:', { status: response.status, error: errorMessage, result });
+          throw new Error(errorMessage);
+        }
+
+        if (!result.success) {
+          throw new Error(result.error || 'Échec de l\'envoi du SMS');
         }
 
         toast.success('✅ SMS envoyé avec succès!');
         setMessageInput('');
-        await loadMessages(selectedConversation.id);
-        await loadConversations();
+        await Promise.all([
+          loadMessages(selectedConversation.id),
+          loadConversations()
+        ]);
       } else {
         const newMessage = {
           conversation_id: selectedConversation.id,
@@ -259,9 +275,22 @@ export function UnifiedCommunications10X() {
       return;
     }
 
+    if (newMessageChannel === 'sms' && !selectedContact.phone) {
+      toast.error('Ce contact n\'a pas de numéro de téléphone');
+      return;
+    }
+
+    if (newMessageChannel === 'email' && !selectedContact.email) {
+      toast.error('Ce contact n\'a pas d\'adresse email');
+      return;
+    }
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        toast.error('Non authentifié');
+        return;
+      }
 
       const { data: existing } = await supabase
         .from('conversations')
@@ -278,6 +307,7 @@ export function UnifiedCommunications10X() {
           contact: selectedContact
         });
         setShowNewConversation(false);
+        toast.info('Conversation existante ouverte');
         return;
       }
 
