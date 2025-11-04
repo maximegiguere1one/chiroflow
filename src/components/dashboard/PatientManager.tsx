@@ -297,7 +297,7 @@ export default function PatientManager() {
         <div className="bg-white border border-neutral-200 shadow-soft-lg">
           <div className="text-center py-12">
             <Search className="w-12 h-12 text-foreground/20 mx-auto mb-3" />
-            <p className="text-foreground/60 mb-2">Aucun résultat pour "{searchTerm}"</p>
+            <p className="text-foreground/60 mb-2">Aucun résultat pour «{searchTerm}»</p>
             <p className="text-sm text-foreground/50">Essayez de rechercher par nom, email ou téléphone</p>
             <button
               onClick={() => setSearchTerm('')}
