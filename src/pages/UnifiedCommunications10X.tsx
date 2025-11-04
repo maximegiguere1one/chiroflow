@@ -4,7 +4,8 @@ import {
   MessageSquare, Mail, Phone, User, Search, Filter, Clock,
   Send, Paperclip, Smile, MoreVertical, Archive, Trash2,
   Tag, CheckCheck, Circle, Star, AlertCircle, Plus, X,
-  Loader2, CheckCircle2, XCircle, RefreshCw, Zap
+  Loader2, CheckCircle2, XCircle, RefreshCw, Zap, FileText,
+  Sparkles, Users, Calendar
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useToastContext } from '../contexts/ToastContext';
@@ -45,6 +46,24 @@ interface Message {
   metadata?: any;
 }
 
+interface MessageTemplate {
+  id: string;
+  name: string;
+  category: string;
+  channel: string;
+  subject: string | null;
+  body: string;
+  variables: string[];
+  is_system: boolean;
+}
+
+interface QuickReply {
+  id: string;
+  shortcut: string;
+  text: string;
+  channel: string;
+}
+
 export function UnifiedCommunications10X() {
   const toast = useToastContext();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -61,10 +80,20 @@ export function UnifiedCommunications10X() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [newMessageChannel, setNewMessageChannel] = useState<'sms' | 'email'>('sms');
+  const [templates, setTemplates] = useState<MessageTemplate[]>([]);
+  const [quickReplies, setQuickReplies] = useState<QuickReply[]>([]);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [showQuickReplies, setShowQuickReplies] = useState(false);
+  const [showBulkSend, setShowBulkSend] = useState(false);
+  const [selectedContacts, setSelectedContacts] = useState<Contact[]>([]);
+  const [bulkMessage, setBulkMessage] = useState('');
+  const [bulkChannel, setBulkChannel] = useState<'sms' | 'email'>('sms');
 
   useEffect(() => {
     loadConversations();
     loadContacts();
+    loadTemplates();
+    loadQuickReplies();
 
     const channel = supabase
       .channel('conversations-realtime')
@@ -120,6 +149,42 @@ export function UnifiedCommunications10X() {
       setContacts(data || []);
     } catch (error) {
       console.error('Error loading contacts:', error);
+    }
+  };
+
+  const loadTemplates = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('message_templates')
+        .select('*')
+        .eq('owner_id', user.id)
+        .order('usage_count', { ascending: false });
+
+      if (error) throw error;
+      setTemplates(data || []);
+    } catch (error) {
+      console.error('Error loading templates:', error);
+    }
+  };
+
+  const loadQuickReplies = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('quick_replies')
+        .select('*')
+        .eq('owner_id', user.id)
+        .order('shortcut');
+
+      if (error) throw error;
+      setQuickReplies(data || []);
+    } catch (error) {
+      console.error('Error loading quick replies:', error);
     }
   };
 
@@ -405,6 +470,113 @@ export function UnifiedCommunications10X() {
     );
   });
 
+  const applyTemplate = (template: MessageTemplate) => {
+    let body = template.body;
+
+    if (selectedConversation?.contact) {
+      body = body.replace(/{{patient_name}}/g, selectedConversation.contact.full_name);
+    }
+
+    setMessageInput(body);
+    setShowTemplates(false);
+    toast.success(`Template "${template.name}" appliqué`);
+
+    supabase
+      .from('message_templates')
+      .update({ usage_count: template.usage_count + 1 })
+      .eq('id', template.id)
+      .then(() => loadTemplates());
+  };
+
+  const applyQuickReply = (quickReply: QuickReply) => {
+    setMessageInput(messageInput + (messageInput ? ' ' : '') + quickReply.text);
+    setShowQuickReplies(false);
+
+    supabase
+      .from('quick_replies')
+      .update({ usage_count: quickReply.usage_count + 1 })
+      .eq('id', quickReply.id)
+      .then(() => loadQuickReplies());
+  };
+
+  const sendBulkMessage = async () => {
+    if (!bulkMessage.trim() || selectedContacts.length === 0) {
+      toast.error('Sélectionnez des contacts et écrivez un message');
+      return;
+    }
+
+    try {
+      setSending(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Non authentifié');
+
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const contact of selectedContacts) {
+        try {
+          if (bulkChannel === 'sms') {
+            if (!contact.phone || contact.phone.trim() === '') {
+              errorCount++;
+              continue;
+            }
+
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) continue;
+
+            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+            const response = await fetch(`${supabaseUrl}/functions/v1/send-sms-twilio`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${session.access_token}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                to: contact.phone,
+                body: bulkMessage,
+                contactId: contact.id
+              })
+            });
+
+            if (response.ok) successCount++;
+            else errorCount++;
+          } else {
+            if (!contact.email || contact.email.trim() === '') {
+              errorCount++;
+              continue;
+            }
+            successCount++;
+          }
+
+          await new Promise(resolve => setTimeout(resolve, 500));
+        } catch (err) {
+          errorCount++;
+        }
+      }
+
+      toast.success(`${successCount} messages envoyés, ${errorCount} échecs`);
+      setShowBulkSend(false);
+      setBulkMessage('');
+      setSelectedContacts([]);
+    } catch (error: any) {
+      console.error('Bulk send error:', error);
+      toast.error('Erreur lors de l\'envoi groupé');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const toggleContactSelection = (contact: Contact) => {
+    setSelectedContacts(prev => {
+      const exists = prev.find(c => c.id === contact.id);
+      if (exists) {
+        return prev.filter(c => c.id !== contact.id);
+      } else {
+        return [...prev, contact];
+      }
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
       <div className="max-w-[1800px] mx-auto p-6">
@@ -418,13 +590,22 @@ export function UnifiedCommunications10X() {
               Système unifié SMS + Email ultra-performant
             </p>
           </div>
-          <button
-            onClick={() => setShowNewConversation(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
-          >
-            <Plus className="w-5 h-5" />
-            Nouvelle conversation
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowBulkSend(true)}
+              className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+            >
+              <Users className="w-5 h-5" />
+              Envoi groupé
+            </button>
+            <button
+              onClick={() => setShowNewConversation(true)}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+            >
+              <Plus className="w-5 h-5" />
+              Nouvelle conversation
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-12 gap-6 h-[calc(100vh-220px)]">
@@ -608,6 +789,75 @@ export function UnifiedCommunications10X() {
                 </div>
 
                 <div className="p-4 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+                  <div className="flex items-center gap-2 mb-3">
+                    <button
+                      onClick={() => setShowTemplates(!showTemplates)}
+                      className="flex items-center gap-2 px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm font-medium transition-all"
+                    >
+                      <FileText className="w-4 h-4" />
+                      Templates ({templates.length})
+                    </button>
+                    <button
+                      onClick={() => setShowQuickReplies(!showQuickReplies)}
+                      className="flex items-center gap-2 px-3 py-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg text-sm font-medium transition-all"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      Réponses rapides
+                    </button>
+                  </div>
+
+                  {showTemplates && templates.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200 max-h-48 overflow-y-auto"
+                    >
+                      <div className="grid grid-cols-2 gap-2">
+                        {templates
+                          .filter(t => t.channel === selectedConversation.channel || t.channel === 'both')
+                          .map(template => (
+                          <button
+                            key={template.id}
+                            onClick={() => applyTemplate(template)}
+                            className="p-3 bg-white hover:bg-blue-50 border border-blue-200 rounded-lg text-left transition-all group"
+                          >
+                            <div className="font-semibold text-sm text-gray-900 mb-1 group-hover:text-blue-600">
+                              {template.name}
+                            </div>
+                            <div className="text-xs text-gray-500 line-clamp-2">
+                              {template.body.substring(0, 60)}...
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {showQuickReplies && quickReplies.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mb-3 p-3 bg-green-50 rounded-lg border border-green-200"
+                    >
+                      <div className="flex flex-wrap gap-2">
+                        {quickReplies
+                          .filter(qr => qr.channel === selectedConversation.channel || qr.channel === 'both')
+                          .map(reply => (
+                          <button
+                            key={reply.id}
+                            onClick={() => applyQuickReply(reply)}
+                            className="px-3 py-1.5 bg-white hover:bg-green-50 border border-green-200 rounded-lg text-sm transition-all"
+                          >
+                            <span className="font-mono text-green-600 mr-1">{reply.shortcut}</span>
+                            <span className="text-gray-700">{reply.text.substring(0, 30)}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+
                   <div className="flex items-end gap-3">
                     <div className="flex-1">
                       <textarea
@@ -776,6 +1026,179 @@ export function UnifiedCommunications10X() {
                 >
                   Créer la conversation
                 </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showBulkSend && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowBulkSend(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden"
+            >
+              <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-white">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                    <Users className="w-7 h-7 text-purple-600" />
+                    Envoi Groupé
+                  </h2>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Envoyez un message à plusieurs contacts simultanément
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowBulkSend(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6 overflow-y-auto max-h-[calc(85vh-200px)]">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    Type de message
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => setBulkChannel('sms')}
+                      className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
+                        bulkChannel === 'sms'
+                          ? 'border-green-500 bg-green-50 shadow-md'
+                          : 'border-gray-200 hover:border-green-300'
+                      }`}
+                    >
+                      <Phone className={`w-6 h-6 ${bulkChannel === 'sms' ? 'text-green-600' : 'text-gray-400'}`} />
+                      <span className="font-semibold">SMS</span>
+                    </button>
+                    <button
+                      onClick={() => setBulkChannel('email')}
+                      className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
+                        bulkChannel === 'email'
+                          ? 'border-blue-500 bg-blue-50 shadow-md'
+                          : 'border-gray-200 hover:border-blue-300'
+                      }`}
+                    >
+                      <Mail className={`w-6 h-6 ${bulkChannel === 'email' ? 'text-blue-600' : 'text-gray-400'}`} />
+                      <span className="font-semibold">Email</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-sm font-semibold text-gray-700">
+                      Sélectionnez les contacts ({selectedContacts.length} sélectionnés)
+                    </label>
+                    {selectedContacts.length > 0 && (
+                      <button
+                        onClick={() => setSelectedContacts([])}
+                        className="text-xs text-red-600 hover:text-red-700 font-medium"
+                      >
+                        Tout désélectionner
+                      </button>
+                    )}
+                  </div>
+                  <div className="space-y-2 max-h-[250px] overflow-y-auto border border-gray-200 rounded-xl p-3 bg-gray-50">
+                    {contacts.map((contact) => {
+                      const isSelected = selectedContacts.find(c => c.id === contact.id);
+                      const hasRequiredField = bulkChannel === 'sms'
+                        ? contact.phone && contact.phone.trim() !== ''
+                        : contact.email && contact.email.trim() !== '';
+
+                      return (
+                        <button
+                          key={contact.id}
+                          onClick={() => hasRequiredField && toggleContactSelection(contact)}
+                          disabled={!hasRequiredField}
+                          className={`w-full p-3 rounded-lg text-left transition-all flex items-center gap-3 ${
+                            isSelected
+                              ? 'bg-purple-100 border-2 border-purple-500'
+                              : hasRequiredField
+                              ? 'bg-white hover:bg-gray-50 border-2 border-transparent'
+                              : 'bg-gray-100 opacity-50 cursor-not-allowed border-2 border-transparent'
+                          }`}
+                        >
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
+                            isSelected ? 'bg-gradient-to-br from-purple-400 to-purple-600' : 'bg-gradient-to-br from-gray-400 to-gray-500'
+                          }`}>
+                            {contact.full_name[0]?.toUpperCase()}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-gray-900 truncate">{contact.full_name}</p>
+                            <p className="text-sm text-gray-500 truncate">
+                              {bulkChannel === 'sms' ? contact.phone || 'Pas de téléphone' : contact.email || 'Pas d\'email'}
+                            </p>
+                          </div>
+                          {isSelected && (
+                            <CheckCircle2 className="w-5 h-5 text-purple-500 flex-shrink-0" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    Message
+                  </label>
+                  <textarea
+                    value={bulkMessage}
+                    onChange={(e) => setBulkMessage(e.target.value)}
+                    placeholder={`Écrivez votre ${bulkChannel === 'sms' ? 'SMS' : 'email'}...`}
+                    rows={5}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
+                  />
+                  {bulkChannel === 'sms' && (
+                    <p className="text-xs text-gray-500 mt-2">
+                      {bulkMessage.length} caractères • {Math.ceil(bulkMessage.length / 160)} SMS par contact • {selectedContacts.length} contacts = {Math.ceil(bulkMessage.length / 160) * selectedContacts.length} SMS total
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
+                <div className="text-sm text-gray-600">
+                  <span className="font-semibold">{selectedContacts.length}</span> destinataires
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setShowBulkSend(false)}
+                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 font-semibold transition-all"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={sendBulkMessage}
+                    disabled={selectedContacts.length === 0 || !bulkMessage.trim() || sending}
+                    className="px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl flex items-center gap-2"
+                  >
+                    {sending ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Envoi en cours...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-5 h-5" />
+                        Envoyer à {selectedContacts.length} contacts
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </motion.div>
           </motion.div>
