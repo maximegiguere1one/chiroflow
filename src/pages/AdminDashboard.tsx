@@ -33,7 +33,7 @@ const AdvancedSettings = lazy(() => import('../components/dashboard/AdvancedSett
 const AutomationDashboard = lazy(() => import('../components/dashboard/AutomationDashboard'));
 const ProfessionalFormsManager = lazy(() => import('../components/dashboard/ProfessionalFormsManager').then(m => ({ default: m.ProfessionalFormsManager })));
 const EmailSMSTester = lazy(() => import('../components/dashboard/EmailSMSTester').then(m => ({ default: m.EmailSMSTester })));
-const UnifiedCommunications = lazy(() => import('./UnifiedCommunications').then(m => ({ default: m.UnifiedCommunications })));
+const UnifiedCommunications = lazy(() => import('./UnifiedCommunications10X').then(m => ({ default: m.UnifiedCommunications10X })));
 
 interface DashboardStats {
   totalPatients: number;
