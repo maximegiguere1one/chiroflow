@@ -203,6 +203,13 @@ export function UnifiedCommunications10X() {
 
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
+        console.log('📤 Envoi SMS:', {
+          to: selectedConversation.contact.phone,
+          conversationId: selectedConversation.id,
+          contactId: selectedConversation.contact_id,
+          messageLength: messageInput.length
+        });
+
         const response = await fetch(`${supabaseUrl}/functions/v1/send-sms-twilio`, {
           method: 'POST',
           headers: {
@@ -219,15 +226,28 @@ export function UnifiedCommunications10X() {
 
         const result = await response.json();
 
+        console.log('📥 Réponse SMS:', {
+          status: response.status,
+          ok: response.ok,
+          result
+        });
+
         if (!response.ok) {
           const errorMessage = result.error || 'Erreur lors de l\'envoi du SMS';
-          console.error('SMS send error:', { status: response.status, error: errorMessage, result });
+          console.error('❌ SMS send error:', { status: response.status, error: errorMessage, result });
           throw new Error(errorMessage);
         }
 
         if (!result.success) {
+          console.error('❌ SMS not successful:', result);
           throw new Error(result.error || 'Échec de l\'envoi du SMS');
         }
+
+        console.log('✅ SMS envoyé:', {
+          twilioSid: result.twilioSid,
+          messageId: result.messageId,
+          conversationId: result.conversationId
+        });
 
         toast.success('✅ SMS envoyé avec succès!');
         setMessageInput('');
