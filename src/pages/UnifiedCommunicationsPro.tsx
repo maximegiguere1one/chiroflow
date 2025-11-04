@@ -1073,7 +1073,408 @@ export function UnifiedCommunicationsPro() {
         </div>
       </div>
 
-      {/* Modals remain same but will be cleaned up... */}
+      {/* Modal - Nouvelle Conversation */}
+      <AnimatePresence>
+        {showNewConversation && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50"
+              onClick={() => setShowNewConversation(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-xl shadow-2xl z-50 overflow-hidden"
+            >
+              <div className="p-6 border-b border-slate-100">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-slate-900">
+                    Nouvelle conversation
+                  </h3>
+                  <button
+                    onClick={() => setShowNewConversation(false)}
+                    className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Sélectionner un contact
+                  </label>
+                  <div className="relative mb-2">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Rechercher un contact..."
+                      className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="max-h-48 overflow-y-auto border border-slate-200 rounded-lg divide-y divide-slate-100">
+                    {filteredContacts.length === 0 ? (
+                      <div className="p-4 text-center text-sm text-slate-500">
+                        Aucun contact trouvé
+                      </div>
+                    ) : (
+                      filteredContacts.map(contact => (
+                        <button
+                          key={contact.id}
+                          onClick={() => setSelectedContact(contact)}
+                          className={`w-full p-3 text-left hover:bg-slate-50 transition-colors ${
+                            selectedContact?.id === contact.id ? 'bg-blue-50' : ''
+                          }`}
+                        >
+                          <div className="font-medium text-sm text-slate-900">{contact.full_name}</div>
+                          <div className="text-xs text-slate-500 mt-0.5">
+                            {contact.phone || contact.email}
+                          </div>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Type de conversation
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setNewMessageChannel('sms')}
+                      className={`flex-1 p-3 rounded-lg border-2 transition-all ${
+                        newMessageChannel === 'sms'
+                          ? 'border-blue-600 bg-blue-50 text-blue-900'
+                          : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                      }`}
+                    >
+                      <Phone className="w-5 h-5 mx-auto mb-1" />
+                      <div className="text-xs font-medium">SMS</div>
+                    </button>
+                    <button
+                      onClick={() => setNewMessageChannel('email')}
+                      className={`flex-1 p-3 rounded-lg border-2 transition-all ${
+                        newMessageChannel === 'email'
+                          ? 'border-blue-600 bg-blue-50 text-blue-900'
+                          : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                      }`}
+                    >
+                      <Mail className="w-5 h-5 mx-auto mb-1" />
+                      <div className="text-xs font-medium">Email</div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-slate-50 border-t border-slate-100 flex gap-2">
+                <button
+                  onClick={() => setShowNewConversation(false)}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={createNewConversation}
+                  disabled={!selectedContact}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Créer
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Modal - Envoi Groupé */}
+      <AnimatePresence>
+        {showBulkSend && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50"
+              onClick={() => setShowBulkSend(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-white rounded-xl shadow-2xl z-50 overflow-hidden max-h-[90vh] flex flex-col"
+            >
+              <div className="p-6 border-b border-slate-100">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-900">
+                      Envoi groupé
+                    </h3>
+                    <p className="text-sm text-slate-500 mt-0.5">
+                      {selectedContacts.length} contact(s) sélectionné(s)
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowBulkSend(false)}
+                    className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Type de message
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setBulkChannel('sms')}
+                      className={`flex-1 p-3 rounded-lg border-2 transition-all ${
+                        bulkChannel === 'sms'
+                          ? 'border-blue-600 bg-blue-50 text-blue-900'
+                          : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                      }`}
+                    >
+                      <Phone className="w-5 h-5 mx-auto mb-1" />
+                      <div className="text-xs font-medium">SMS</div>
+                    </button>
+                    <button
+                      onClick={() => setBulkChannel('email')}
+                      className={`flex-1 p-3 rounded-lg border-2 transition-all ${
+                        bulkChannel === 'email'
+                          ? 'border-blue-600 bg-blue-50 text-blue-900'
+                          : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                      }`}
+                    >
+                      <Mail className="w-5 h-5 mx-auto mb-1" />
+                      <div className="text-xs font-medium">Email</div>
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Sélectionner les contacts
+                  </label>
+                  <div className="relative mb-2">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Rechercher..."
+                      className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="border border-slate-200 rounded-lg max-h-64 overflow-y-auto">
+                    {filteredContacts
+                      .filter(c => bulkChannel === 'sms' ? c.phone : c.email)
+                      .map(contact => (
+                        <label
+                          key={contact.id}
+                          className="flex items-center gap-3 p-3 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedContacts.some(c => c.id === contact.id)}
+                            onChange={() => toggleContactSelection(contact)}
+                            className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-2 focus:ring-blue-500"
+                          />
+                          <div className="flex-1">
+                            <div className="text-sm font-medium text-slate-900">
+                              {contact.full_name}
+                            </div>
+                            <div className="text-xs text-slate-500">
+                              {bulkChannel === 'sms' ? contact.phone : contact.email}
+                            </div>
+                          </div>
+                        </label>
+                      ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Message
+                  </label>
+                  <textarea
+                    value={bulkMessage}
+                    onChange={(e) => setBulkMessage(e.target.value)}
+                    placeholder={`Écrivez votre ${bulkChannel === 'sms' ? 'SMS' : 'email'}...`}
+                    rows={6}
+                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  />
+                  {bulkChannel === 'sms' && (
+                    <p className="text-xs text-slate-500 mt-1">
+                      {bulkMessage.length} caractères • {Math.ceil(bulkMessage.length / 160)} SMS par contact
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="p-4 bg-slate-50 border-t border-slate-100 flex gap-2">
+                <button
+                  onClick={() => setShowBulkSend(false)}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={sendBulkMessage}
+                  disabled={selectedContacts.length === 0 || !bulkMessage.trim() || sending}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+                >
+                  {sending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Envoi en cours...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      Envoyer à {selectedContacts.length} contact(s)
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Modal - Export */}
+      <AnimatePresence>
+        {showExport && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50"
+              onClick={() => setShowExport(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-xl shadow-2xl z-50 overflow-hidden"
+            >
+              <div className="p-6 border-b border-slate-100">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-slate-900">
+                    Exporter la conversation
+                  </h3>
+                  <button
+                    onClick={() => setShowExport(false)}
+                    className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-3">
+                    Format d'export
+                  </label>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-3 p-4 border-2 border-slate-200 rounded-lg cursor-pointer hover:border-blue-300 transition-colors">
+                      <input
+                        type="radio"
+                        name="exportFormat"
+                        value="pdf"
+                        checked={exportFormat === 'pdf'}
+                        onChange={(e) => setExportFormat(e.target.value as 'pdf')}
+                        className="w-4 h-4 text-blue-600"
+                      />
+                      <div className="flex-1">
+                        <div className="text-sm font-medium text-slate-900">HTML</div>
+                        <div className="text-xs text-slate-500">Format web lisible</div>
+                      </div>
+                      <FileText className="w-5 h-5 text-slate-400" />
+                    </label>
+
+                    <label className="flex items-center gap-3 p-4 border-2 border-slate-200 rounded-lg cursor-pointer hover:border-blue-300 transition-colors">
+                      <input
+                        type="radio"
+                        name="exportFormat"
+                        value="csv"
+                        checked={exportFormat === 'csv'}
+                        onChange={(e) => setExportFormat(e.target.value as 'csv')}
+                        className="w-4 h-4 text-blue-600"
+                      />
+                      <div className="flex-1">
+                        <div className="text-sm font-medium text-slate-900">CSV</div>
+                        <div className="text-xs text-slate-500">Pour Excel / Google Sheets</div>
+                      </div>
+                      <FileText className="w-5 h-5 text-slate-400" />
+                    </label>
+                  </div>
+                </div>
+
+                {selectedConversation && (
+                  <div className="p-4 bg-slate-50 rounded-lg">
+                    <div className="text-xs text-slate-600 space-y-1">
+                      <div className="flex justify-between">
+                        <span>Contact:</span>
+                        <span className="font-medium text-slate-900">
+                          {selectedConversation.contact.full_name}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Messages:</span>
+                        <span className="font-medium text-slate-900">{messages.length}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Canal:</span>
+                        <span className="font-medium text-slate-900">
+                          {selectedConversation.channel === 'sms' ? 'SMS' : 'Email'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-4 bg-slate-50 border-t border-slate-100 flex gap-2">
+                <button
+                  onClick={() => setShowExport(false)}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={exportConversation}
+                  disabled={exporting}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
+                >
+                  {exporting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Export...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4" />
+                      Exporter
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
