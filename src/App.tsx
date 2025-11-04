@@ -21,7 +21,7 @@ const OrganizationSettings = lazy(() => import('./pages/OrganizationSettings'));
 const SaaSAdminDashboard = lazy(() => import('./pages/SaaSAdminDashboard'));
 const SaaSLandingPage = lazy(() => import('./pages/SaaSLandingPage10X'));
 const ChiroflowPremiumLanding = lazy(() => import('./pages/ChiroflowPremiumLanding'));
-const UnifiedCommunications = lazy(() => import('./pages/UnifiedCommunications10X').then(m => ({ default: m.UnifiedCommunications10X })));
+const UnifiedCommunications = lazy(() => import('./pages/UnifiedCommunicationsPro').then(m => ({ default: m.UnifiedCommunicationsPro })));
 
 function LoadingFallback() {
   return (
