@@ -192,8 +192,10 @@ export function UnifiedCommunications10X() {
       const channel = selectedConversation.channel;
 
       if (channel === 'sms') {
-        if (!selectedConversation.contact.phone) {
-          throw new Error('Ce contact n\'a pas de numéro de téléphone');
+        if (!selectedConversation.contact.phone || selectedConversation.contact.phone.trim() === '') {
+          toast.error('❌ Ce contact n\'a pas de numéro de téléphone. Créez une conversation Email à la place.');
+          setSending(false);
+          return;
         }
 
         const { data: { session } } = await supabase.auth.getSession();
@@ -295,13 +297,13 @@ export function UnifiedCommunications10X() {
       return;
     }
 
-    if (newMessageChannel === 'sms' && !selectedContact.phone) {
-      toast.error('Ce contact n\'a pas de numéro de téléphone');
+    if (newMessageChannel === 'sms' && (!selectedContact.phone || selectedContact.phone.trim() === '')) {
+      toast.error('❌ Ce contact n\'a pas de numéro de téléphone. Ajoutez-en un ou choisissez Email.');
       return;
     }
 
-    if (newMessageChannel === 'email' && !selectedContact.email) {
-      toast.error('Ce contact n\'a pas d\'adresse email');
+    if (newMessageChannel === 'email' && (!selectedContact.email || selectedContact.email.trim() === '')) {
+      toast.error('❌ Ce contact n\'a pas d\'adresse email. Ajoutez-en une ou choisissez SMS.');
       return;
     }
 
