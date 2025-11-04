@@ -5,7 +5,8 @@ import {
   Send, Paperclip, Smile, MoreVertical, Archive, Trash2,
   Tag, CheckCheck, Circle, Star, AlertCircle, Plus, X,
   Loader2, CheckCircle2, XCircle, RefreshCw, Zap, FileText,
-  Sparkles, Users, Calendar
+  Sparkles, Users, Calendar, History, TrendingUp, Activity,
+  Download
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useToastContext } from '../contexts/ToastContext';
@@ -27,6 +28,23 @@ interface Conversation {
   last_message_preview?: string;
   unread_count: number;
   contact: Contact;
+}
+
+interface Appointment {
+  id: string;
+  appointment_date: string;
+  start_time: string;
+  end_time: string;
+  status: string;
+  notes?: string;
+}
+
+interface ContactHistory {
+  appointments: Appointment[];
+  messages_count: number;
+  last_appointment?: string;
+  next_appointment?: string;
+  tags: string[];
 }
 
 interface Message {
@@ -74,6 +92,8 @@ export function UnifiedCommunications10X() {
   const [messageInput, setMessageInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [channelFilter, setChannelFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [dateFilter, setDateFilter] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [showNewConversation, setShowNewConversation] = useState(false);
@@ -88,6 +108,11 @@ export function UnifiedCommunications10X() {
   const [selectedContacts, setSelectedContacts] = useState<Contact[]>([]);
   const [bulkMessage, setBulkMessage] = useState('');
   const [bulkChannel, setBulkChannel] = useState<'sms' | 'email'>('sms');
+  const [contactHistory, setContactHistory] = useState<ContactHistory | null>(null);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [showExport, setShowExport] = useState(false);
+  const [exportFormat, setExportFormat] = useState<'pdf' | 'csv'>('pdf');
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     loadConversations();
@@ -123,6 +148,7 @@ export function UnifiedCommunications10X() {
   useEffect(() => {
     if (selectedConversation) {
       loadMessages(selectedConversation.id);
+      loadContactHistory(selectedConversation.contact_id);
     }
   }, [selectedConversation]);
 
@@ -450,14 +476,33 @@ export function UnifiedCommunications10X() {
   };
 
   const filteredConversations = conversations.filter(conv => {
-    if (!searchQuery) return true;
     const searchLower = searchQuery.toLowerCase();
-    return (
+    const matchesSearch = !searchQuery || (
       conv.contact?.full_name?.toLowerCase().includes(searchLower) ||
       conv.contact?.email?.toLowerCase().includes(searchLower) ||
       conv.contact?.phone?.includes(searchQuery) ||
       conv.subject?.toLowerCase().includes(searchLower)
     );
+
+    const matchesStatus = statusFilter === 'all' || conv.status === statusFilter;
+
+    let matchesDate = true;
+    if (dateFilter !== 'all') {
+      const convDate = new Date(conv.last_message_at);
+      const now = new Date();
+
+      if (dateFilter === 'today') {
+        matchesDate = convDate.toDateString() === now.toDateString();
+      } else if (dateFilter === 'week') {
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        matchesDate = convDate >= weekAgo;
+      } else if (dateFilter === 'month') {
+        const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        matchesDate = convDate >= monthAgo;
+      }
+    }
+
+    return matchesSearch && matchesStatus && matchesDate;
   });
 
   const filteredContacts = contacts.filter(contact => {
@@ -577,6 +622,126 @@ export function UnifiedCommunications10X() {
     });
   };
 
+  const loadContactHistory = async (contactId: string) => {
+    try {
+      setLoadingHistory(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: appointments, error: apptError } = await supabase
+        .from('appointments')
+        .select('id, appointment_date, start_time, end_time, status, notes')
+        .eq('contact_id', contactId)
+        .eq('owner_id', user.id)
+        .order('appointment_date', { ascending: false })
+        .limit(10);
+
+      if (apptError) throw apptError;
+
+      const { count: messagesCount } = await supabase
+        .from('conversation_messages')
+        .select('id', { count: 'exact', head: true })
+        .eq('contact_id', contactId);
+
+      const now = new Date().toISOString();
+      const pastAppointments = appointments?.filter(a => a.appointment_date < now) || [];
+      const futureAppointments = appointments?.filter(a => a.appointment_date >= now) || [];
+
+      setContactHistory({
+        appointments: appointments || [],
+        messages_count: messagesCount || 0,
+        last_appointment: pastAppointments[0]?.appointment_date,
+        next_appointment: futureAppointments[0]?.appointment_date,
+        tags: []
+      });
+    } catch (error) {
+      console.error('Error loading contact history:', error);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  const exportConversation = async () => {
+    if (!selectedConversation) return;
+
+    try {
+      setExporting(true);
+
+      if (exportFormat === 'csv') {
+        const csvContent = [
+          ['Date', 'Heure', 'Direction', 'Canal', 'De', 'À', 'Message'],
+          ...messages.map(msg => [
+            new Date(msg.created_at).toLocaleDateString('fr-FR'),
+            new Date(msg.created_at).toLocaleTimeString('fr-FR'),
+            msg.direction === 'outbound' ? 'Envoyé' : 'Reçu',
+            msg.channel === 'sms' ? 'SMS' : 'Email',
+            msg.from_address,
+            msg.to_address,
+            msg.body.replace(/\n/g, ' ')
+          ])
+        ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `conversation_${selectedConversation.contact.full_name}_${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+      } else {
+        const htmlContent = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <title>Conversation - ${selectedConversation.contact.full_name}</title>
+            <style>
+              body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; }
+              h1 { color: #2563eb; border-bottom: 3px solid #2563eb; padding-bottom: 10px; }
+              .info { background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0; }
+              .message { margin: 15px 0; padding: 15px; border-radius: 8px; }
+              .outbound { background: #dbeafe; border-left: 4px solid #2563eb; }
+              .inbound { background: #f3f4f6; border-left: 4px solid #6b7280; }
+              .meta { font-size: 12px; color: #6b7280; margin-top: 8px; }
+              .body { margin-top: 8px; white-space: pre-wrap; }
+            </style>
+          </head>
+          <body>
+            <h1>Conversation avec ${selectedConversation.contact.full_name}</h1>
+            <div class="info">
+              <p><strong>Canal:</strong> ${selectedConversation.channel === 'sms' ? 'SMS' : 'Email'}</p>
+              <p><strong>Contact:</strong> ${selectedConversation.contact.email || selectedConversation.contact.phone}</p>
+              <p><strong>Exporté le:</strong> ${new Date().toLocaleString('fr-FR')}</p>
+              <p><strong>Nombre de messages:</strong> ${messages.length}</p>
+            </div>
+            ${messages.map(msg => `
+              <div class="message ${msg.direction}">
+                <div class="meta">
+                  <strong>${msg.direction === 'outbound' ? 'Vous' : selectedConversation.contact.full_name}</strong> •
+                  ${new Date(msg.created_at).toLocaleString('fr-FR')}
+                </div>
+                <div class="body">${msg.body}</div>
+              </div>
+            `).join('')}
+          </body>
+          </html>
+        `;
+
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `conversation_${selectedConversation.contact.full_name}_${new Date().toISOString().split('T')[0]}.html`;
+        link.click();
+      }
+
+      toast.success(`Conversation exportée en ${exportFormat.toUpperCase()}`);
+      setShowExport(false);
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Erreur lors de l\'export');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
       <div className="max-w-[1800px] mx-auto p-6">
@@ -622,25 +787,50 @@ export function UnifiedCommunications10X() {
                 />
               </div>
 
-              <div className="flex gap-2">
-                {[
-                  { value: 'all', label: 'Tous', icon: MessageSquare },
-                  { value: 'sms', label: 'SMS', icon: Phone },
-                  { value: 'email', label: 'Email', icon: Mail }
-                ].map((filter) => (
-                  <button
-                    key={filter.value}
-                    onClick={() => setChannelFilter(filter.value)}
-                    className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
-                      channelFilter === filter.value
-                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  {[
+                    { value: 'all', label: 'Tous', icon: MessageSquare },
+                    { value: 'sms', label: 'SMS', icon: Phone },
+                    { value: 'email', label: 'Email', icon: Mail }
+                  ].map((filter) => (
+                    <button
+                      key={filter.value}
+                      onClick={() => setChannelFilter(filter.value)}
+                      className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
+                        channelFilter === filter.value
+                          ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      <filter.icon className="w-4 h-4" />
+                      {filter.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex gap-2">
+                  <select
+                    value={dateFilter}
+                    onChange={(e) => setDateFilter(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
-                    <filter.icon className="w-4 h-4" />
-                    {filter.label}
-                  </button>
-                ))}
+                    <option value="all">Toutes les dates</option>
+                    <option value="today">Aujourd'hui</option>
+                    <option value="week">Cette semaine</option>
+                    <option value="month">Ce mois</option>
+                  </select>
+
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="all">Tous les statuts</option>
+                    <option value="active">Actifs</option>
+                    <option value="archived">Archivés</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -710,7 +900,7 @@ export function UnifiedCommunications10X() {
             </div>
           </div>
 
-          <div className="col-span-8 bg-white rounded-2xl shadow-lg border border-gray-200 flex flex-col overflow-hidden">
+          <div className="col-span-6 bg-white rounded-2xl shadow-lg border border-gray-200 flex flex-col overflow-hidden">
             {selectedConversation ? (
               <>
                 <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-blue-50 via-white to-blue-50">
@@ -738,6 +928,13 @@ export function UnifiedCommunications10X() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setShowExport(true)}
+                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      title="Exporter la conversation"
+                    >
+                      <Download className="w-5 h-5 text-gray-600" />
+                    </button>
                     <button
                       onClick={() => loadMessages(selectedConversation.id)}
                       className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -909,6 +1106,121 @@ export function UnifiedCommunications10X() {
               </div>
             )}
           </div>
+
+          {selectedConversation && (
+            <div className="col-span-2 bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+              <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+                <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                  <History className="w-5 h-5 text-blue-500" />
+                  Historique
+                </h3>
+              </div>
+
+              <div className="overflow-y-auto h-[calc(100vh-320px)]">
+                {loadingHistory ? (
+                  <div className="flex items-center justify-center h-40">
+                    <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />
+                  </div>
+                ) : contactHistory ? (
+                  <div className="p-4 space-y-4">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
+                      <div className="flex items-center gap-2 mb-3">
+                        <TrendingUp className="w-4 h-4 text-blue-600" />
+                        <span className="font-semibold text-sm text-gray-900">Stats rapides</span>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600">Messages</span>
+                          <span className="font-bold text-blue-600">{contactHistory.messages_count}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600">RDV totaux</span>
+                          <span className="font-bold text-blue-600">{contactHistory.appointments.length}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {contactHistory.next_appointment && (
+                      <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Calendar className="w-4 h-4 text-green-600" />
+                          <span className="font-semibold text-sm text-gray-900">Prochain RDV</span>
+                        </div>
+                        <p className="text-xs text-green-700">
+                          {new Date(contactHistory.next_appointment).toLocaleDateString('fr-FR', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric'
+                          })}
+                        </p>
+                      </div>
+                    )}
+
+                    {contactHistory.last_appointment && (
+                      <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Clock className="w-4 h-4 text-gray-600" />
+                          <span className="font-semibold text-sm text-gray-900">Dernier RDV</span>
+                        </div>
+                        <p className="text-xs text-gray-700">
+                          {new Date(contactHistory.last_appointment).toLocaleDateString('fr-FR', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric'
+                          })}
+                        </p>
+                      </div>
+                    )}
+
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <Activity className="w-4 h-4 text-gray-600" />
+                        <span className="font-semibold text-sm text-gray-900">Historique RDV</span>
+                      </div>
+                      <div className="space-y-2">
+                        {contactHistory.appointments.slice(0, 5).map((appt) => (
+                          <div
+                            key={appt.id}
+                            className="bg-white border border-gray-200 rounded-lg p-3 hover:border-blue-300 transition-all"
+                          >
+                            <div className="flex items-center justify-between mb-1">
+                              <span className={`text-xs font-semibold px-2 py-0.5 rounded ${
+                                appt.status === 'completed' ? 'bg-green-100 text-green-700' :
+                                appt.status === 'confirmed' ? 'bg-blue-100 text-blue-700' :
+                                appt.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                                'bg-gray-100 text-gray-700'
+                              }`}>
+                                {appt.status === 'completed' ? 'Complété' :
+                                 appt.status === 'confirmed' ? 'Confirmé' :
+                                 appt.status === 'cancelled' ? 'Annulé' : appt.status}
+                              </span>
+                            </div>
+                            <p className="text-xs text-gray-600">
+                              {new Date(appt.appointment_date).toLocaleDateString('fr-FR', {
+                                day: 'numeric',
+                                month: 'short'
+                              })} à {appt.start_time}
+                            </p>
+                            {appt.notes && (
+                              <p className="text-xs text-gray-500 mt-1 line-clamp-2">{appt.notes}</p>
+                            )}
+                          </div>
+                        ))}
+                        {contactHistory.appointments.length === 0 && (
+                          <p className="text-xs text-gray-400 text-center py-4">Aucun rendez-vous</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 text-center text-gray-400">
+                    <Activity className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                    <p className="text-sm">Aucun historique</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -1199,6 +1511,110 @@ export function UnifiedCommunications10X() {
                     )}
                   </button>
                 </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showExport && selectedConversation && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowExport(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-md"
+            >
+              <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                    <Download className="w-6 h-6 text-blue-600" />
+                    Exporter la conversation
+                  </h2>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {messages.length} messages avec {selectedConversation.contact.full_name}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowExport(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    Format d'export
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => setExportFormat('pdf')}
+                      className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
+                        exportFormat === 'pdf'
+                          ? 'border-blue-500 bg-blue-50 shadow-md'
+                          : 'border-gray-200 hover:border-blue-300'
+                      }`}
+                    >
+                      <FileText className={`w-6 h-6 ${exportFormat === 'pdf' ? 'text-blue-600' : 'text-gray-400'}`} />
+                      <span className="font-semibold text-sm">HTML/PDF</span>
+                      <span className="text-xs text-gray-500">Meilleure lisibilité</span>
+                    </button>
+                    <button
+                      onClick={() => setExportFormat('csv')}
+                      className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
+                        exportFormat === 'csv'
+                          ? 'border-green-500 bg-green-50 shadow-md'
+                          : 'border-gray-200 hover:border-green-300'
+                      }`}
+                    >
+                      <FileText className={`w-6 h-6 ${exportFormat === 'csv' ? 'text-green-600' : 'text-gray-400'}`} />
+                      <span className="font-semibold text-sm">CSV</span>
+                      <span className="text-xs text-gray-500">Excel compatible</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-sm text-blue-900">
+                    <strong>Contenu:</strong> Tous les messages de cette conversation seront inclus dans l'export.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50">
+                <button
+                  onClick={() => setShowExport(false)}
+                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 font-semibold transition-all"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={exportConversation}
+                  disabled={exporting}
+                  className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl flex items-center gap-2"
+                >
+                  {exporting ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Export en cours...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-5 h-5" />
+                      Exporter en {exportFormat.toUpperCase()}
+                    </>
+                  )}
+                </button>
               </div>
             </motion.div>
           </motion.div>
