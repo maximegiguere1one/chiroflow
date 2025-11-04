@@ -602,13 +602,18 @@ export function UnifiedCommunicationsPro() {
         {/* Header - Professional & Clean */}
         <div className="mb-6">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">
-                Communications
-              </h1>
-              <p className="text-sm text-slate-500 mt-0.5">
-                Gérez vos conversations SMS et Email
-              </p>
+            <div className="flex items-center gap-4">
+              <div>
+                <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">
+                  Communications PRO v2.0
+                </h1>
+                <p className="text-sm text-slate-500 mt-0.5">
+                  Interface professionnelle - Layout 3 colonnes
+                </p>
+              </div>
+              <span className="px-3 py-1 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-xs font-bold rounded-full shadow-lg animate-pulse">
+                NOUVELLE VERSION
+              </span>
             </div>
 
             <div className="flex items-center gap-3">
