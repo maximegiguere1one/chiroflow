@@ -14,8 +14,10 @@ import {
   Eye,
   EyeOff,
   Globe,
+  Phone,
 } from 'lucide-react';
 import { OnlineBookingConfig } from './OnlineBookingConfig';
+import { TwilioPhoneSetup } from './TwilioPhoneSetup';
 import { useToastContext } from '../../contexts/ToastContext';
 import { Tooltip } from '../common/Tooltip';
 import { FormSkeleton } from '../common/LoadingSkeleton';
@@ -45,7 +47,7 @@ interface UserProfile {
 }
 
 export function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<'profile' | 'clinic' | 'notifications' | 'security' | 'booking'>(
+  const [activeTab, setActiveTab] = useState<'profile' | 'clinic' | 'notifications' | 'security' | 'booking' | 'phone'>(
     'profile'
   );
   const [loading, setLoading] = useState(true);
@@ -108,6 +110,7 @@ export function SettingsPage() {
   const tabs = [
     { id: 'profile', label: 'Profil', icon: User },
     { id: 'clinic', label: 'Clinique', icon: Building2 },
+    { id: 'phone', label: 'Téléphonie SMS', icon: Phone },
     { id: 'booking', label: 'Réservation en ligne', icon: Globe },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'security', label: 'Sécurité', icon: Lock },
@@ -160,6 +163,7 @@ export function SettingsPage() {
               onSavingChange={setSaving}
             />
           )}
+          {activeTab === 'phone' && <TwilioPhoneSetup />}
           {activeTab === 'booking' && <OnlineBookingConfig />}
           {activeTab === 'notifications' && <NotificationSettings />}
           {activeTab === 'security' && <SecuritySettings />}
